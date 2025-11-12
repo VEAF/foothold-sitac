@@ -47,6 +47,10 @@
             text-align: left;
         }
 
+        td.n {
+            text-align: right;
+        }
+
         th {
             background: #f5f7fa;
             color: #333;
@@ -104,20 +108,20 @@
             </tr>
         </thead>
         <tbody>
-            {% for name, zone in sitac.zones.items() %}
+            {% for name, zone in sitac.zones.items()  | sort %}
             <tr>
                 <td>{{ name }}</td>
                 <td>
                     {% if zone.side == 1 %}
-                        <span class="badge blue">Blue</span>
-                    {% elif zone.side == 2 %}
                         <span class="badge red">Red</span>
+                    {% elif zone.side == 2 %}
+                        <span class="badge blue">Blue</span>
                     {% else %}
                         <span class="badge grey">Neutral</span>
                     {% endif %}
                 </td>
-                <td>{{ zone.level }}</td>
-                <td>{{ zone.upgradesUsed }}</td>
+                <td class="n">{{ zone.level }}</td>
+                <td class="n">{{ zone.upgradesUsed }}</td>
                 <td>{{ 'Yes' if zone.active else 'No' }}</td>
                 <td>{{ 'Yes' if zone.firstCaptureByRed else 'No' }}</td>
             </tr>
@@ -140,22 +144,22 @@
             </tr>
         </thead>
         <tbody>
-            {% for player, stats in sitac.playerStats.items() %}
+            {% for player, stats in sitac.playerStats.items() | sort(attribute='1.points', reverse=True) %}
             <tr>
                 <td>{{ player }}</td>
-                <td>{{ stats.Points }}</td>
-                <td>{{ stats.Deaths }}</td>
-                <td>{{ stats.Zone_capture }}</td>
-                <td>{{ stats.Zone_upgrade }}</td>
-                <td>{{ stats.Air }}</td>
-                <td>{{ stats.Ground_Units }}</td>
+                <td class="n">{{ stats.points | int }}</td>
+                <td class="n">{{ stats.deaths }}</td>
+                <td class="n">{{ stats.zone_capture }}</td>
+                <td class="n">{{ stats.zone_upgrade }}</td>
+                <td class="n">{{ stats.air }}</td>
+                <td class="n">{{ stats.ground_units }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <div style="text-align:center;">
-        <a href="{{ request.url_for('home') }}" class="back-btn">Retour</a>
+        <a href="{{ request.url_for('home') }}" class="back-btn">Back to home</a>
     </div>
 </div>
 

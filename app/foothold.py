@@ -1,38 +1,37 @@
 from lupa import LuaRuntime
-from pydantic import BaseModel
-from typing import Dict, List
+from pydantic import BaseModel, Field
 
 
 class Zone(BaseModel):
     upgradesUsed: int
     side: int
     active: bool
-    destroyed: Dict[int, str] | List[str] | dict
+    destroyed: dict[int, str] | list[str] | dict
     extraUpgrade: dict
-    remainingUnits: Dict[int, Dict[int, str]] | dict
+    remainingUnits: dict[int, dict[int, str]] | dict
     firstCaptureByRed: bool
     level: int
     wasBlue: bool
-    triggers: Dict[str, int]
+    triggers: dict[str, int]
 
 
 class PlayerStats(BaseModel):
-    Air: int | None = 0
-    SAM: int | None = 0
-    Points: float | None = 0
-    Deaths: int | None = 0
-    Zone_capture: int | None = 0
-    Zone_upgrade: int | None = 0
-    CAS_mission: int | None = 0
-    Points_spent: int | None = 0
-    Infantry: int | None = 0
-    Ground_Units: int | None = 0
-    Helo: int | None = 0
+    air: int = Field(alias="Air", default=0)
+    SAM: int = Field(alias="SAM", default=0)
+    points: float = Field(alias="Points", default=0)
+    deaths: int = Field(alias="Deaths", default=0)
+    zone_capture: int = Field(alias="Zone capture", default=0)
+    zone_upgrade: int = Field(alias="Zone upgrade", default=0)
+    CAS_mission: int = Field(alias="CAS mission", default=0)
+    points_spent: int = Field(alias="Points spent", default=0)
+    infantry: int = Field(alias="Infantry", default=0)
+    ground_units: int = Field(alias="Ground Units", default=0)
+    helo: int = Field(alias="Helo", default=0)
 
 
 class ZonePersistance(BaseModel):
-    zones: Dict[str, Zone]
-    playerStats: Dict[str, PlayerStats]
+    zones: dict[str, Zone]
+    playerStats: dict[str, PlayerStats]
 
 
 def lua_to_dict(lua_table):
