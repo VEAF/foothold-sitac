@@ -151,7 +151,6 @@ def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:
     min_long, max_long = first_zone.position.longitude, first_zone.position.longitude
 
     for zone in sitac.zones.values():
-        print(zone.position)
 
         min_lat, max_lat = min(min_lat, zone.position.latitude), max(max_lat, zone.position.latitude)
         min_long, max_long = min(min_long, zone.position.longitude), max(max_long, zone.position.longitude)
