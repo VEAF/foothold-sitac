@@ -20,36 +20,37 @@
         map_center = JSON.parse('{{ center }}')
         const map = L.map('map').setView(map_center, 7);
 
-        // Fond OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // load data (todo: how to refresh ?)
-        fetch('{{ request.url_for("foothold_map_data", server=server) }}')
-            .then(r => r.json())
-            .then(data => {
-                data.forEach(p => {
+        const zonesLayer = L.layerGroup().addTo(map);
+
+        function loadData() {
+            fetch('{{ request.url_for("foothold_map_data", server=server) }}')
+                .then(r => r.json())
+                .then(data => {
+                    zonesLayer.clearLayers()
+                    data.forEach(p => {
 
 
-                    var circle = L.circle([p.lat, p.lon], {
-                        color: p.color,
-                        fillColor: p.color,
-                        fillOpacity: 0.3,
-                        radius: 10000
-                    }).addTo(map)
-                        .bindPopup(p.name || `${p.lat}, ${p.lon}`);
-                    ;
+                        var circle = L.circle([p.lat, p.lon], {
+                            color: p.color,
+                            fillColor: p.color,
+                            fillOpacity: 0.3,
+                            radius: 10000
+                        }).addTo(zonesLayer)
+                            .bindPopup(p.name || `${p.lat}, ${p.lon}`);
+                        ;
 
-                    /*
-                    L.marker([p.lat, p.lon])
-                        .addTo(map)
-                        .bindPopup(p.name || `${p.lat}, ${p.lon}`); 
-                    */
-                });
-            })
-            .catch(console.error);
+                    });
+                })
+                .catch(console.error);
+        }
+
+        loadData(); // initial load
+        setInterval(loadData, 30000); // refresh every x ms
     </script>
 </body>
 
