@@ -6,6 +6,10 @@
     <title>DCS File Browser</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="stylesheet" ref="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <style>
         body {
             font-family: "Segoe UI", Roboto, sans-serif;
@@ -62,8 +66,22 @@
         <h1>Welcome</h1>
         <p>Access to Foothold Sitac.</p>
 
-        <a class="cta-btn" href="{{ request.url_for('foothold_servers') }}">
-            Go to SITAC
+
+        <table>
+            {% for server in servers %}
+            <tr>
+                <td>
+                    <a href="{{ request.url_for('foothold_sitac', server=server) }}">{{ server }}</a>
+                </td>
+                <td>
+                    <a href="{{ request.url_for('foothold_sitac', server=server) }}"><i class="fa-solid fa-map-location-dot"></i> Map</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <a class="cta-btn" href="{{ request.url_for('home') }}">
+            Back to home
         </a>
     </div>
 
