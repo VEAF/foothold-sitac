@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>SITAC - Foothold</title>
@@ -19,7 +20,7 @@
             background: white;
             border-radius: 12px;
             padding: 40px 50px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
 
         h1 {
@@ -42,7 +43,8 @@
             margin-top: 15px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px 12px;
             text-align: left;
         }
@@ -84,84 +86,94 @@
             color: white;
         }
 
-        .badge.blue { background: #4263eb; }
-        .badge.red { background: #e03131; }
-        .badge.grey { background: #868e96; }
+        .badge.blue {
+            background: #4263eb;
+        }
+
+        .badge.red {
+            background: #e03131;
+        }
+
+        .badge.grey {
+            background: #868e96;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>SITAC - Foothold</h1>
+    <div class="container">
+        <h1>SITAC - Foothold</h1>
 
-    <!-- Section ZONES -->
-    <h2>Zones</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Side</th>
-                <th>Level</th>
-                <th>Upgrades Used</th>
-                <th>Active</th>
-                <th>First Capture by Red</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for name, zone in sitac.zones.items()  | sort %}
-            <tr>
-                <td>{{ name }}</td>
-                <td>
-                    {% if zone.side == 1 %}
+        <!-- Section ZONES -->
+        <h2>Zones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Side</th>
+                    <th>Level</th>
+                    <th>Upgrades Used</th>
+                    <th>Active</th>
+                    <th>First Capture by Red</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, zone in sitac.zones.items() | sort %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>
+                        {% if zone.side == 1 %}
                         <span class="badge red">Red</span>
-                    {% elif zone.side == 2 %}
+                        {% elif zone.side == 2 %}
                         <span class="badge blue">Blue</span>
-                    {% else %}
+                        {% else %}
                         <span class="badge grey">Neutral</span>
-                    {% endif %}
-                </td>
-                <td class="n">{{ zone.level }}</td>
-                <td class="n">{{ zone.upgradesUsed }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
-                <td>{{ 'Yes' if zone.firstCaptureByRed else 'No' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                        {% endif %}
+                    </td>
+                    <td class="n">{{ zone.level }}</td>
+                    <td class="n">{{ zone.upgradesUsed }}</td>
+                    <td>{{ 'Yes' if zone.active else 'No' }}</td>
+                    <td>{{ 'Yes' if zone.firstCaptureByRed else 'No' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <!-- Section PLAYER STATS -->
-    <h2>Player Stats</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Player</th>
-                <th>Points</th>
-                <th>Deaths</th>
-                <th>Zone Captures</th>
-                <th>Zone Upgrades</th>
-                <th>Air</th>
-                <th>Ground Units</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for player, stats in sitac.playerStats.items() | sort(attribute='1.points', reverse=True) %}
-            <tr>
-                <td>{{ player }}</td>
-                <td class="n">{{ stats.points | int }}</td>
-                <td class="n">{{ stats.deaths }}</td>
-                <td class="n">{{ stats.zone_capture }}</td>
-                <td class="n">{{ stats.zone_upgrade }}</td>
-                <td class="n">{{ stats.air }}</td>
-                <td class="n">{{ stats.ground_units }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Section PLAYER STATS -->
+        <h2>Player Stats</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Points</th>
+                    <th>Deaths</th>
+                    <th>Zone Captures</th>
+                    <th>Zone Upgrades</th>
+                    <th>Air</th>
+                    <th>Ground Units</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player, stats in sitac.playerStats.items() | sort(attribute='1.points', reverse=True) %}
+                <tr>
+                    <td>{{ player }}</td>
+                    <td class="n">{{ stats.points | int }}</td>
+                    <td class="n">{{ stats.deaths }}</td>
+                    <td class="n">{{ stats.zone_capture }}</td>
+                    <td class="n">{{ stats.zone_upgrade }}</td>
+                    <td class="n">{{ stats.air }}</td>
+                    <td class="n">{{ stats.ground_units }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <div style="text-align:center;">
-        <a href="{{ request.url_for('foothold_servers') }}" class="back-btn">Back to servers list</a>
+        <div style="text-align:center;">
+            <a href="{{ request.url_for('foothold_servers') }}" class="back-btn">Back to servers list</a>
+        </div>
     </div>
-</div>
 
 </body>
+
 </html>

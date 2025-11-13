@@ -10,6 +10,12 @@ class ConfigError(Exception):
     ...
 
 
+class Position(BaseModel):
+    latitude: float
+    longitude: float
+    altitude: int | None = None  # not used anymore
+
+
 class Zone(BaseModel):
     upgradesUsed: int
     side: int
@@ -21,6 +27,23 @@ class Zone(BaseModel):
     level: int
     wasBlue: bool
     triggers: dict[str, int]
+    position: Position = Field(alias="lat_long")
+
+    @property
+    def side_color(self) -> str:
+        if self.side == 1:
+            return "red"
+        elif self.side == 2:
+            return "blue"
+        return "gray"
+
+    @property
+    def side_str(self) -> str:
+        if self.side == 1:
+            return "red"
+        elif self.side == 2:
+            return "blue"
+        return "neutral"
 
 
 class PlayerStats(BaseModel):
@@ -116,6 +139,34 @@ def list_servers() -> list[str]:
 def get_server_path_by_name(server: str) -> Path:
 
     return Path(DCS_SAVED_GAMES_PATH) / server
+
+
+def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:
+
+    if not sitac.zones:
+        raise ValueError("sitac without zones")
+    first_zone = sitac.zones[next(iter(sitac.zones))]
+
+    min_lat, max_lat = first_zone.position.latitude, first_zone.position.latitude
+    min_long, max_long = first_zone.position.longitude, first_zone.position.longitude
+
+    for zone in sitac.zones.values():
+        print(zone.position)
+
+        min_lat, max_lat = min(min_lat, zone.position.latitude), max(max_lat, zone.position.latitude)
+        min_long, max_long = min(min_long, zone.position.longitude), max(max_long, zone.position.longitude)
+
+    return Position(latitude=min_lat, longitude=min_long), Position(latitude=max_lat, longitude=max_long)
+
+
+def get_sitac_center(sitac: ZonePersistance) -> Position:
+
+    min_pos, max_pos = get_sitac_range(sitac)
+
+    return Position(
+        latitude=(max_pos.latitude + min_pos.latitude)/2,
+        longitude=(max_pos.longitude + min_pos.longitude)/2,
+    )
 
 
 if __name__ == "__main__":

@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>DCS File Browser</title>
+    <title>Foothold SITAC - map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" ref="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -39,6 +39,31 @@
 
         p {
             color: #555;
+        }
+
+        td {
+            padding: 10px 0;
+        }
+
+        a {
+            text-decoration: none;
+            color: #4263eb;
+            transition: color 0.2s ease, transform 0.15s ease;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: #274bde;
+            transform: translateY(-1px);
+        }
+
+        i {
+            margin-right: 6px;
+            color: #4263eb;
+        }
+
+        a:hover i {
+            color: #274bde;
         }
 
         .cta-btn {
@@ -74,7 +99,8 @@
                     <a href="{{ request.url_for('foothold_sitac', server=server) }}">{{ server }}</a>
                 </td>
                 <td>
-                    <a href="{{ request.url_for('foothold_sitac', server=server) }}"><i class="fa-solid fa-map-location-dot"></i> Map</a>
+                    <a href="{{ request.url_for('foothold_map', server=server) }}"><i
+                            class="fa-solid fa-map-location-dot"></i> Map</a>
                 </td>
             </tr>
             {% endfor %}
