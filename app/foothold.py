@@ -1,5 +1,13 @@
+import os
+from pathlib import Path
 from lupa import LuaRuntime
 from pydantic import BaseModel, Field
+
+DCS_SAVED_GAMES_PATH = os.getenv("DCS_SAVED_GAMES_PATH", "var")
+
+
+class ConfigError(Exception):
+    ...
 
 
 class Zone(BaseModel):
@@ -45,11 +53,11 @@ def lua_to_dict(lua_table):
     return result
 
 
-def load_sitac(filename: str) -> ZonePersistance:
+def load_sitac(file: Path) -> ZonePersistance:
 
     lua = LuaRuntime(unpack_returned_tuples=True)
 
-    with open(filename, "r", encoding="utf-8") as f:
+    with open(file.absolute(), "r", encoding="utf-8") as f:
         lua_code = f.read()
 
     lua.execute(lua_code)
@@ -60,7 +68,57 @@ def load_sitac(filename: str) -> ZonePersistance:
     return ZonePersistance(**zone_persistance_dict)  # type: ignore
 
 
-if __name__ == "__main__":
+def detect_foothold_mission_path(server_path: Path) -> Path | None:
 
+    saves_path = server_path / "Missions" / "Saves"
+
+    candidates: list[Path] = []
+
+    if not saves_path.is_dir():
+        raise ConfigError("not a foothold server")
+
+    for file in saves_path.iterdir():
+        if file.is_file() and file.name.endswith(".lua") and "_Extended_" in file.name:
+            candidates.append(file)
+
+    # no mission found ?
+    if len(candidates) == 0:
+        return None
+
+    # newer is active mission
+    return max(candidates, key=lambda f: f.stat().st_mtime)
+
+
+def is_foothold_path(server_path: Path) -> bool:
+    """Check if path is a Foothold server path
+
+    Note: Foothold server should contain "Missions" subdirectory
+    """
+
+    missions_path = server_path / "Missions"
+
+    return missions_path.is_dir()
+
+
+def list_servers() -> list[str]:
+
+    base_path = Path(DCS_SAVED_GAMES_PATH)
+
+    if not base_path.is_dir():
+        raise ConfigError(f"DCS_SAVED_GAMES_PATH '{DCS_SAVED_GAMES_PATH}' is not a valid dir")
+
+    return sorted([
+        file.name for file in base_path.iterdir()
+        if is_foothold_path(file.absolute()) and not file.name.startswith(".")
+    ])
+
+
+def get_server_path_by_name(server: str) -> Path:
+
+    return Path(DCS_SAVED_GAMES_PATH) / server
+
+
+if __name__ == "__main__":
+    # only for debug
     test = load_sitac("var/footholdSyria_Extended_0.1.lua")
     print(test)

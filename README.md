@@ -2,16 +2,16 @@
 
 POC about a web sitac for Foothold missions
 
-# Work on this project
+## Work or install this project
+
+Define an environment var DCS_SAVED_GAMES_PATH (ex: C:\Users\veaf\Saved Games)
 
 ```shell
 git clone git@github.com:VEAF/foothold-sitac.git
 
 cd foothold-sitac
 poetry install
-poetry shell
-
-python -m app.main
+poetry run python -m app.main
 ```
 
 ## POC Notes
