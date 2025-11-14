@@ -18,10 +18,11 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         map_center = JSON.parse('{{ center }}')
-        const map = L.map('map').setView(map_center, 7);
+        const map = L.map('map').setView(map_center, 8);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            minZoom: 8,
+            maxZoom: 10,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
@@ -39,10 +40,13 @@
                             color: p.color,
                             fillColor: p.color,
                             fillOpacity: 0.3,
-                            radius: 10000
-                        }).addTo(zonesLayer)
-                            .bindPopup(p.name || `${p.lat}, ${p.lon}`);
-                        ;
+                            radius: Math.min(20000,Math.max(2000, 2000 * p.level)),
+                        }).addTo(zonesLayer);
+
+                        circle.bindPopup(p.name || `${p.lat}, ${p.lon}`);
+                        if (p.units > 0) {
+                            circle.bindTooltip(p.units + " units", { permanent: true, position: "right", direction: "top" });
+                        }
 
                     });
                 })

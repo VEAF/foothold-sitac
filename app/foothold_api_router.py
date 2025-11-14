@@ -28,7 +28,9 @@ async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac
                 "lat": zone.position.latitude,
                 "lon": zone.position.longitude,
                 "side": zone.side_str,
-                "color": zone.side_color
+                "color": zone.side_color,
+                "units": zone.total_units,
+                "level": zone.level
             }
         )
         for zone_name, zone in sitac.zones.items() if zone.position

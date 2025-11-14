@@ -21,7 +21,7 @@ class Zone(BaseModel):
     active: bool
     destroyed: dict[int, str] | list[str] | dict
     extra_upgrade: dict = Field(alias="extraUpgrade")
-    remainingUnits: dict[int, dict[int, str]] | dict
+    remaining_units: dict[int, dict[int, str]] | dict = Field(alias="remainingUnits")
     first_capture_by_red: bool = Field(alias="firstCaptureByRed")
     level: int
     wasBlue: bool
@@ -43,6 +43,10 @@ class Zone(BaseModel):
         elif self.side == 2:
             return "blue"
         return "neutral"
+
+    @property
+    def total_units(self) -> int:
+        return sum([len(group_units) for group_units in self.remaining_units.values()])
 
 
 class PlayerStats(BaseModel):

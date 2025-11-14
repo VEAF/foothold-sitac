@@ -12,3 +12,5 @@ class MapZone(BaseModel):
     lon: float
     side: str
     color: str
+    units: int
+    level: int
