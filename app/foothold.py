@@ -1,10 +1,7 @@
-import os
 from pathlib import Path
 from lupa import LuaRuntime
 from pydantic import BaseModel, Field
-
-DCS_SAVED_GAMES_PATH = os.getenv("DCS_SAVED_GAMES_PATH", "var")
-
+from app.config import get_config
 
 class ConfigError(Exception):
     ...
@@ -125,10 +122,10 @@ def is_foothold_path(server_path: Path) -> bool:
 
 def list_servers() -> list[str]:
 
-    base_path = Path(DCS_SAVED_GAMES_PATH)
+    base_path = Path(get_config().dcs.saved_games)
 
     if not base_path.is_dir():
-        raise ConfigError(f"DCS_SAVED_GAMES_PATH '{DCS_SAVED_GAMES_PATH}' is not a valid dir")
+        raise ConfigError(f"config:dcs.saved_games '{get_config().dcs.saved_games}' is not a valid dir")
 
     return sorted([
         file.name for file in base_path.iterdir()
@@ -138,7 +135,7 @@ def list_servers() -> list[str]:
 
 def get_server_path_by_name(server: str) -> Path:
 
-    return Path(DCS_SAVED_GAMES_PATH) / server
+    return Path(get_config().dcs.saved_games) / server
 
 
 def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:

@@ -2,9 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import HTMLResponse
 from app.foothold import ZonePersistance, detect_foothold_mission_path, get_server_path_by_name, get_sitac_center, list_servers, load_sitac
-from jinja2 import Environment, FileSystemLoader
-
-env = Environment(loader=FileSystemLoader('templates'))
+from app.templater import env
 
 router = APIRouter()
 
