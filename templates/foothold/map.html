@@ -28,7 +28,7 @@
         const zonesLayer = L.layerGroup().addTo(map);
 
         function loadData() {
-            fetch('{{ request.url_for("foothold_map_data", server=server) }}')
+            fetch('{{ request.url_for("foothold_get_map_data", server=server) }}')
                 .then(r => r.json())
                 .then(data => {
                     zonesLayer.clearLayers()
