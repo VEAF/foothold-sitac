@@ -2,6 +2,9 @@
 # copy this file to config.yml
 # uncomment and update customized values (commented are default values)
 web:
+  # application title
+  title: Foothold Sitac
+
   # ip address
   # ip: 0.0.0.0
 
@@ -12,4 +15,4 @@ web:
   # reload: false
 
 dcs:
-    saved_games: "C:\Users\veaf\Saved Games" # !! update your setup
+    saved_games: "C:\\Users\\veaf\\Saved Games" # !! update your setup
