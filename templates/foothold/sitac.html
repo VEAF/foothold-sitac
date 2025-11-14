@@ -155,7 +155,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for player, stats in sitac.playerStats.items() | sort(attribute='1.points', reverse=True) %}
+                {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
                 <tr>
                     <td>{{ player }}</td>
                     <td class="n">{{ stats.points | int }}</td>

@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from lupa import LuaRuntime
 from pydantic import BaseModel, Field
@@ -15,13 +16,13 @@ class Position(BaseModel):
 
 
 class Zone(BaseModel):
-    upgradesUsed: int
+    upgrades_used: int = Field(alias="upgradesUsed")
     side: int
     active: bool
     destroyed: dict[int, str] | list[str] | dict
-    extraUpgrade: dict
+    extra_upgrade: dict = Field(alias="extraUpgrade")
     remainingUnits: dict[int, dict[int, str]] | dict
-    firstCaptureByRed: bool
+    first_capture_by_red: bool = Field(alias="firstCaptureByRed")
     level: int
     wasBlue: bool
     triggers: dict[str, int]
@@ -58,9 +59,10 @@ class PlayerStats(BaseModel):
     helo: int = Field(alias="Helo", default=0)
 
 
-class ZonePersistance(BaseModel):
+class Sitac(BaseModel):
+    updated_at: datetime
     zones: dict[str, Zone]
-    playerStats: dict[str, PlayerStats]
+    player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
 
 
 def lua_to_dict(lua_table):
@@ -74,7 +76,7 @@ def lua_to_dict(lua_table):
     return result
 
 
-def load_sitac(file: Path) -> ZonePersistance:
+def load_sitac(file: Path) -> Sitac:
 
     lua = LuaRuntime(unpack_returned_tuples=True)
 
@@ -86,28 +88,22 @@ def load_sitac(file: Path) -> ZonePersistance:
     zone_persistance = lua.globals().zonePersistance  # type: ignore
     zone_persistance_dict = lua_to_dict(zone_persistance)
 
-    return ZonePersistance(**zone_persistance_dict)  # type: ignore
+    return Sitac(**zone_persistance_dict, updated_at=file.stat().st_mtime)  # type: ignore
 
 
-def detect_foothold_mission_path(server_path: Path) -> Path | None:
+def detect_foothold_mission_path(server_name: str) -> Path | None:
 
-    saves_path = server_path / "Missions" / "Saves"
+    file_status = get_foothold_server_status_path(server_name)
+    print(file_status)
 
-    candidates: list[Path] = []
-
-    if not saves_path.is_dir():
-        raise ConfigError("not a foothold server")
-
-    for file in saves_path.iterdir():
-        if file.is_file() and file.name.endswith(".lua") and "_Extended_" in file.name:
-            candidates.append(file)
-
-    # no mission found ?
-    if len(candidates) == 0:
+    if not file_status.is_file():
         return None
 
-    # newer is active mission
-    return max(candidates, key=lambda f: f.stat().st_mtime)
+    with open(file_status) as f:
+        mission_file_path = Path(f.readline().strip())
+
+    print(mission_file_path)
+    return mission_file_path
 
 
 def get_server_path_by_name(server_name: str) -> Path:
@@ -146,7 +142,7 @@ def list_servers() -> list[str]:
     ])
 
 
-def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:
+def get_sitac_range(sitac: Sitac) -> tuple[Position, Position]:
 
     if not sitac.zones:
         raise ValueError("sitac without zones")
@@ -163,7 +159,7 @@ def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:
     return Position(latitude=min_lat, longitude=min_long), Position(latitude=max_lat, longitude=max_long)
 
 
-def get_sitac_center(sitac: ZonePersistance) -> Position:
+def get_sitac_center(sitac: Sitac) -> Position:
 
     min_pos, max_pos = get_sitac_range(sitac)
 
