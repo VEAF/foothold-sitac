@@ -1,12 +1,10 @@
 import uvicorn
 from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, Request
-from jinja2 import Environment, FileSystemLoader
 from app.foothold_router import router as foothold_router
+from app.templater import env
 
 app = FastAPI()
-
-env = Environment(loader=FileSystemLoader('templates'))
 
 
 @app.get("/", response_class=HTMLResponse)

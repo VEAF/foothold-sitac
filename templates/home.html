@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Foothold SITAC</title>
+    <title>{{ config.web.title }} - Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -62,10 +62,10 @@
         <h1>Welcome</h1>
         <p>Access to Foothold Sitac.</p>
 
-    <a class="cta-btn" href="{{ request.url_for('foothold_servers') }}">
-        Go to Foothold
-    </a>
-</div>
+        <a class="cta-btn" href="{{ request.url_for('foothold_servers') }}">
+            Go to Foothold
+        </a>
+    </div>
 
 </body>
 

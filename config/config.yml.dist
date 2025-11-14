@@ -1,0 +1,12 @@
+# configuration of listening web server
+# copy this file to config.yml
+# uncomment and update customized values (commented are default values)
+web:
+  # ip address
+  # ip: 0.0.0.0
+
+  # port number
+  # port: 8080
+
+dcs:
+    saved_games: "C:\Users\veaf\Saved Games" # !! update your setup
