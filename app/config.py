@@ -18,10 +18,16 @@ class DcsConfig(BaseModel):
     saved_games: str = "var"  # "DCS Saved Games Path"
 
 
+class MapConfig(BaseModel):
+
+    url_tiles: str = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
+
 class AppConfig(BaseModel):
 
     web: Annotated[WebConfig, Field(default_factory=WebConfig)]
     dcs: Annotated[DcsConfig, Field(default_factory=DcsConfig)]
+    map: Annotated[MapConfig, Field(default_factory=MapConfig)]
 
 
 def load_config_str(raw_config: dict[Any, Any]) -> AppConfig:

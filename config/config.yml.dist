@@ -16,3 +16,11 @@ web:
 
 dcs:
     saved_games: "C:\\Users\\veaf\\Saved Games" # !! update your setup
+
+map:
+
+    # openstreetmap
+    # url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+    # arcgis (default)
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
