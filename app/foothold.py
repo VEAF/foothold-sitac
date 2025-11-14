@@ -34,7 +34,7 @@ class Zone(BaseModel):
             return "red"
         elif self.side == 2:
             return "blue"
-        return "gray"
+        return "lightgray"
 
     @property
     def side_str(self) -> str:

@@ -20,9 +20,9 @@
         map_center = JSON.parse('{{ center }}')
         const map = L.map('map').setView(map_center, 8);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('{{ config.map.url_tiles }}', {
             minZoom: 8,
-            maxZoom: 10,
+            maxZoom: 11,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
