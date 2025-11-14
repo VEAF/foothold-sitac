@@ -3,6 +3,7 @@ from lupa import LuaRuntime
 from pydantic import BaseModel, Field
 from app.config import get_config
 
+
 class ConfigError(Exception):
     ...
 
@@ -109,15 +110,27 @@ def detect_foothold_mission_path(server_path: Path) -> Path | None:
     return max(candidates, key=lambda f: f.stat().st_mtime)
 
 
-def is_foothold_path(server_path: Path) -> bool:
-    """Check if path is a Foothold server path
+def get_server_path_by_name(server_name: str) -> Path:
 
-    Note: Foothold server should contain "Missions" subdirectory
-    """
+    return Path(get_config().dcs.saved_games) / server_name
 
-    missions_path = server_path / "Missions"
 
-    return missions_path.is_dir()
+def get_foothold_server_saves_path(server_name: str) -> Path:
+
+    return get_server_path_by_name(server_name) / "Missions" / "Saves"
+
+
+def get_foothold_server_status_path(server_name: str) -> Path:
+
+    return get_foothold_server_saves_path(server_name) / "foothold.status"
+
+
+def is_foothold_path(server_name: str) -> bool:
+    """Check if server_name (directory in DCS Saved Games) is a Foothold server path"""
+
+    path = get_foothold_server_status_path(server_name)
+
+    return path.is_file()
 
 
 def list_servers() -> list[str]:
@@ -129,13 +142,8 @@ def list_servers() -> list[str]:
 
     return sorted([
         file.name for file in base_path.iterdir()
-        if is_foothold_path(file.absolute()) and not file.name.startswith(".")
+        if not file.name.startswith(".") and is_foothold_path(file.name)
     ])
-
-
-def get_server_path_by_name(server: str) -> Path:
-
-    return Path(get_config().dcs.saved_games) / server
 
 
 def get_sitac_range(sitac: ZonePersistance) -> tuple[Position, Position]:
