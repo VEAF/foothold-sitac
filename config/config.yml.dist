@@ -8,5 +8,8 @@ web:
   # port number
   # port: 8080
 
+  # automatic python service reload when scripts are updated (dev environment only)
+  # reload: false
+
 dcs:
     saved_games: "C:\Users\veaf\Saved Games" # !! update your setup
