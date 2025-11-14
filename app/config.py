@@ -10,6 +10,7 @@ class WebConfig(BaseModel):
     host: str = "0.0.0.0"
     port: int = 8080
     title: str = "Foothold Sitac Server"
+    reload: bool = False
 
 
 class DcsConfig(BaseModel):
