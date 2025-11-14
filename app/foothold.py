@@ -88,13 +88,15 @@ def load_sitac(file: Path) -> Sitac:
     zone_persistance = lua.globals().zonePersistance  # type: ignore
     zone_persistance_dict = lua_to_dict(zone_persistance)
 
-    return Sitac(**zone_persistance_dict, updated_at=file.stat().st_mtime)  # type: ignore
+    return Sitac(
+        **zone_persistance_dict,  # type: ignore
+        updated_at=datetime.fromtimestamp(file.stat().st_mtime)
+    )
 
 
 def detect_foothold_mission_path(server_name: str) -> Path | None:
 
     file_status = get_foothold_server_status_path(server_name)
-    print(file_status)
 
     if not file_status.is_file():
         return None
