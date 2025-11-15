@@ -17,12 +17,13 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        map_center = JSON.parse('{{ center }}')
+        map_center = JSON.parse('{{ center }}');
+        map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
         const map = L.map('map').setView(map_center, 8);
 
-        L.tileLayer('{{ config.map.url_tiles }}', {
-            minZoom: 8,
-            maxZoom: 11,
+        L.tileLayer(map_options.url_tiles, {
+            minZoom: map_options.min_zoom,
+            maxZoom: map_options.max_zoom,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
