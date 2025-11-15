@@ -11,6 +11,7 @@
             width: 100%;
         }
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
 
 <body>
@@ -41,7 +42,7 @@
                             color: p.color,
                             fillColor: p.color,
                             fillOpacity: 0.3,
-                            radius: Math.min(20000,Math.max(2000, 2000 * p.level)),
+                            radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                         }).addTo(zonesLayer);
 
                         circle.bindPopup(p.name || `${p.lat}, ${p.lon}`);
