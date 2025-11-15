@@ -22,6 +22,9 @@ class MapConfig(BaseModel):
 
     url_tiles: str = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 
+    min_zoom: int = 8
+    max_zoom: int = 11
+
 
 class AppConfig(BaseModel):
 
