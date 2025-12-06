@@ -6,6 +6,11 @@
     <title>{{ config.web.title }} - Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
         #map {
             height: 100vh;
             width: 100%;
@@ -80,11 +85,27 @@
         map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
         const map = L.map('map').setView(map_center, 8);
 
-        L.tileLayer(map_options.url_tiles, {
+        // Base tile layers
+        const baseLayers = {};
+        const defaultLayer = L.tileLayer(map_options.url_tiles, {
             minZoom: map_options.min_zoom,
             maxZoom: map_options.max_zoom,
             attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+        });
+        baseLayers['Default'] = defaultLayer;
+        defaultLayer.addTo(map);
+
+        // Alternative tile layers
+        if (map_options.alternative_tiles && map_options.alternative_tiles.length > 0) {
+            map_options.alternative_tiles.forEach(tile => {
+                baseLayers[tile.name] = L.tileLayer(tile.url, {
+                    minZoom: map_options.min_zoom,
+                    maxZoom: map_options.max_zoom,
+                    attribution: '&copy; OpenStreetMap'
+                });
+            });
+            L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+        }
 
         const zonesLayer = L.layerGroup().addTo(map);
 

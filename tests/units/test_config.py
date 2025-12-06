@@ -8,6 +8,7 @@ from app.config import (
     load_config,
     load_config_str,
     AppConfig,
+    TileLayerConfig,
 )
 
 
@@ -115,3 +116,139 @@ def test_load_config_from_file():
     assert cfg.web.host == "1.2.3.4"
     assert cfg.web.port == 8888
     assert cfg.web.title == "File Test"
+
+
+# MapConfig tests
+
+
+def test_map_config_defaults():
+
+    # WHEN
+    cfg = load_config_str({})
+
+    # THEN
+    assert cfg.map.url_tiles == "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    assert cfg.map.min_zoom == 8
+    assert cfg.map.max_zoom == 11
+    assert cfg.map.alternative_tiles == []
+
+
+def test_map_config_custom_url_tiles():
+
+    # GIVEN
+    raw = {
+        "map": {
+            "url_tiles": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert cfg.map.url_tiles == "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+
+def test_map_config_alternative_tiles():
+
+    # GIVEN
+    raw = {
+        "map": {
+            "alternative_tiles": [
+                {"name": "OpenStreetMap", "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
+                {"name": "Terrain", "url": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"},
+            ]
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert len(cfg.map.alternative_tiles) == 2
+    assert isinstance(cfg.map.alternative_tiles[0], TileLayerConfig)
+    assert cfg.map.alternative_tiles[0].name == "OpenStreetMap"
+    assert cfg.map.alternative_tiles[0].url == "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    assert cfg.map.alternative_tiles[1].name == "Terrain"
+    assert cfg.map.alternative_tiles[1].url == "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
+
+
+def test_map_config_alternative_tiles_empty():
+
+    # GIVEN
+    raw = {
+        "map": {
+            "alternative_tiles": []
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert cfg.map.alternative_tiles == []
+
+
+def test_map_config_alternative_tiles_env_expansion(monkeypatch):
+
+    # GIVEN
+    monkeypatch.setenv("TILE_NAME", "Custom Map")
+    monkeypatch.setenv("TILE_URL", "https://custom.tiles.org/{z}/{x}/{y}.png")
+
+    raw = {
+        "map": {
+            "alternative_tiles": [
+                {"name": "$TILE_NAME", "url": "${TILE_URL}"},
+            ]
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert cfg.map.alternative_tiles[0].name == "Custom Map"
+    assert cfg.map.alternative_tiles[0].url == "https://custom.tiles.org/{z}/{x}/{y}.png"
+
+
+def test_map_config_zoom_levels():
+
+    # GIVEN
+    raw = {
+        "map": {
+            "min_zoom": 5,
+            "max_zoom": 15,
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert cfg.map.min_zoom == 5
+    assert cfg.map.max_zoom == 15
+
+
+def test_map_config_full():
+
+    # GIVEN
+    raw = {
+        "map": {
+            "url_tiles": "https://custom.tiles.org/{z}/{x}/{y}.png",
+            "min_zoom": 6,
+            "max_zoom": 14,
+            "alternative_tiles": [
+                {"name": "Satellite", "url": "https://satellite.tiles.org/{z}/{x}/{y}.png"},
+            ]
+        }
+    }
+
+    # WHEN
+    cfg = load_config_str(raw)
+
+    # THEN
+    assert cfg.map.url_tiles == "https://custom.tiles.org/{z}/{x}/{y}.png"
+    assert cfg.map.min_zoom == 6
+    assert cfg.map.max_zoom == 14
+    assert len(cfg.map.alternative_tiles) == 1
+    assert cfg.map.alternative_tiles[0].name == "Satellite"

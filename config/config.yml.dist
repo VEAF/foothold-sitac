@@ -20,10 +20,17 @@ dcs:
 map:
 
     # openstreetmap
-    # url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    # url_tiles: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 
     # arcgis (default)
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    url_tiles: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
+    # alternative tile layers (optional, adds a layer switcher control)
+    # alternative_tiles:
+    #   - name: "OpenStreetMap"
+    #     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    #   - name: "Terrain"
+    #     url: "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
 
     # minimum zoom level
     # min_zoom: 8
