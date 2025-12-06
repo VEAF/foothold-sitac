@@ -38,7 +38,7 @@ def test_zone_hidden_default(base_zone_data):
 
 
 def test_load_sitac_with_hidden_zones():
-    lua_path = Path("var/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
 
     assert "VisibleZone1" in sitac.zones
@@ -53,7 +53,7 @@ def test_load_sitac_with_hidden_zones():
 
 
 def test_load_sitac_hidden_zones_count():
-    lua_path = Path("var/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
 
     visible_zones = [z for z in sitac.zones.values() if not z.hidden]
