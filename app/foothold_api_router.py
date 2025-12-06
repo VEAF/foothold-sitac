@@ -33,5 +33,5 @@ async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac
                 "level": zone.level
             }
         )
-        for zone_name, zone in sitac.zones.items() if zone.position
+        for zone_name, zone in sitac.zones.items() if zone.position and not zone.hidden
     ]
