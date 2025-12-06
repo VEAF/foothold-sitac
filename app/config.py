@@ -18,9 +18,16 @@ class DcsConfig(BaseModel):
     saved_games: str = "var"  # "DCS Saved Games Path"
 
 
+class TileLayerConfig(BaseModel):
+
+    name: str
+    url: str
+
+
 class MapConfig(BaseModel):
 
     url_tiles: str = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    alternative_tiles: Annotated[list[TileLayerConfig], Field(default_factory=list)]
 
     min_zoom: int = 8
     max_zoom: int = 11
