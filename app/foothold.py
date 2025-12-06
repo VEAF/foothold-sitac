@@ -27,6 +27,7 @@ class Zone(BaseModel):
     wasBlue: bool
     triggers: dict[str, int]
     position: Position = Field(alias="lat_long")
+    hidden: bool = False
 
     @property
     def side_color(self) -> str:
