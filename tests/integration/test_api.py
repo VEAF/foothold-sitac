@@ -26,7 +26,12 @@ def test_map_data_excludes_hidden_zones(client):
     response = client.get("/api/foothold/test_hidden/map.json")
     assert response.status_code == 200
 
-    zones = response.json()
+    data = response.json()
+    assert "updated_at" in data
+    assert "age_seconds" in data
+    assert "zones" in data
+
+    zones = data["zones"]
     zone_names = [z["name"] for z in zones]
 
     assert "VisibleZone1" in zone_names

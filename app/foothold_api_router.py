@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from app.dependencies import get_active_sitac
 from app.foothold import Sitac, list_servers
-from app.schemas import MapZone, Server
+from app.schemas import MapData, MapZone, Server
 
 router = APIRouter()
 
@@ -18,10 +19,10 @@ async def foothold_get_sitac(sitac: Annotated[Sitac, Depends(get_active_sitac)])
     return sitac
 
 
-@router.get("/{server}/map.json", response_model=list[MapZone])
+@router.get("/{server}/map.json", response_model=MapData)
 async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> Any:
 
-    return [
+    zones = [
         MapZone.model_validate(
             {
                 "name": zone_name,
@@ -35,3 +36,11 @@ async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac
         )
         for zone_name, zone in sitac.zones.items() if zone.position and not zone.hidden
     ]
+
+    age_seconds = (datetime.now() - sitac.updated_at).total_seconds()
+
+    return MapData(
+        updated_at=sitac.updated_at,
+        age_seconds=age_seconds,
+        zones=zones
+    )
