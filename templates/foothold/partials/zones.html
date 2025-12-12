@@ -24,59 +24,212 @@
         background: #fafbfc;
     }
 
-    .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 13px;
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #f2f4f8;
+        padding-bottom: 0;
+    }
+
+    .tab-btn {
+        padding: 10px 16px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: color 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tab-btn:hover {
+        color: #333;
+    }
+
+    .tab-btn.active {
+        color: #4263eb;
+        border-bottom-color: #4263eb;
+    }
+
+    .tab-btn.blue.active {
+        color: #4263eb;
+        border-bottom-color: #4263eb;
+    }
+
+    .tab-btn.neutral.active {
+        color: #868e96;
+        border-bottom-color: #868e96;
+    }
+
+    .tab-btn.red.active {
+        color: #e03131;
+        border-bottom-color: #e03131;
+    }
+
+    .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
         color: white;
     }
 
-    .badge.blue {
+    .tab-btn.blue .tab-badge {
         background: #4263eb;
     }
 
-    .badge.red {
+    .tab-btn.neutral .tab-badge {
+        background: #868e96;
+    }
+
+    .tab-btn.red .tab-badge {
         background: #e03131;
     }
 
-    .badge.grey {
-        background: #868e96;
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #666;
+        padding: 40px 20px;
     }
 </style>
 
+{% set blue_zones = [] %}
+{% set neutral_zones = [] %}
+{% set red_zones = [] %}
+
+{% for name, zone in sitac.zones.items() | sort %}
+    {% if zone.side == 2 %}
+        {% set _ = blue_zones.append((name, zone)) %}
+    {% elif zone.side == 1 %}
+        {% set _ = red_zones.append((name, zone)) %}
+    {% else %}
+        {% set _ = neutral_zones.append((name, zone)) %}
+    {% endif %}
+{% endfor %}
+
 <h2>Objectives</h2>
-<table class="modal-table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Side</th>
-            <th>Level</th>
-            <th>Upgrades Used</th>
-            <th>Active</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for name, zone in sitac.zones.items() | sort %}
-        <tr>
-            <td>{{ name }}</td>
-            <td>
-                {% if zone.side == 1 %}
-                <span class="badge red">Red</span>
-                {% elif zone.side == 2 %}
-                <span class="badge blue">Blue</span>
-                {% else %}
-                <span class="badge grey">Neutral</span>
-                {% endif %}
-            </td>
-            <td class="n">{{ zone.level }}</td>
-            <td class="n">{{ zone.upgradesUsed }}</td>
-            <td>{{ 'Yes' if zone.active else 'No' }}</td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="5" style="text-align: center; color: #666;">No zone data available</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<div class="tabs">
+    <button class="tab-btn blue active" onclick="showTab('blue')">
+        Blue <span class="tab-badge">{{ blue_zones | length }}</span>
+    </button>
+    <button class="tab-btn neutral" onclick="showTab('neutral')">
+        Neutral <span class="tab-badge">{{ neutral_zones | length }}</span>
+    </button>
+    <button class="tab-btn red" onclick="showTab('red')">
+        Red <span class="tab-badge">{{ red_zones | length }}</span>
+    </button>
+</div>
+
+<div id="tab-blue" class="tab-content active">
+    {% if blue_zones %}
+    <table class="modal-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Upgrades Used</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, zone in blue_zones %}
+            <tr>
+                <td>{{ name }}</td>
+                <td class="n">{{ zone.level }}</td>
+                <td class="n">{{ zone.upgradesUsed }}</td>
+                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No blue zones</div>
+    {% endif %}
+</div>
+
+<div id="tab-neutral" class="tab-content">
+    {% if neutral_zones %}
+    <table class="modal-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Upgrades Used</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, zone in neutral_zones %}
+            <tr>
+                <td>{{ name }}</td>
+                <td class="n">{{ zone.level }}</td>
+                <td class="n">{{ zone.upgradesUsed }}</td>
+                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No neutral zones</div>
+    {% endif %}
+</div>
+
+<div id="tab-red" class="tab-content">
+    {% if red_zones %}
+    <table class="modal-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Upgrades Used</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, zone in red_zones %}
+            <tr>
+                <td>{{ name }}</td>
+                <td class="n">{{ zone.level }}</td>
+                <td class="n">{{ zone.upgradesUsed }}</td>
+                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No red zones</div>
+    {% endif %}
+</div>
+
+<script>
+window.showTab = function(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.querySelector('.tab-btn.' + tabName).classList.add('active');
+};
+</script>

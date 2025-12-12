@@ -144,12 +144,14 @@
             background: white;
             border-radius: 12px;
             max-width: 900px;
-            max-height: 80vh;
+            height: 80vh;
             width: 90%;
-            overflow-y: auto;
+            overflow: hidden;
             padding: 30px;
             position: relative;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-content h2 {
@@ -179,6 +181,12 @@
 
         .modal-close:hover {
             background: #e0e3e8;
+        }
+
+        /* Modal body */
+        #modal-body {
+            flex: 1;
+            overflow-y: auto;
         }
 
         /* Loading state */
@@ -242,6 +250,13 @@
                 if (!response.ok) throw new Error('Failed to load');
                 const html = await response.text();
                 body.innerHTML = html;
+
+                // Execute scripts that were injected via innerHTML
+                body.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
             } catch (error) {
                 body.innerHTML = '<div class="modal-loading">Error loading data</div>';
             }
