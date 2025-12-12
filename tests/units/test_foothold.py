@@ -1,10 +1,13 @@
 from pathlib import Path
+from typing import Any
+
 import pytest
-from app.foothold import Zone, Position, load_sitac
+
+from app.foothold import Zone, load_sitac
 
 
 @pytest.fixture
-def base_zone_data():
+def base_zone_data() -> dict[str, Any]:
     return {
         "upgradesUsed": 0,
         "side": 1,
@@ -20,24 +23,24 @@ def base_zone_data():
     }
 
 
-def test_zone_hidden_true(base_zone_data):
+def test_zone_hidden_true(base_zone_data: dict[str, Any]) -> None:
     base_zone_data["hidden"] = True
     zone = Zone.model_validate(base_zone_data)
     assert zone.hidden is True
 
 
-def test_zone_hidden_false(base_zone_data):
+def test_zone_hidden_false(base_zone_data: dict[str, Any]) -> None:
     base_zone_data["hidden"] = False
     zone = Zone.model_validate(base_zone_data)
     assert zone.hidden is False
 
 
-def test_zone_hidden_default(base_zone_data):
+def test_zone_hidden_default(base_zone_data: dict[str, Any]) -> None:
     zone = Zone.model_validate(base_zone_data)
     assert zone.hidden is False
 
 
-def test_load_sitac_with_hidden_zones():
+def test_load_sitac_with_hidden_zones() -> None:
     lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
 
@@ -52,7 +55,7 @@ def test_load_sitac_with_hidden_zones():
     assert sitac.zones["HiddenZone2"].hidden is True
 
 
-def test_load_sitac_hidden_zones_count():
+def test_load_sitac_hidden_zones_count() -> None:
     lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
 

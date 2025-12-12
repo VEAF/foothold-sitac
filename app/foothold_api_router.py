@@ -10,7 +10,6 @@ router = APIRouter()
 
 @router.get("", response_model=list[Server], description="List foothold servers")
 async def foothold_list_servers() -> Any:
-
     return [Server.model_validate({"name": server}) for server in list_servers()]
 
 
@@ -20,8 +19,9 @@ async def foothold_get_sitac(sitac: Annotated[Sitac, Depends(get_active_sitac)])
 
 
 @router.get("/{server}/map.json", response_model=MapData)
-async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> Any:
-
+async def foothold_get_map_data(
+    sitac: Annotated[Sitac, Depends(get_active_sitac)],
+) -> Any:
     zones = [
         MapZone.model_validate(
             {
@@ -31,16 +31,13 @@ async def foothold_get_map_data(sitac: Annotated[Sitac, Depends(get_active_sitac
                 "side": zone.side_str,
                 "color": zone.side_color,
                 "units": zone.total_units,
-                "level": zone.level
+                "level": zone.level,
             }
         )
-        for zone_name, zone in sitac.zones.items() if zone.position and not zone.hidden
+        for zone_name, zone in sitac.zones.items()
+        if zone.position and not zone.hidden
     ]
 
     age_seconds = (datetime.now() - sitac.updated_at).total_seconds()
 
-    return MapData(
-        updated_at=sitac.updated_at,
-        age_seconds=age_seconds,
-        zones=zones
-    )
+    return MapData(updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones)

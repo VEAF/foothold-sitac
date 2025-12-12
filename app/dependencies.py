@@ -1,5 +1,10 @@
 from fastapi import HTTPException, status
-from app.foothold import Sitac, detect_foothold_mission_path, get_server_path_by_name, load_sitac
+from app.foothold import (
+    Sitac,
+    detect_foothold_mission_path,
+    get_server_path_by_name,
+    load_sitac,
+)
 
 
 def get_active_sitac(server: str) -> Sitac:

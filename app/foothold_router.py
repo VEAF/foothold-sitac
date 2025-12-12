@@ -9,8 +9,7 @@ router = APIRouter()
 
 
 @router.get("", response_class=HTMLResponse)
-async def foothold_servers(request: Request):
-
+async def foothold_servers(request: Request) -> str:
     servers = list_servers()
 
     template = env.get_template("foothold/servers.html")
@@ -23,8 +22,7 @@ async def foothold_servers(request: Request):
 
 
 @router.get("/sitac/{server}", response_class=HTMLResponse)
-async def foothold_sitac(request: Request, sitac: Annotated[Sitac, Depends(get_active_sitac)]):
-
+async def foothold_sitac(request: Request, sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/sitac.html")
     return template.render(
         {
@@ -35,8 +33,7 @@ async def foothold_sitac(request: Request, sitac: Annotated[Sitac, Depends(get_a
 
 
 @router.get("/map/{server}", response_class=HTMLResponse)
-async def foothold_map(request: Request, server: str, sitac: Annotated[Sitac, Depends(get_active_sitac)]):
-
+async def foothold_map(request: Request, server: str, sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/map.html")
     map_center = get_sitac_center(sitac)
 

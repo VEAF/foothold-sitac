@@ -7,7 +7,6 @@ class Server(BaseModel):
 
 
 class MapZone(BaseModel):
-
     name: str
     lat: float
     lon: float

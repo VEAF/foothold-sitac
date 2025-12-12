@@ -1,28 +1,45 @@
+from collections.abc import Generator
+
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+
 from app.config import get_config
+from app.main import app
 
 
 @pytest.fixture
-def client():
+def client() -> Generator[TestClient, None, None]:
     get_config.cache_clear()
-    return TestClient(app)
+    yield TestClient(app)
 
 
 @pytest.fixture(autouse=True)
-def override_config(monkeypatch):
-    monkeypatch.setattr("app.config.get_config", lambda: type("AppConfig", (), {
-        "dcs": type("DcsConfig", (), {"saved_games": "tests/fixtures"})(),
-        "web": type("WebConfig", (), {"title": "Test"})(),
-        "map": type("MapConfig", (), {"url_tiles": "", "min_zoom": 8, "max_zoom": 11})(),
-    })())
-    monkeypatch.setattr("app.foothold.get_config", lambda: type("AppConfig", (), {
-        "dcs": type("DcsConfig", (), {"saved_games": "tests/fixtures"})(),
-    })())
+def override_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "app.config.get_config",
+        lambda: type(
+            "AppConfig",
+            (),
+            {
+                "dcs": type("DcsConfig", (), {"saved_games": "tests/fixtures"})(),
+                "web": type("WebConfig", (), {"title": "Test"})(),
+                "map": type("MapConfig", (), {"url_tiles": "", "min_zoom": 8, "max_zoom": 11})(),
+            },
+        )(),
+    )
+    monkeypatch.setattr(
+        "app.foothold.get_config",
+        lambda: type(
+            "AppConfig",
+            (),
+            {
+                "dcs": type("DcsConfig", (), {"saved_games": "tests/fixtures"})(),
+            },
+        )(),
+    )
 
 
-def test_map_data_excludes_hidden_zones(client):
+def test_map_data_excludes_hidden_zones(client: TestClient) -> None:
     response = client.get("/api/foothold/test_hidden/map.json")
     assert response.status_code == 200
 
@@ -41,7 +58,7 @@ def test_map_data_excludes_hidden_zones(client):
     assert len(zones) == 2
 
 
-def test_sitac_includes_hidden_zones(client):
+def test_sitac_includes_hidden_zones(client: TestClient) -> None:
     response = client.get("/api/foothold/test_hidden/sitac")
     assert response.status_code == 200
 
@@ -55,7 +72,7 @@ def test_sitac_includes_hidden_zones(client):
     assert len(zones) == 4
 
 
-def test_sitac_hidden_field_values(client):
+def test_sitac_hidden_field_values(client: TestClient) -> None:
     response = client.get("/api/foothold/test_hidden/sitac")
     assert response.status_code == 200
 
