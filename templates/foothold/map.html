@@ -9,13 +9,57 @@
         html, body {
             margin: 0;
             padding: 0;
+            font-family: "Segoe UI", Roboto, sans-serif;
         }
 
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #202833;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1001;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Map container */
         #map {
-            height: 100vh;
+            height: calc(100vh - 50px);
             width: 100%;
+            margin-top: 50px;
         }
 
+        /* Freshness widget */
         #freshness-widget {
             position: fixed;
             bottom: 10px;
@@ -68,19 +112,151 @@
             border-style: solid;
             border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
         }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        /* Modal content */
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 900px;
+            max-height: 80vh;
+            width: 90%;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #202833;
+            font-weight: 600;
+        }
+
+        /* Modal close button */
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f2f4f8;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #e0e3e8;
+        }
+
+        /* Loading state */
+        .modal-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
 
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <span class="navbar-brand">{{ server }}</span>
+        <div class="navbar-links">
+            <a href="#" onclick="openModal('players'); return false;">Player Rankings</a>
+            <a href="#" onclick="openModal('zones'); return false;">Objectives</a>
+            <a href="{{ request.url_for('foothold_servers') }}">Servers</a>
+        </div>
+    </nav>
+
+    <!-- Map -->
     <div id="map"></div>
+
+    <!-- Freshness widget -->
     <div id="freshness-widget" class="fresh">
         <span id="freshness-icon">🕐</span>
         <span id="countdown">30s</span>
         <span class="tooltip" id="freshness-tooltip">Refresh in 30s</span>
     </div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modal-body">
+                <div class="modal-loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        // Modal functions
+        const modalEndpoints = {
+            players: '{{ request.url_for("foothold_players_modal", server=server) }}',
+            zones: '{{ request.url_for("foothold_zones_modal", server=server) }}'
+        };
+
+        async function openModal(type) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = '<div class="modal-loading">Loading...</div>';
+            overlay.classList.add('visible');
+
+            try {
+                const response = await fetch(modalEndpoints[type]);
+                if (!response.ok) throw new Error('Failed to load');
+                const html = await response.text();
+                body.innerHTML = html;
+            } catch (error) {
+                body.innerHTML = '<div class="modal-loading">Error loading data</div>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('visible');
+        }
+
+        function closeModalOnOverlay(event) {
+            if (event.target === document.getElementById('modal-overlay')) {
+                closeModal();
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Map initialization
         map_center = JSON.parse('{{ center }}');
         map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
         const map = L.map('map').setView(map_center, 8);

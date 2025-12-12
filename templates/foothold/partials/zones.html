@@ -1,0 +1,82 @@
+<style>
+    .modal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modal-table th,
+    .modal-table td {
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    .modal-table td.n {
+        text-align: right;
+    }
+
+    .modal-table th {
+        background: #f5f7fa;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .modal-table tr:nth-child(even) {
+        background: #fafbfc;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: white;
+    }
+
+    .badge.blue {
+        background: #4263eb;
+    }
+
+    .badge.red {
+        background: #e03131;
+    }
+
+    .badge.grey {
+        background: #868e96;
+    }
+</style>
+
+<h2>Objectives</h2>
+<table class="modal-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Side</th>
+            <th>Level</th>
+            <th>Upgrades Used</th>
+            <th>Active</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for name, zone in sitac.zones.items() | sort %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>
+                {% if zone.side == 1 %}
+                <span class="badge red">Red</span>
+                {% elif zone.side == 2 %}
+                <span class="badge blue">Blue</span>
+                {% else %}
+                <span class="badge grey">Neutral</span>
+                {% endif %}
+            </td>
+            <td class="n">{{ zone.level }}</td>
+            <td class="n">{{ zone.upgradesUsed }}</td>
+            <td>{{ 'Yes' if zone.active else 'No' }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #666;">No zone data available</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

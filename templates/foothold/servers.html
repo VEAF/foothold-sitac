@@ -6,71 +6,83 @@
     <title>{{ config.web.title }} - Servers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <style>
         body {
             font-family: "Segoe UI", Roboto, sans-serif;
             background: #f2f4f8;
             margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
-            background: white;
-            border-radius: 12px;
-            padding: 40px 50px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            max-width: 420px;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
         h1 {
-            margin-top: 0;
+            text-align: center;
             color: #202833;
             font-weight: 600;
+            margin-bottom: 40px;
         }
 
-        p {
-            color: #555;
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        td {
-            padding: 10px 0;
-        }
-
-        a {
+        .card {
+            display: block;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             text-decoration: none;
-            color: #4263eb;
-            transition: color 0.2s ease, transform 0.15s ease;
-            font-weight: 500;
+            color: inherit;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        a:hover {
-            color: #274bde;
-            transform: translateY(-1px);
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
-        i {
-            margin-right: 6px;
-            color: #4263eb;
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #202833;
+            margin: 0 0 12px 0;
         }
 
-        a:hover i {
-            color: #274bde;
+        .card-meta {
+            font-size: 14px;
+            color: #666;
         }
 
-        .cta-btn {
-            margin-top: 25px;
+        .card-meta.fresh {
+            color: #2ecc71;
+        }
+
+        .card-meta.stale {
+            color: #e74c3c;
+        }
+
+        .card-meta.unknown {
+            color: #868e96;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .back-link a {
             display: inline-block;
             background: #4263eb;
-            /* bleu sobre pro */
             color: white;
             padding: 12px 24px;
             border-radius: 6px;
@@ -79,38 +91,54 @@
             transition: background 0.2s ease;
         }
 
-        .cta-btn:hover {
+        .back-link a:hover {
             background: #274bde;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 60px 20px;
         }
     </style>
 </head>
 
 <body>
-
     <div class="container">
-        <h1>Welcome</h1>
-        <p>Access to Foothold Sitac.</p>
+        <h1>Foothold Servers</h1>
 
-
-        <table>
+        {% if servers %}
+        <div class="cards-grid">
             {% for server in servers %}
-            <tr>
-                <td>
-                    <a href="{{ request.url_for('foothold_sitac', server=server) }}">{{ server }}</a>
-                </td>
-                <td>
-                    <a href="{{ request.url_for('foothold_map', server=server) }}"><i
-                            class="fa-solid fa-map-location-dot"></i> Map</a>
-                </td>
-            </tr>
+            <a href="{{ request.url_for('foothold_map', server=server.name) }}" class="card">
+                <h2 class="card-title">{{ server.name }}</h2>
+                {% if server.updated_at %}
+                    {% set delta = (now - server.updated_at).total_seconds() %}
+                    {% if delta < 120 %}
+                        <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    {% elif delta < 3600 %}
+                        <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    {% elif delta < 86400 %}
+                        <p class="card-meta stale">Updated {{ (delta // 3600) | int }}h ago</p>
+                    {% else %}
+                        <p class="card-meta stale">Updated {{ (delta // 86400) | int }}d ago</p>
+                    {% endif %}
+                {% else %}
+                    <p class="card-meta unknown">No data available</p>
+                {% endif %}
+            </a>
             {% endfor %}
-        </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No Foothold servers found.</p>
+        </div>
+        {% endif %}
 
-        <a class="cta-btn" href="{{ request.url_for('home') }}">
-            Back to home
-        </a>
+        <div class="back-link">
+            <a href="{{ request.url_for('home') }}">Back to home</a>
+        </div>
     </div>
-
 </body>
 
 </html>
