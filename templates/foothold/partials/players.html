@@ -6,22 +6,55 @@
 
     .modal-table th,
     .modal-table td {
-        padding: 10px 12px;
+        padding: 12px 14px;
         text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .modal-table td.n {
         text-align: right;
+        font-variant-numeric: tabular-nums;
     }
 
     .modal-table th {
-        background: #f5f7fa;
-        color: #333;
+        background: rgba(66, 99, 235, 0.15);
+        color: #e8eaed;
         font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(66, 99, 235, 0.3);
     }
 
-    .modal-table tr:nth-child(even) {
-        background: #fafbfc;
+    .modal-table tbody tr {
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    .modal-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-table tbody tr:hover {
+        background: rgba(66, 99, 235, 0.1);
+    }
+
+    .modal-table td {
+        color: #c9cdd4;
+    }
+
+    .modal-table tbody tr:first-child td {
+        color: #fbbf24;
+        font-weight: 600;
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    }
+
+    .modal-table tbody tr:nth-child(2) td {
+        color: #94a3b8;
+    }
+
+    .modal-table tbody tr:nth-child(3) td {
+        color: #cd7c32;
     }
 </style>
 
@@ -51,7 +84,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" style="text-align: center; color: #666;">No player data available</td>
+            <td colspan="7" style="text-align: center; color: #5a6270;">No player data available</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -6,22 +6,41 @@
 
     .modal-table th,
     .modal-table td {
-        padding: 10px 12px;
+        padding: 12px 14px;
         text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .modal-table td.n {
         text-align: right;
+        font-variant-numeric: tabular-nums;
     }
 
     .modal-table th {
-        background: #f5f7fa;
-        color: #333;
+        background: rgba(66, 99, 235, 0.15);
+        color: #e8eaed;
         font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(66, 99, 235, 0.3);
     }
 
-    .modal-table tr:nth-child(even) {
-        background: #fafbfc;
+    .modal-table tbody tr {
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    .modal-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-table tbody tr:hover {
+        background: rgba(66, 99, 235, 0.1);
+    }
+
+    .modal-table td {
+        color: #c9cdd4;
     }
 
     /* Tabs */
@@ -29,7 +48,7 @@
         display: flex;
         gap: 8px;
         margin-bottom: 20px;
-        border-bottom: 2px solid #f2f4f8;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding-bottom: 0;
     }
 
@@ -40,9 +59,9 @@
         cursor: pointer;
         font-size: 14px;
         font-weight: 500;
-        color: #666;
+        color: #8892a0;
         border-bottom: 2px solid transparent;
-        margin-bottom: -2px;
+        margin-bottom: -1px;
         transition: color 0.2s ease, border-color 0.2s ease;
         display: flex;
         align-items: center;
@@ -50,7 +69,7 @@
     }
 
     .tab-btn:hover {
-        color: #333;
+        color: #c9cdd4;
     }
 
     .tab-btn.active {
@@ -59,18 +78,20 @@
     }
 
     .tab-btn.blue.active {
-        color: #4263eb;
-        border-bottom-color: #4263eb;
+        color: #60a5fa;
+        border-bottom-color: #60a5fa;
+        text-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
     }
 
     .tab-btn.neutral.active {
-        color: #868e96;
-        border-bottom-color: #868e96;
+        color: #9ca3af;
+        border-bottom-color: #9ca3af;
     }
 
     .tab-btn.red.active {
-        color: #e03131;
-        border-bottom-color: #e03131;
+        color: #f87171;
+        border-bottom-color: #f87171;
+        text-shadow: 0 0 10px rgba(248, 113, 113, 0.4);
     }
 
     .tab-badge {
@@ -87,15 +108,18 @@
     }
 
     .tab-btn.blue .tab-badge {
-        background: #4263eb;
+        background: linear-gradient(145deg, #4263eb 0%, #3451c9 100%);
+        box-shadow: 0 2px 8px rgba(66, 99, 235, 0.4);
     }
 
     .tab-btn.neutral .tab-badge {
-        background: #868e96;
+        background: linear-gradient(145deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.4);
     }
 
     .tab-btn.red .tab-badge {
-        background: #e03131;
+        background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
     }
 
     .tab-content {
@@ -108,7 +132,7 @@
 
     .empty-state {
         text-align: center;
-        color: #666;
+        color: #5a6270;
         padding: 40px 20px;
     }
 </style>
