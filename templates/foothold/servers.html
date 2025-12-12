@@ -6,111 +6,270 @@
     <title>{{ config.web.title }} - Servers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <style>
         body {
             font-family: "Segoe UI", Roboto, sans-serif;
-            background: #f2f4f8;
+            background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 50%, #0d1219 100%);
             margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            position: relative;
         }
 
         .container {
-            background: white;
-            border-radius: 12px;
-            padding: 40px 50px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            max-width: 420px;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         h1 {
-            margin-top: 0;
-            color: #202833;
+            text-align: center;
+            color: #e8eaed;
             font-weight: 600;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(66, 99, 235, 0.3);
         }
 
-        p {
-            color: #555;
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        td {
-            padding: 10px 0;
-        }
-
-        a {
+        .card {
+            display: block;
+            background: linear-gradient(145deg, #1e2433 0%, #161b26 100%);
+            border: 1px solid rgba(66, 99, 235, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             text-decoration: none;
-            color: #4263eb;
-            transition: color 0.2s ease, transform 0.15s ease;
-            font-weight: 500;
+            color: inherit;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        a:hover {
-            color: #274bde;
-            transform: translateY(-1px);
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(66, 99, 235, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            border-color: rgba(66, 99, 235, 0.5);
         }
 
-        i {
-            margin-right: 6px;
-            color: #4263eb;
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e8eaed;
+            margin: 0 0 12px 0;
         }
 
-        a:hover i {
-            color: #274bde;
+        .card-meta {
+            font-size: 14px;
+            color: #8892a0;
         }
 
-        .cta-btn {
-            margin-top: 25px;
+        .card-meta.fresh {
+            color: #2ecc71;
+            text-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+        }
+
+        .card-meta.stale {
+            color: #e74c3c;
+            text-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+        }
+
+        .card-meta.unknown {
+            color: #5a6270;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .back-link a {
             display: inline-block;
-            background: #4263eb;
-            /* bleu sobre pro */
+            background: linear-gradient(145deg, #4263eb 0%, #3451c9 100%);
             color: white;
             padding: 12px 24px;
             border-radius: 6px;
             text-decoration: none;
             font-size: 16px;
-            transition: background 0.2s ease;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(66, 99, 235, 0.5);
+            box-shadow: 0 4px 15px rgba(66, 99, 235, 0.3);
         }
 
-        .cta-btn:hover {
-            background: #274bde;
+        .back-link a:hover {
+            background: linear-gradient(145deg, #5274f7 0%, #4263eb 100%);
+            box-shadow: 0 6px 20px rgba(66, 99, 235, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #8892a0;
+            padding: 60px 20px;
+        }
+
+        /* F-16 Animation - flies across in 4s, then waits 6s (total 10s cycle) */
+        .f16 {
+            position: fixed;
+            top: 15%;
+            left: -150px;
+            width: 120px;
+            height: 40px;
+            z-index: 100;
+            animation: flyAcross 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes flyAcross {
+            0% {
+                left: -150px;
+                top: 15%;
+            }
+            /* 4s / 10s = 40% - plane crosses screen */
+            40% {
+                left: calc(100vw + 150px);
+                top: 12%;
+            }
+            /* Stay hidden off-screen for the remaining 60% */
+            40.01%, 100% {
+                left: calc(100vw + 150px);
+                top: 15%;
+            }
+        }
+
+        /* F-16 CSS Art */
+        .f16-body {
+            position: absolute;
+            width: 100px;
+            height: 12px;
+            background: linear-gradient(180deg, #6b7280 0%, #4b5563 50%, #374151 100%);
+            border-radius: 6px 2px 2px 6px;
+            top: 14px;
+            left: 10px;
+        }
+
+        .f16-cockpit {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+            border-radius: 50% 50% 30% 30%;
+            top: 12px;
+            left: 85px;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3);
+        }
+
+        .f16-nose {
+            position: absolute;
+            width: 25px;
+            height: 8px;
+            background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
+            top: 16px;
+            left: 100px;
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+        }
+
+        .f16-wing-top {
+            position: absolute;
+            width: 50px;
+            height: 18px;
+            background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
+            top: 0;
+            left: 30px;
+            clip-path: polygon(0 100%, 40% 0, 100% 100%);
+        }
+
+        .f16-wing-bottom {
+            position: absolute;
+            width: 50px;
+            height: 18px;
+            background: linear-gradient(0deg, #4b5563 0%, #374151 100%);
+            top: 22px;
+            left: 30px;
+            clip-path: polygon(0 0, 100% 0, 40% 100%);
+        }
+
+        .f16-tail {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(90deg, #6b7280 0%, #4b5563 100%);
+            top: 0;
+            left: 5px;
+            clip-path: polygon(50% 0, 100% 100%, 0 100%);
+        }
+
+        .f16-exhaust {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(90deg, #f97316 0%, #fbbf24 50%, #fef3c7 100%);
+            border-radius: 50%;
+            top: 16px;
+            left: 2px;
+            box-shadow: -5px 0 10px #f97316, -10px 0 20px #f9731688;
+            animation: exhaust 0.1s ease-in-out infinite alternate;
+        }
+
+        @keyframes exhaust {
+            0% { opacity: 0.8; transform: scaleX(1); }
+            100% { opacity: 1; transform: scaleX(1.2); }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="container">
-        <h1>Welcome</h1>
-        <p>Access to Foothold Sitac.</p>
-
-
-        <table>
-            {% for server in servers %}
-            <tr>
-                <td>
-                    <a href="{{ request.url_for('foothold_sitac', server=server) }}">{{ server }}</a>
-                </td>
-                <td>
-                    <a href="{{ request.url_for('foothold_map', server=server) }}"><i
-                            class="fa-solid fa-map-location-dot"></i> Map</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-
-        <a class="cta-btn" href="{{ request.url_for('home') }}">
-            Back to home
-        </a>
+    <!-- F-16 Fighter Jet -->
+    <div class="f16" id="f16">
+        <div class="f16-tail"></div>
+        <div class="f16-exhaust"></div>
+        <div class="f16-wing-top"></div>
+        <div class="f16-body"></div>
+        <div class="f16-wing-bottom"></div>
+        <div class="f16-cockpit"></div>
+        <div class="f16-nose"></div>
     </div>
 
+    <div class="container">
+        <h1>Foothold Servers</h1>
+
+        {% if servers %}
+        <div class="cards-grid">
+            {% for server in servers %}
+            <a href="{{ request.url_for('foothold_map', server=server.name) }}" class="card">
+                <h2 class="card-title">{{ server.name }}</h2>
+                {% if server.updated_at %}
+                    {% set delta = (now - server.updated_at).total_seconds() %}
+                    {% if delta < 120 %}
+                        <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    {% elif delta < 3600 %}
+                        <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    {% elif delta < 86400 %}
+                        <p class="card-meta stale">Updated {{ (delta // 3600) | int }}h ago</p>
+                    {% else %}
+                        <p class="card-meta stale">Updated {{ (delta // 86400) | int }}d ago</p>
+                    {% endif %}
+                {% else %}
+                    <p class="card-meta unknown">No data available</p>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No Foothold servers found.</p>
+        </div>
+        {% endif %}
+
+        <div class="back-link">
+            <a href="{{ request.url_for('home') }}">Back to home</a>
+        </div>
+    </div>
 </body>
 
 </html>

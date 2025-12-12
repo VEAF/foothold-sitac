@@ -7,6 +7,21 @@ from app.foothold import (
 )
 
 
+def get_sitac_or_none(server: str) -> Sitac | None:
+    """Load sitac for a server, return None if not available"""
+    server_path = get_server_path_by_name(server)
+
+    if not server_path.is_dir():
+        return None
+
+    mission_path = detect_foothold_mission_path(server)
+
+    if not mission_path:
+        return None
+
+    return load_sitac(mission_path)
+
+
 def get_active_sitac(server: str) -> Sitac:
     """Dependency injection of sitac by server name"""
 

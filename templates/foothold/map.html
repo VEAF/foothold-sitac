@@ -5,17 +5,69 @@
     <meta charset="UTF-8">
     <title>{{ config.web.title }} - Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         html, body {
             margin: 0;
             padding: 0;
+            font-family: "Segoe UI", Roboto, sans-serif;
         }
 
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #202833;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1001;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand i,
+        .navbar-links a i {
+            margin-right: 6px;
+        }
+
+        /* Map container */
         #map {
-            height: 100vh;
+            height: calc(100vh - 50px);
             width: 100%;
+            margin-top: 50px;
         }
 
+        /* Freshness widget */
         #freshness-widget {
             position: fixed;
             bottom: 10px;
@@ -68,19 +120,190 @@
             border-style: solid;
             border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
         }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        /* Modal content */
+        .modal-content {
+            background: linear-gradient(145deg, #1e2433 0%, #161b26 100%);
+            border: 1px solid rgba(66, 99, 235, 0.3);
+            border-radius: 12px;
+            max-width: 900px;
+            height: 80vh;
+            width: 90%;
+            overflow: hidden;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(66, 99, 235, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #e8eaed;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(66, 99, 235, 0.3);
+        }
+
+        /* Modal close button */
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: #8892a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8eaed;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal body */
+        #modal-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Modal body scrollbar */
+        #modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #modal-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        #modal-body::-webkit-scrollbar-thumb {
+            background: rgba(66, 99, 235, 0.3);
+            border-radius: 4px;
+        }
+
+        #modal-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(66, 99, 235, 0.5);
+        }
+
+        /* Loading state */
+        .modal-loading {
+            text-align: center;
+            padding: 40px;
+            color: #8892a0;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
 
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <span class="navbar-brand"><i class="fa-solid fa-server"></i> {{ server }}</span>
+        <div class="navbar-links">
+            <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
+            <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>
+            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Servers</a>
+        </div>
+    </nav>
+
+    <!-- Map -->
     <div id="map"></div>
+
+    <!-- Freshness widget -->
     <div id="freshness-widget" class="fresh">
         <span id="freshness-icon">🕐</span>
         <span id="countdown">30s</span>
         <span class="tooltip" id="freshness-tooltip">Refresh in 30s</span>
     </div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modal-body">
+                <div class="modal-loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        // Modal functions
+        const modalEndpoints = {
+            players: '{{ request.url_for("foothold_players_modal", server=server) }}',
+            zones: '{{ request.url_for("foothold_zones_modal", server=server) }}'
+        };
+
+        async function openModal(type) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = '<div class="modal-loading">Loading...</div>';
+            overlay.classList.add('visible');
+
+            try {
+                const response = await fetch(modalEndpoints[type]);
+                if (!response.ok) throw new Error('Failed to load');
+                const html = await response.text();
+                body.innerHTML = html;
+
+                // Execute scripts that were injected via innerHTML
+                body.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            } catch (error) {
+                body.innerHTML = '<div class="modal-loading">Error loading data</div>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('visible');
+        }
+
+        function closeModalOnOverlay(event) {
+            if (event.target === document.getElementById('modal-overlay')) {
+                closeModal();
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Map initialization
         map_center = JSON.parse('{{ center }}');
         map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
         const map = L.map('map').setView(map_center, 8);
@@ -128,7 +351,7 @@
                 icon.textContent = '⚠️';
                 countdown.textContent = 'Offline';
                 tooltip.textContent = 'Connection to server lost';
-            } else if (dataAgeSeconds < 60) {
+            } else if (dataAgeSeconds < 90) {
                 widget.classList.add('fresh');
                 icon.textContent = '🕐';
                 countdown.textContent = nextRefresh + 's';

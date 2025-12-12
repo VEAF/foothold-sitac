@@ -1,0 +1,91 @@
+<style>
+    .modal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modal-table th,
+    .modal-table td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-table td.n {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .modal-table th {
+        background: rgba(66, 99, 235, 0.15);
+        color: #e8eaed;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(66, 99, 235, 0.3);
+    }
+
+    .modal-table tbody tr {
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    .modal-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-table tbody tr:hover {
+        background: rgba(66, 99, 235, 0.1);
+    }
+
+    .modal-table td {
+        color: #c9cdd4;
+    }
+
+    .modal-table tbody tr:first-child td {
+        color: #fbbf24;
+        font-weight: 600;
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    }
+
+    .modal-table tbody tr:nth-child(2) td {
+        color: #94a3b8;
+    }
+
+    .modal-table tbody tr:nth-child(3) td {
+        color: #cd7c32;
+    }
+</style>
+
+<h2>Player Rankings</h2>
+<table class="modal-table">
+    <thead>
+        <tr>
+            <th>Player</th>
+            <th>Points</th>
+            <th>Deaths</th>
+            <th>Zone Captures</th>
+            <th>Zone Upgrades</th>
+            <th>Air</th>
+            <th>Ground Units</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
+        <tr>
+            <td>{{ player }}</td>
+            <td class="n">{{ stats.points | int }}</td>
+            <td class="n">{{ stats.deaths }}</td>
+            <td class="n">{{ stats.zone_capture }}</td>
+            <td class="n">{{ stats.zone_upgrade }}</td>
+            <td class="n">{{ stats.air }}</td>
+            <td class="n">{{ stats.ground_units }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" style="text-align: center; color: #5a6270;">No player data available</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
