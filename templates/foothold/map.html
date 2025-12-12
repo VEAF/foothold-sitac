@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <title>{{ config.web.title }} - Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         html, body {
             margin: 0;
@@ -50,6 +53,11 @@
 
         .navbar-links a:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand i,
+        .navbar-links a i {
+            margin-right: 6px;
         }
 
         /* Map container */
@@ -186,11 +194,11 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <span class="navbar-brand">{{ server }}</span>
+        <span class="navbar-brand"><i class="fa-solid fa-server"></i> {{ server }}</span>
         <div class="navbar-links">
-            <a href="#" onclick="openModal('players'); return false;">Player Rankings</a>
-            <a href="#" onclick="openModal('zones'); return false;">Objectives</a>
-            <a href="{{ request.url_for('foothold_servers') }}">Servers</a>
+            <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
+            <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>
+            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Servers</a>
         </div>
     </nav>
 
