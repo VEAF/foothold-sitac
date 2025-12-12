@@ -1,18 +1,20 @@
 # test app/config.py
 
 import tempfile
-import yaml
+from typing import Any
+
 import pytest
+import yaml
 
 from app.config import (
-    load_config,
-    load_config_str,
     AppConfig,
     TileLayerConfig,
+    load_config,
+    load_config_str,
 )
 
 
-def write_tmp_yaml(content: dict) -> str:
+def write_tmp_yaml(content: dict[str, Any]) -> str:
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
     with open(tmp.name, "w") as f:
         yaml.safe_dump(content, f)
@@ -22,10 +24,9 @@ def write_tmp_yaml(content: dict) -> str:
 @pytest.mark.parametrize("host", ["0.0.0.0", "127.0.0.1"])
 @pytest.mark.parametrize("port", [80, 8080, 8081])
 @pytest.mark.parametrize("title", ["Test Server", "VEAF SITAC"])
-def test_load_config_str_basic(host: str, port: int, title: str):
-
+def test_load_config_str_basic(host: str, port: int, title: str) -> None:
     # GIVEN
-    raw = {
+    raw: dict[str, Any] = {
         "web": {
             "host": host,
             "port": port,
@@ -43,8 +44,7 @@ def test_load_config_str_basic(host: str, port: int, title: str):
     assert cfg.web.title == title
 
 
-def test_load_config_str_defaults():
-
+def test_load_config_str_defaults() -> None:
     # WHEN
     cfg = load_config_str({})
 
@@ -54,8 +54,7 @@ def test_load_config_str_defaults():
     assert cfg.web.title == "Foothold Sitac Server"
 
 
-def test_load_config_str_env_expansion(monkeypatch):
-
+def test_load_config_str_env_expansion(monkeypatch: pytest.MonkeyPatch) -> None:
     # GIVEN
     monkeypatch.setenv("WEB_HOST", "10.0.0.5")
     monkeypatch.setenv("WEB_PORT", "7777")
@@ -78,13 +77,12 @@ def test_load_config_str_env_expansion(monkeypatch):
     assert cfg.web.title == "My Sitac"
 
 
-def test_load_config_str_list_env_expansion(monkeypatch):
-
+def test_load_config_str_list_env_expansion(monkeypatch: pytest.MonkeyPatch) -> None:
     # GIVEN
     monkeypatch.setenv("A", "abc")
     monkeypatch.setenv("B", "def")
 
-    raw = {
+    raw: dict[str, Any] = {
         "web": {"title": "$A - ${B}"},
     }
 
@@ -95,8 +93,7 @@ def test_load_config_str_list_env_expansion(monkeypatch):
     assert cfg.web.title == "abc - def"
 
 
-def test_load_config_from_file():
-
+def test_load_config_from_file() -> None:
     # GIVEN
     path = write_tmp_yaml(
         {
@@ -121,22 +118,23 @@ def test_load_config_from_file():
 # MapConfig tests
 
 
-def test_map_config_defaults():
-
+def test_map_config_defaults() -> None:
     # WHEN
     cfg = load_config_str({})
 
     # THEN
-    assert cfg.map.url_tiles == "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    assert (
+        cfg.map.url_tiles
+        == "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    )
     assert cfg.map.min_zoom == 8
     assert cfg.map.max_zoom == 11
     assert cfg.map.alternative_tiles == []
 
 
-def test_map_config_custom_url_tiles():
-
+def test_map_config_custom_url_tiles() -> None:
     # GIVEN
-    raw = {
+    raw: dict[str, Any] = {
         "map": {
             "url_tiles": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         }
@@ -149,14 +147,19 @@ def test_map_config_custom_url_tiles():
     assert cfg.map.url_tiles == "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
 
-def test_map_config_alternative_tiles():
-
+def test_map_config_alternative_tiles() -> None:
     # GIVEN
-    raw = {
+    raw: dict[str, Any] = {
         "map": {
             "alternative_tiles": [
-                {"name": "OpenStreetMap", "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
-                {"name": "Terrain", "url": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"},
+                {
+                    "name": "OpenStreetMap",
+                    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                },
+                {
+                    "name": "Terrain",
+                    "url": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg",
+                },
             ]
         }
     }
@@ -173,14 +176,9 @@ def test_map_config_alternative_tiles():
     assert cfg.map.alternative_tiles[1].url == "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
 
 
-def test_map_config_alternative_tiles_empty():
-
+def test_map_config_alternative_tiles_empty() -> None:
     # GIVEN
-    raw = {
-        "map": {
-            "alternative_tiles": []
-        }
-    }
+    raw: dict[str, Any] = {"map": {"alternative_tiles": []}}
 
     # WHEN
     cfg = load_config_str(raw)
@@ -189,13 +187,14 @@ def test_map_config_alternative_tiles_empty():
     assert cfg.map.alternative_tiles == []
 
 
-def test_map_config_alternative_tiles_env_expansion(monkeypatch):
-
+def test_map_config_alternative_tiles_env_expansion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     # GIVEN
     monkeypatch.setenv("TILE_NAME", "Custom Map")
     monkeypatch.setenv("TILE_URL", "https://custom.tiles.org/{z}/{x}/{y}.png")
 
-    raw = {
+    raw: dict[str, Any] = {
         "map": {
             "alternative_tiles": [
                 {"name": "$TILE_NAME", "url": "${TILE_URL}"},
@@ -211,10 +210,9 @@ def test_map_config_alternative_tiles_env_expansion(monkeypatch):
     assert cfg.map.alternative_tiles[0].url == "https://custom.tiles.org/{z}/{x}/{y}.png"
 
 
-def test_map_config_zoom_levels():
-
+def test_map_config_zoom_levels() -> None:
     # GIVEN
-    raw = {
+    raw: dict[str, Any] = {
         "map": {
             "min_zoom": 5,
             "max_zoom": 15,
@@ -229,8 +227,7 @@ def test_map_config_zoom_levels():
     assert cfg.map.max_zoom == 15
 
 
-def test_map_config_full():
-
+def test_map_config_full() -> None:
     # GIVEN
     raw = {
         "map": {
@@ -238,8 +235,11 @@ def test_map_config_full():
             "min_zoom": 6,
             "max_zoom": 14,
             "alternative_tiles": [
-                {"name": "Satellite", "url": "https://satellite.tiles.org/{z}/{x}/{y}.png"},
-            ]
+                {
+                    "name": "Satellite",
+                    "url": "https://satellite.tiles.org/{z}/{x}/{y}.png",
+                },
+            ],
         }
     }
 

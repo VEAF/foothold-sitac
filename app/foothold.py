@@ -1,12 +1,14 @@
 from datetime import datetime
 from pathlib import Path
-from lupa import LuaRuntime
+from typing import Any
+
+from lupa import LuaRuntime  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
+
 from app.config import get_config
 
 
-class ConfigError(Exception):
-    ...
+class ConfigError(Exception): ...
 
 
 class Position(BaseModel):
@@ -19,9 +21,9 @@ class Zone(BaseModel):
     upgrades_used: int = Field(alias="upgradesUsed")
     side: int
     active: bool
-    destroyed: dict[int, str] | list[str] | dict
-    extra_upgrade: dict = Field(alias="extraUpgrade")
-    remaining_units: dict[int, dict[int, str]] | dict = Field(alias="remainingUnits")
+    destroyed: dict[int, str] | list[str] | dict[Any, Any]
+    extra_upgrade: dict[Any, Any] = Field(alias="extraUpgrade")
+    remaining_units: dict[int, dict[int, str]] | dict[Any, Any] = Field(alias="remainingUnits")
     first_capture_by_red: bool = Field(alias="firstCaptureByRed")
     level: int
     wasBlue: bool
@@ -70,10 +72,10 @@ class Sitac(BaseModel):
     player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
 
 
-def lua_to_dict(lua_table):
+def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:
     if lua_table is None:
         return None
-    result = {}
+    result: dict[Any, Any] = {}
     for k, v in lua_table.items():
         if hasattr(v, "items"):
             v = lua_to_dict(v)
@@ -82,7 +84,6 @@ def lua_to_dict(lua_table):
 
 
 def load_sitac(file: Path) -> Sitac:
-
     lua = LuaRuntime(unpack_returned_tuples=True)
 
     with open(file.absolute(), "r", encoding="utf-8") as f:
@@ -90,17 +91,16 @@ def load_sitac(file: Path) -> Sitac:
 
     lua.execute(lua_code)
 
-    zone_persistance = lua.globals().zonePersistance  # type: ignore
+    zone_persistance = lua.globals().zonePersistance
     zone_persistance_dict = lua_to_dict(zone_persistance)
 
     return Sitac(
-        **zone_persistance_dict,  # type: ignore
-        updated_at=datetime.fromtimestamp(file.stat().st_mtime)
+        **zone_persistance_dict,  # type: ignore[arg-type]
+        updated_at=datetime.fromtimestamp(file.stat().st_mtime),
     )
 
 
 def detect_foothold_mission_path(server_name: str) -> Path | None:
-
     file_status = get_foothold_server_status_path(server_name)
 
     if not file_status.is_file():
@@ -114,17 +114,14 @@ def detect_foothold_mission_path(server_name: str) -> Path | None:
 
 
 def get_server_path_by_name(server_name: str) -> Path:
-
     return Path(get_config().dcs.saved_games) / server_name
 
 
 def get_foothold_server_saves_path(server_name: str) -> Path:
-
     return get_server_path_by_name(server_name) / "Missions" / "Saves"
 
 
 def get_foothold_server_status_path(server_name: str) -> Path:
-
     return get_foothold_server_saves_path(server_name) / "foothold.status"
 
 
@@ -137,20 +134,17 @@ def is_foothold_path(server_name: str) -> bool:
 
 
 def list_servers() -> list[str]:
-
     base_path = Path(get_config().dcs.saved_games)
 
     if not base_path.is_dir():
         raise ConfigError(f"config:dcs.saved_games '{get_config().dcs.saved_games}' is not a valid dir")
 
-    return sorted([
-        file.name for file in base_path.iterdir()
-        if not file.name.startswith(".") and is_foothold_path(file.name)
-    ])
+    return sorted(
+        [file.name for file in base_path.iterdir() if not file.name.startswith(".") and is_foothold_path(file.name)]
+    )
 
 
 def get_sitac_range(sitac: Sitac) -> tuple[Position, Position]:
-
     if not sitac.zones:
         raise ValueError("sitac without zones")
     first_zone = sitac.zones[next(iter(sitac.zones))]
@@ -159,24 +153,28 @@ def get_sitac_range(sitac: Sitac) -> tuple[Position, Position]:
     min_long, max_long = first_zone.position.longitude, first_zone.position.longitude
 
     for zone in sitac.zones.values():
-
-        min_lat, max_lat = min(min_lat, zone.position.latitude), max(max_lat, zone.position.latitude)
-        min_long, max_long = min(min_long, zone.position.longitude), max(max_long, zone.position.longitude)
+        min_lat, max_lat = (
+            min(min_lat, zone.position.latitude),
+            max(max_lat, zone.position.latitude),
+        )
+        min_long, max_long = (
+            min(min_long, zone.position.longitude),
+            max(max_long, zone.position.longitude),
+        )
 
     return Position(latitude=min_lat, longitude=min_long), Position(latitude=max_lat, longitude=max_long)
 
 
 def get_sitac_center(sitac: Sitac) -> Position:
-
     min_pos, max_pos = get_sitac_range(sitac)
 
     return Position(
-        latitude=(max_pos.latitude + min_pos.latitude)/2,
-        longitude=(max_pos.longitude + min_pos.longitude)/2,
+        latitude=(max_pos.latitude + min_pos.latitude) / 2,
+        longitude=(max_pos.longitude + min_pos.longitude) / 2,
     )
 
 
 if __name__ == "__main__":
     # only for debug
-    test = load_sitac("var/footholdSyria_Extended_0.1.lua")
+    test = load_sitac(Path("var/footholdSyria_Extended_0.1.lua"))
     print(test)
