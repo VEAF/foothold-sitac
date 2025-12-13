@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Mission, Zone, load_sitac
+from app.foothold import Connection, Mission, Zone, load_sitac
 
 
 @pytest.fixture
@@ -165,3 +165,64 @@ def test_load_sitac_without_missions() -> None:
 
     # Should default to empty list
     assert sitac.missions == []
+
+
+# FlavorText tests
+
+
+def test_zone_flavor_text(base_zone_data: dict[str, Any]) -> None:
+    """Test Zone model with flavorText"""
+    base_zone_data["flavorText"] = "WPT 1"
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.flavor_text == "WPT 1"
+
+
+def test_zone_flavor_text_default(base_zone_data: dict[str, Any]) -> None:
+    """Test Zone model without flavorText (default to None)"""
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.flavor_text is None
+
+
+def test_load_sitac_with_flavor_text() -> None:
+    """Test loading sitac with flavorText"""
+    lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.zones["TestZone1"].flavor_text == "WPT 1"
+    assert sitac.zones["TestZone2"].flavor_text == "WPT 2"
+    assert sitac.zones["TestZone3"].flavor_text is None
+
+
+# Connection tests
+
+
+def test_connection_model_validation() -> None:
+    """Test Connection model validation with valid data"""
+    conn_data = {
+        "from": "ZoneA",
+        "to": "ZoneB",
+    }
+    conn = Connection.model_validate(conn_data)
+    assert conn.from_zone == "ZoneA"
+    assert conn.to_zone == "ZoneB"
+
+
+def test_load_sitac_with_connections() -> None:
+    """Test loading sitac with connections"""
+    lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
+    sitac = load_sitac(lua_path)
+
+    assert len(sitac.connections) == 2
+    assert sitac.connections[0].from_zone == "TestZone1"
+    assert sitac.connections[0].to_zone == "TestZone2"
+    assert sitac.connections[1].from_zone == "TestZone2"
+    assert sitac.connections[1].to_zone == "TestZone3"
+
+
+def test_load_sitac_without_connections() -> None:
+    """Test loading sitac without connections section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+
+    # Should default to empty list
+    assert sitac.connections == []
