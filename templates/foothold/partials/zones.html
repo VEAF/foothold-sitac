@@ -135,6 +135,44 @@
         color: #5a6270;
         padding: 40px 20px;
     }
+
+    /* Progress bar */
+    .progress-container {
+        margin-bottom: 24px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .progress-label {
+        font-size: 14px;
+        color: #c9cdd4;
+        font-weight: 500;
+    }
+
+    .progress-value {
+        font-size: 14px;
+        color: #60a5fa;
+        font-weight: 600;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4263eb 0%, #60a5fa 100%);
+        border-radius: 6px;
+        transition: width 0.3s ease;
+    }
 </style>
 
 {% set blue_zones = [] %}
@@ -152,6 +190,16 @@
 {% endfor %}
 
 <h2>Objectives</h2>
+
+<div class="progress-container">
+    <div class="progress-header">
+        <span class="progress-label">Campaign Progress</span>
+        <span class="progress-value">{{ "%.0f"|format(progress) }}%</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ progress }}%"></div>
+    </div>
+</div>
 
 <div class="tabs">
     <button class="tab-btn blue active" onclick="showTab('blue')">

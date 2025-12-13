@@ -59,6 +59,7 @@ async def foothold_map(request: Request, server: str, sitac: Annotated[Sitac, De
             "sitac": sitac,
             "server": server,
             "center": [map_center.latitude, map_center.longitude],
+            "progress": sitac.campaign_progress,
         }
     )
 
@@ -72,4 +73,4 @@ async def foothold_players_modal(sitac: Annotated[Sitac, Depends(get_active_sita
 @router.get("/map/{server}/zones", response_class=HTMLResponse)
 async def foothold_zones_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/partials/zones.html")
-    return template.render({"sitac": sitac})
+    return template.render({"sitac": sitac, "progress": sitac.campaign_progress})

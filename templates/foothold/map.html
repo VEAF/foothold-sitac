@@ -35,6 +35,20 @@
         .navbar-brand {
             font-weight: 600;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-progress {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(145deg, #4263eb 0%, #3451c9 100%);
+            box-shadow: 0 2px 8px rgba(66, 99, 235, 0.4);
         }
 
         .navbar-links {
@@ -226,7 +240,10 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <span class="navbar-brand"><i class="fa-solid fa-server"></i> {{ server }}</span>
+        <span class="navbar-brand">
+            <span><i class="fa-solid fa-server"></i> {{ server }}</span>
+            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> {{ "%.0f"|format(progress) }}%</span>
+        </span>
         <div class="navbar-links">
             <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
             <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>

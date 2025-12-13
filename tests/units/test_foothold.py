@@ -64,3 +64,51 @@ def test_load_sitac_hidden_zones_count() -> None:
 
     assert len(visible_zones) == 2
     assert len(hidden_zones) == 2
+
+
+# Campaign progress tests
+
+
+def test_sitac_campaign_progress_all_red() -> None:
+    """100% rouge = 0% progression"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_all_red.lua")
+    sitac = load_sitac(lua_path)
+    assert sitac.campaign_progress == 0.0
+
+
+def test_sitac_campaign_progress_all_blue() -> None:
+    """100% bleu = 100% progression"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_all_blue.lua")
+    sitac = load_sitac(lua_path)
+    assert sitac.campaign_progress == 100.0
+
+
+def test_sitac_campaign_progress_mixed() -> None:
+    """2 rouges + 2 bleus = 50% progression"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_mixed.lua")
+    sitac = load_sitac(lua_path)
+    assert sitac.campaign_progress == 50.0
+
+
+def test_sitac_campaign_progress_with_neutral() -> None:
+    """Les zones neutres comptent comme non-rouges"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_with_neutral.lua")
+    sitac = load_sitac(lua_path)
+    # 1 rouge, 1 bleu, 1 neutre = (3-1)/3 = 66.67%
+    assert sitac.campaign_progress == pytest.approx(66.67, rel=0.01)
+
+
+def test_sitac_campaign_progress_excludes_hidden() -> None:
+    """Les zones cachées sont exclues du calcul"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+    # Zones visibles: VisibleZone1 (rouge), VisibleZone2 (bleu)
+    # = (2-1)/2 = 50%
+    assert sitac.campaign_progress == 50.0
+
+
+def test_sitac_campaign_progress_no_zones() -> None:
+    """Sans zones, retourne 0"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_empty.lua")
+    sitac = load_sitac(lua_path)
+    assert sitac.campaign_progress == 0.0
