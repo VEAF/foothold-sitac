@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Zone, load_sitac
+from app.foothold import Mission, Zone, load_sitac
 
 
 @pytest.fixture
@@ -112,3 +112,56 @@ def test_sitac_campaign_progress_no_zones() -> None:
     lua_path = Path("tests/fixtures/test_progress/foothold_empty.lua")
     sitac = load_sitac(lua_path)
     assert sitac.campaign_progress == 0.0
+
+
+# Mission tests
+
+
+def test_mission_model_validation() -> None:
+    """Test Mission model validation with valid data"""
+    mission_data = {
+        "isEscortMission": False,
+        "description": "Destroy enemy forces at Hahn",
+        "title": "Attack Hahn (3)",
+        "isRunning": True,
+    }
+    mission = Mission.model_validate(mission_data)
+    assert mission.is_escort_mission is False
+    assert mission.description == "Destroy enemy forces at Hahn"
+    assert mission.title == "Attack Hahn (3)"
+    assert mission.is_running is True
+
+
+def test_mission_escort_mission() -> None:
+    """Test Mission model with escort mission"""
+    mission_data = {
+        "isEscortMission": True,
+        "description": "Escort friendly convoy",
+        "title": "Convoy Escort",
+        "isRunning": False,
+    }
+    mission = Mission.model_validate(mission_data)
+    assert mission.is_escort_mission is True
+    assert mission.is_running is False
+
+
+def test_load_sitac_with_missions() -> None:
+    """Test loading sitac with missions"""
+    lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
+    sitac = load_sitac(lua_path)
+
+    assert len(sitac.missions) == 2
+    assert sitac.missions[0].title == "Attack Hahn (3)"
+    assert sitac.missions[0].is_running is True
+    assert sitac.missions[0].is_escort_mission is False
+    assert sitac.missions[1].title == "Convoy Escort"
+    assert sitac.missions[1].is_escort_mission is True
+
+
+def test_load_sitac_without_missions() -> None:
+    """Test loading sitac without missions section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+
+    # Should default to empty list
+    assert sitac.missions == []

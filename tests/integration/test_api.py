@@ -82,3 +82,44 @@ def test_sitac_hidden_field_values(client: TestClient) -> None:
     assert zones["VisibleZone2"]["hidden"] is False
     assert zones["HiddenZone1"]["hidden"] is True
     assert zones["HiddenZone2"]["hidden"] is True
+
+
+# Missions tests
+
+
+def test_sitac_includes_missions(client: TestClient) -> None:
+    response = client.get("/api/foothold/test_missions/sitac")
+    assert response.status_code == 200
+
+    sitac = response.json()
+    assert "missions" in sitac
+    assert len(sitac["missions"]) == 2
+
+    # Check first mission (JSON uses aliases: isEscortMission, isRunning)
+    mission1 = sitac["missions"][0]
+    assert mission1["title"] == "Attack Hahn (3)"
+    assert mission1["description"] == "Destroy enemy forces at Hahn"
+    assert mission1["isEscortMission"] is False
+    assert mission1["isRunning"] is True
+
+    # Check second mission (escort)
+    mission2 = sitac["missions"][1]
+    assert mission2["title"] == "Convoy Escort"
+    assert mission2["isEscortMission"] is True
+    assert mission2["isRunning"] is False
+
+
+def test_sitac_without_missions_returns_empty_list(client: TestClient) -> None:
+    response = client.get("/api/foothold/test_hidden/sitac")
+    assert response.status_code == 200
+
+    sitac = response.json()
+    assert "missions" in sitac
+    assert sitac["missions"] == []
+
+
+def test_missions_modal_endpoint(client: TestClient) -> None:
+    response = client.get("/foothold/map/test_missions/missions")
+    assert response.status_code == 200
+    assert "Attack Hahn (3)" in response.text
+    assert "Convoy Escort" in response.text

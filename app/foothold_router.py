@@ -74,3 +74,9 @@ async def foothold_players_modal(sitac: Annotated[Sitac, Depends(get_active_sita
 async def foothold_zones_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/partials/zones.html")
     return template.render({"sitac": sitac, "progress": sitac.campaign_progress})
+
+
+@router.get("/map/{server}/missions", response_class=HTMLResponse)
+async def foothold_missions_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
+    template = env.get_template("foothold/partials/missions.html")
+    return template.render({"missions": sitac.missions})
