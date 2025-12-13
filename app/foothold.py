@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from lupa import LuaRuntime  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.config import get_config
 
@@ -52,6 +52,13 @@ class Zone(BaseModel):
         return sum([len(group_units) for group_units in self.remaining_units.values()])
 
 
+class Mission(BaseModel):
+    is_escort_mission: bool = Field(alias="isEscortMission")
+    description: str
+    title: str
+    is_running: bool = Field(alias="isRunning")
+
+
 class PlayerStats(BaseModel):
     air: int = Field(alias="Air", default=0)
     SAM: int = Field(alias="SAM", default=0)
@@ -70,6 +77,17 @@ class Sitac(BaseModel):
     updated_at: datetime
     zones: dict[str, Zone]
     player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
+    missions: list[Mission] = Field(default_factory=list)
+
+    @field_validator("missions", mode="before")
+    @classmethod
+    def convert_missions_dict_to_list(cls, v: Any) -> list[Any]:
+        """Convert Lua table (dict with numeric keys) to list."""
+        if v is None:
+            return []
+        if isinstance(v, dict):
+            return list(v.values())
+        return list(v) if not isinstance(v, list) else v
 
     @property
     def campaign_progress(self) -> float:
