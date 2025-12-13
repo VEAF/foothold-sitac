@@ -62,6 +62,7 @@
 <table class="modal-table">
     <thead>
         <tr>
+            <th>#</th>
             <th>Player</th>
             <th>Points</th>
             <th>Deaths</th>
@@ -74,6 +75,7 @@
     <tbody>
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
         <tr>
+            <td class="n">{{ loop.index }}</td>
             <td>{{ player }}</td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.deaths }}</td>
@@ -84,7 +86,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" style="text-align: center; color: #5a6270;">No player data available</td>
+            <td colspan="8" style="text-align: center; color: #5a6270;">No player data available</td>
         </tr>
         {% endfor %}
     </tbody>
