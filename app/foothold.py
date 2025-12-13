@@ -73,12 +73,12 @@ class Sitac(BaseModel):
 
     @property
     def campaign_progress(self) -> float:
-        """Retourne le pourcentage de progression de la campagne (0-100).
+        """Return the campaign progress percentage (0-100).
 
-        La progression est calculée comme:
-        (zones_visibles - zones_rouges) / zones_visibles * 100
+        Progress is calculated as:
+        (visible_zones - red_zones) / visible_zones * 100
 
-        Les zones cachées (hidden=True) sont exclues du calcul.
+        Hidden zones (hidden=True) are excluded from the calculation.
         """
         visible_zones = [z for z in self.zones.values() if not z.hidden]
         if not visible_zones:
