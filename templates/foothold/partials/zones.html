@@ -136,6 +136,43 @@
         padding: 40px 20px;
     }
 
+    /* Modal header (fixed) */
+    .modal-header-fixed {
+        flex-shrink: 0;
+    }
+
+    /* Scrollable tab content */
+    .tab-content-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .tab-content-wrapper::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .tab-content-wrapper::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+
+    .tab-content-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(66, 99, 235, 0.3);
+        border-radius: 4px;
+    }
+
+    .tab-content-wrapper::-webkit-scrollbar-thumb:hover {
+        background: rgba(66, 99, 235, 0.5);
+    }
+
+    /* Container flex layout */
+    .zones-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
     /* Progress bar */
     .progress-container {
         margin-bottom: 24px;
@@ -189,31 +226,35 @@
     {% endif %}
 {% endfor %}
 
-<h2>Objectives</h2>
+<div class="zones-container">
+    <div class="modal-header-fixed">
+        <h2>Objectives</h2>
 
-<div class="progress-container">
-    <div class="progress-header">
-        <span class="progress-label">Campaign Progress</span>
-        <span class="progress-value">{{ "%.0f"|format(progress) }}%</span>
+        <div class="progress-container">
+            <div class="progress-header">
+                <span class="progress-label">Campaign Progress</span>
+                <span class="progress-value">{{ "%.0f"|format(progress) }}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ progress }}%"></div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn blue active" onclick="showTab('blue')">
+                Blue <span class="tab-badge">{{ blue_zones | length }}</span>
+            </button>
+            <button class="tab-btn neutral" onclick="showTab('neutral')">
+                Neutral <span class="tab-badge">{{ neutral_zones | length }}</span>
+            </button>
+            <button class="tab-btn red" onclick="showTab('red')">
+                Red <span class="tab-badge">{{ red_zones | length }}</span>
+            </button>
+        </div>
     </div>
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: {{ progress }}%"></div>
-    </div>
-</div>
 
-<div class="tabs">
-    <button class="tab-btn blue active" onclick="showTab('blue')">
-        Blue <span class="tab-badge">{{ blue_zones | length }}</span>
-    </button>
-    <button class="tab-btn neutral" onclick="showTab('neutral')">
-        Neutral <span class="tab-badge">{{ neutral_zones | length }}</span>
-    </button>
-    <button class="tab-btn red" onclick="showTab('red')">
-        Red <span class="tab-badge">{{ red_zones | length }}</span>
-    </button>
-</div>
-
-<div id="tab-blue" class="tab-content active">
+    <div class="tab-content-wrapper">
+        <div id="tab-blue" class="tab-content active">
     {% if blue_zones %}
     <table class="modal-table">
         <thead>
@@ -292,6 +333,8 @@
     {% else %}
     <div class="empty-state">No red zones</div>
     {% endif %}
+        </div>
+    </div>
 </div>
 
 <script>
