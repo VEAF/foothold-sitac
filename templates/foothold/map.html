@@ -230,6 +230,28 @@
             padding: 40px;
             color: #8892a0;
         }
+
+        /* Zone modal (compact) */
+        .modal-overlay.zone-modal .modal-content {
+            height: auto;
+            max-width: 400px;
+        }
+
+        /* Zone labels */
+        .zone-label {
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+            text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+            text-align: center;
+        }
+
+        .zone-label .fa-truck {
+            font-size: 14px;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -299,7 +321,7 @@
         }
 
         function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('visible');
+            document.getElementById('modal-overlay').classList.remove('visible', 'zone-modal');
         }
 
         function closeModalOnOverlay(event) {
@@ -343,6 +365,102 @@
         }
 
         const zonesLayer = L.layerGroup().addTo(map);
+        const labelsLayer = L.layerGroup().addTo(map);
+        let zonesData = [];
+
+        // Coordinate conversion
+        function toDMS(decimal, isLat) {
+            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const abs = Math.abs(decimal);
+            const deg = Math.floor(abs);
+            const minFloat = (abs - deg) * 60;
+            const min = Math.floor(minFloat);
+            const sec = ((minFloat - min) * 60).toFixed(2);
+            return `${deg}° ${min}' ${sec}" ${dir}`;
+        }
+
+        // Zone modal
+        function openZoneModal(zone) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+
+            const dmsLat = toDMS(zone.lat, true);
+            const dmsLon = toDMS(zone.lon, false);
+
+            body.innerHTML = `
+                <h3 style="margin-top: 0; color: ${zone.color};">${zone.name || 'Zone inconnue'}</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Coalition</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.side}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Unités détectées</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.units}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.lat.toFixed(6)}, ${zone.lon.toFixed(6)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">DMS</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${dmsLat}<br>${dmsLon}</td>
+                    </tr>
+                </table>
+            `;
+            overlay.classList.add('visible', 'zone-modal');
+        }
+
+        // Zone label functions
+        function getShortName(name) {
+            if (!name || name.length <= 5) return name || '';
+            return name.substring(0, 5) + '.';
+        }
+
+        function createLabelContent(zone, zoom) {
+            const truckIcon = zone.units > 0
+                ? `<i class="fa-solid fa-truck" style="color: ${zone.color};"></i>`
+                : '';
+
+            if (zoom <= 9) {
+                // low zoom: truck only
+                return truckIcon;
+            } else if (zoom <= 10) {
+                // medium zoom: short name + truck
+                let label = getShortName(zone.name);
+                if (truckIcon) {
+                    label += label ? `<br>${truckIcon}` : truckIcon;
+                }
+                return label;
+            } else {
+                // high zoom: full name + truck with count
+                let label = zone.name || '';
+                if (zone.units > 0) {
+                    label += `<br>${truckIcon} x${zone.units}`;
+                }
+                return label;
+            }
+        }
+
+        function updateLabels() {
+            const zoom = map.getZoom();
+            labelsLayer.clearLayers();
+
+            zonesData.forEach(zone => {
+                const content = createLabelContent(zone, zoom);
+                if (content) {
+                    const marker = L.marker([zone.lat, zone.lon], {
+                        icon: L.divIcon({
+                            className: 'zone-label',
+                            html: content,
+                            iconSize: [100, 20],
+                            iconAnchor: [50, 10]
+                        })
+                    });
+                    marker.addTo(labelsLayer);
+                }
+            });
+        }
 
         // Freshness widget state
         const REFRESH_INTERVAL = 30;
@@ -398,11 +516,11 @@
                             radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                         }).addTo(zonesLayer);
 
-                        circle.bindPopup(p.name || `${p.lat}, ${p.lon}`);
-                        if (p.units > 0) {
-                            circle.bindTooltip(p.units + " units", { permanent: true, position: "right", direction: "top" });
-                        }
+                        circle.on('click', () => openZoneModal(p));
                     });
+
+                    zonesData = data.zones;
+                    updateLabels();
                 })
                 .catch(error => {
                     console.error(error);
@@ -425,6 +543,9 @@
 
         loadData(); // initial load
         setInterval(loadData, REFRESH_INTERVAL * 1000); // refresh every REFRESH_INTERVAL seconds
+
+        // Update labels on zoom change
+        map.on('zoomend', updateLabels);
     </script>
 </body>
 
