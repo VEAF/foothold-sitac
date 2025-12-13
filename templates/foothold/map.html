@@ -231,6 +231,12 @@
             color: #8892a0;
         }
 
+        /* Zone modal (compact) */
+        .modal-overlay.zone-modal .modal-content {
+            height: auto;
+            max-width: 400px;
+        }
+
         /* Zone labels */
         .zone-label {
             background: transparent;
@@ -315,7 +321,7 @@
         }
 
         function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('visible');
+            document.getElementById('modal-overlay').classList.remove('visible', 'zone-modal');
         }
 
         function closeModalOnOverlay(event) {
@@ -361,6 +367,49 @@
         const zonesLayer = L.layerGroup().addTo(map);
         const labelsLayer = L.layerGroup().addTo(map);
         let zonesData = [];
+
+        // Coordinate conversion
+        function toDMS(decimal, isLat) {
+            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const abs = Math.abs(decimal);
+            const deg = Math.floor(abs);
+            const minFloat = (abs - deg) * 60;
+            const min = Math.floor(minFloat);
+            const sec = ((minFloat - min) * 60).toFixed(2);
+            return `${deg}° ${min}' ${sec}" ${dir}`;
+        }
+
+        // Zone modal
+        function openZoneModal(zone) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+
+            const dmsLat = toDMS(zone.lat, true);
+            const dmsLon = toDMS(zone.lon, false);
+
+            body.innerHTML = `
+                <h3 style="margin-top: 0; color: ${zone.color};">${zone.name || 'Zone inconnue'}</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Coalition</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.side}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Unités détectées</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.units}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.lat.toFixed(6)}, ${zone.lon.toFixed(6)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #8892a0;">DMS</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${dmsLat}<br>${dmsLon}</td>
+                    </tr>
+                </table>
+            `;
+            overlay.classList.add('visible', 'zone-modal');
+        }
 
         // Zone label functions
         function getShortName(name) {
@@ -467,7 +516,7 @@
                             radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                         }).addTo(zonesLayer);
 
-                        circle.bindPopup(p.name || `${p.lat}, ${p.lon}`);
+                        circle.on('click', () => openZoneModal(p));
                     });
 
                     zonesData = data.zones;
