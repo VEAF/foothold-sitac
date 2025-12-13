@@ -396,9 +396,11 @@
             L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
         }
 
+        const connectionsLayer = L.layerGroup().addTo(map);
         const zonesLayer = L.layerGroup().addTo(map);
         const labelsLayer = L.layerGroup().addTo(map);
         let zonesData = [];
+        let connectionsData = [];
 
         // Coordinate conversion
         function toDMS(decimal, isLat) {
@@ -454,19 +456,32 @@
                 ? `<i class="fa-solid fa-truck" style="color: ${zone.color};"></i>`
                 : '';
 
-            if (zoom <= 9) {
-                // low zoom: truck only
+            if (zoom <= 8) {
+                // very low zoom: truck only
                 return truckIcon;
-            } else if (zoom <= 10) {
-                // medium zoom: short name + truck
-                let label = getShortName(zone.name);
+            } else if (zoom <= 9) {
+                // low zoom: flavor_text only (if available) + truck
+                let label = zone.flavor_text || '';
                 if (truckIcon) {
                     label += label ? `<br>${truckIcon}` : truckIcon;
                 }
                 return label;
+            } else if (zoom <= 10) {
+                // medium zoom: short name + flavor_text + truck
+                let label = getShortName(zone.name);
+                if (zone.flavor_text) {
+                    label += `<br><span style="font-size: 10px; opacity: 0.8;">${zone.flavor_text}</span>`;
+                }
+                if (truckIcon) {
+                    label += `<br>${truckIcon}`;
+                }
+                return label;
             } else {
-                // high zoom: full name + truck with count
+                // high zoom: full name + flavor_text + truck with count
                 let label = zone.name || '';
+                if (zone.flavor_text) {
+                    label += `<br><span style="font-size: 10px; opacity: 0.8;">${zone.flavor_text}</span>`;
+                }
                 if (zone.units > 0) {
                     label += `<br>${truckIcon} x${zone.units}`;
                 }
@@ -485,12 +500,32 @@
                         icon: L.divIcon({
                             className: 'zone-label',
                             html: content,
-                            iconSize: [100, 20],
-                            iconAnchor: [50, 10]
+                            iconSize: [100, 40],
+                            iconAnchor: [50, 20]
                         })
                     });
                     marker.addTo(labelsLayer);
                 }
+            });
+        }
+
+        function updateConnections() {
+            connectionsLayer.clearLayers();
+
+            connectionsData.forEach(conn => {
+                const latlngs = [
+                    [conn.from_lat, conn.from_lon],
+                    [conn.to_lat, conn.to_lon]
+                ];
+
+                // Draw line
+                const line = L.polyline(latlngs, {
+                    color: conn.color,
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '8, 12'
+                });
+                line.addTo(connectionsLayer);
             });
         }
 
@@ -552,6 +587,8 @@
                     });
 
                     zonesData = data.zones;
+                    connectionsData = data.connections || [];
+                    updateConnections();
                     updateLabels();
                 })
                 .catch(error => {

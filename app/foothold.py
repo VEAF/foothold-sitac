@@ -30,6 +30,7 @@ class Zone(BaseModel):
     triggers: dict[str, int]
     position: Position = Field(alias="lat_long")
     hidden: bool = False
+    flavor_text: str | None = Field(alias="flavorText", default=None)
 
     @property
     def side_color(self) -> str:
@@ -59,6 +60,11 @@ class Mission(BaseModel):
     is_running: bool = Field(alias="isRunning")
 
 
+class Connection(BaseModel):
+    from_zone: str = Field(alias="from")
+    to_zone: str = Field(alias="to")
+
+
 class PlayerStats(BaseModel):
     air: int = Field(alias="Air", default=0)
     SAM: int = Field(alias="SAM", default=0)
@@ -78,10 +84,11 @@ class Sitac(BaseModel):
     zones: dict[str, Zone]
     player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
     missions: list[Mission] = Field(default_factory=list)
+    connections: list[Connection] = Field(default_factory=list)
 
-    @field_validator("missions", mode="before")
+    @field_validator("missions", "connections", mode="before")
     @classmethod
-    def convert_missions_dict_to_list(cls, v: Any) -> list[Any]:
+    def convert_lua_table_to_list(cls, v: Any) -> list[Any]:
         """Convert Lua table (dict with numeric keys) to list."""
         if v is None:
             return []

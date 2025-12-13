@@ -14,9 +14,21 @@ class MapZone(BaseModel):
     color: str
     units: int
     level: int
+    flavor_text: str | None = None
+
+
+class MapConnection(BaseModel):
+    from_zone: str
+    to_zone: str
+    from_lat: float
+    from_lon: float
+    to_lat: float
+    to_lon: float
+    color: str
 
 
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
     zones: list[MapZone]
+    connections: list[MapConnection]

@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from app.dependencies import get_active_sitac
 from app.foothold import Sitac, list_servers
-from app.schemas import MapData, MapZone, Server
+from app.schemas import MapConnection, MapData, MapZone, Server
 
 router = APIRouter()
 
@@ -32,12 +32,39 @@ async def foothold_get_map_data(
                 "color": zone.side_color,
                 "units": zone.total_units,
                 "level": zone.level,
+                "flavor_text": zone.flavor_text,
             }
         )
         for zone_name, zone in sitac.zones.items()
         if zone.position and not zone.hidden
     ]
 
+    # Build connections with resolved coordinates
+    connections = []
+    for conn in sitac.connections:
+        from_zone = sitac.zones.get(conn.from_zone)
+        to_zone = sitac.zones.get(conn.to_zone)
+        # Only include connection if both zones exist, have positions, and are not hidden
+        if (
+            from_zone
+            and to_zone
+            and from_zone.position
+            and to_zone.position
+            and not from_zone.hidden
+            and not to_zone.hidden
+        ):
+            connections.append(
+                MapConnection(
+                    from_zone=conn.from_zone,
+                    to_zone=conn.to_zone,
+                    from_lat=from_zone.position.latitude,
+                    from_lon=from_zone.position.longitude,
+                    to_lat=to_zone.position.latitude,
+                    to_lon=to_zone.position.longitude,
+                    color=from_zone.side_color,
+                )
+            )
+
     age_seconds = (datetime.now() - sitac.updated_at).total_seconds()
 
-    return MapData(updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones)
+    return MapData(updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones, connections=connections)
