@@ -71,6 +71,21 @@ class Sitac(BaseModel):
     zones: dict[str, Zone]
     player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
 
+    @property
+    def campaign_progress(self) -> float:
+        """Return the campaign progress percentage (0-100).
+
+        Progress is calculated as:
+        (visible_zones - red_zones) / visible_zones * 100
+
+        Hidden zones (hidden=True) are excluded from the calculation.
+        """
+        visible_zones = [z for z in self.zones.values() if not z.hidden]
+        if not visible_zones:
+            return 0.0
+        red_zones = sum(1 for z in visible_zones if z.side == 1)
+        return (len(visible_zones) - red_zones) / len(visible_zones) * 100
+
 
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:
     if lua_table is None:
