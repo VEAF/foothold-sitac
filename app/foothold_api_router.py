@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from app.dependencies import get_active_sitac
 from app.foothold import Sitac, list_servers
-from app.schemas import MapConnection, MapData, MapZone, Server
+from app.schemas import MapConnection, MapData, MapPlayer, MapZone, Server
 
 router = APIRouter()
 
@@ -67,4 +67,19 @@ async def foothold_get_map_data(
 
     age_seconds = (datetime.now() - sitac.updated_at).total_seconds()
 
-    return MapData(updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones, connections=connections)
+    # Build players list
+    players = [
+        MapPlayer(
+            player_name=player.player_name,
+            lat=player.latitude,
+            lon=player.longitude,
+            coalition=player.coalition,
+            unit_type=player.unit_type,
+            color=player.side_color,
+        )
+        for player in sitac.players
+    ]
+
+    return MapData(
+        updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones, connections=connections, players=players
+    )

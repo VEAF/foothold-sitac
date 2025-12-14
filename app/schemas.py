@@ -27,8 +27,18 @@ class MapConnection(BaseModel):
     color: str
 
 
+class MapPlayer(BaseModel):
+    player_name: str
+    lat: float
+    lon: float
+    coalition: str
+    unit_type: str
+    color: str
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
     zones: list[MapZone]
     connections: list[MapConnection]
+    players: list[MapPlayer] = []

@@ -282,6 +282,22 @@
         .zone-label .fa-truck {
             font-size: 14px;
         }
+
+        /* Player labels */
+        .player-label {
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 11px;
+            color: #333;
+            text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+            text-align: center;
+        }
+
+        .player-label .fa-plane {
+            font-size: 16px;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -398,9 +414,11 @@
 
         const connectionsLayer = L.layerGroup().addTo(map);
         const zonesLayer = L.layerGroup().addTo(map);
+        const playersLayer = L.layerGroup().addTo(map);
         const labelsLayer = L.layerGroup().addTo(map);
         let zonesData = [];
         let connectionsData = [];
+        let playersData = [];
 
         // Coordinate conversion
         function toDMS(decimal, isLat) {
@@ -529,6 +547,40 @@
             });
         }
 
+        function createPlayerLabelContent(player, zoom) {
+            const planeIcon = `<i class="fa-solid fa-plane" style="color: ${player.color};"></i>`;
+
+            if (zoom < 10) {
+                // Low zoom: plane icon only
+                return planeIcon;
+            } else {
+                // Zoom 10+: plane icon + player name
+                return `${planeIcon}<br><span style="font-size: 10px;">${player.player_name}</span>`;
+            }
+        }
+
+        function updatePlayers() {
+            const zoom = map.getZoom();
+            playersLayer.clearLayers();
+
+            playersData.forEach(player => {
+                const content = createPlayerLabelContent(player, zoom);
+                const marker = L.marker([player.lat, player.lon], {
+                    icon: L.divIcon({
+                        className: 'player-label',
+                        html: content,
+                        iconSize: [120, 40],
+                        iconAnchor: [60, 20]
+                    })
+                });
+                marker.bindTooltip(`${player.player_name}<br>${player.unit_type}`, {
+                    direction: 'top',
+                    offset: [0, -10]
+                });
+                marker.addTo(playersLayer);
+            });
+        }
+
         // Freshness widget state
         const REFRESH_INTERVAL = 30;
         let nextRefresh = REFRESH_INTERVAL;
@@ -588,7 +640,9 @@
 
                     zonesData = data.zones;
                     connectionsData = data.connections || [];
+                    playersData = data.players || [];
                     updateConnections();
+                    updatePlayers();
                     updateLabels();
                 })
                 .catch(error => {
@@ -613,8 +667,11 @@
         loadData(); // initial load
         setInterval(loadData, REFRESH_INTERVAL * 1000); // refresh every REFRESH_INTERVAL seconds
 
-        // Update labels on zoom change
-        map.on('zoomend', updateLabels);
+        // Update labels and players on zoom change
+        map.on('zoomend', () => {
+            updateLabels();
+            updatePlayers();
+        });
     </script>
 </body>
 
