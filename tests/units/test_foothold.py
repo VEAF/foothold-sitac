@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Connection, Mission, Zone, load_sitac
+from app.foothold import Connection, Mission, Player, Zone, load_sitac
 
 
 @pytest.fixture
@@ -226,3 +226,74 @@ def test_load_sitac_without_connections() -> None:
 
     # Should default to empty list
     assert sitac.connections == []
+
+
+# Player tests
+
+
+def test_player_model_validation() -> None:
+    """Test Player model validation with valid data"""
+    player_data = {
+        "coalition": "blue",
+        "unitType": "AH-64D_BLK_II",
+        "playerName": "Ninja 1-1 | Zip",
+        "latitude": 50.005976182135,
+        "longitude": 8.0957305929501,
+        "altitude": 85.99609375,
+    }
+    player = Player.model_validate(player_data)
+    assert player.coalition == "blue"
+    assert player.unit_type == "AH-64D_BLK_II"
+    assert player.player_name == "Ninja 1-1 | Zip"
+    assert player.latitude == 50.005976182135
+    assert player.longitude == 8.0957305929501
+    assert player.altitude == 85.99609375
+    assert player.side_color == "blue"
+
+
+def test_player_model_red_coalition() -> None:
+    """Test Player model with red coalition"""
+    player_data = {
+        "coalition": "red",
+        "unitType": "Su-25T",
+        "playerName": "Red Pilot",
+        "latitude": 51.0,
+        "longitude": 9.0,
+    }
+    player = Player.model_validate(player_data)
+    assert player.coalition == "red"
+    assert player.side_color == "red"
+    assert player.altitude is None
+
+
+def test_player_model_unknown_coalition() -> None:
+    """Test Player model with unknown coalition"""
+    player_data = {
+        "coalition": "neutral",
+        "unitType": "C-130",
+        "playerName": "Unknown",
+        "latitude": 51.0,
+        "longitude": 9.0,
+    }
+    player = Player.model_validate(player_data)
+    assert player.side_color == "gray"
+
+
+def test_load_sitac_with_players() -> None:
+    """Test loading sitac with players"""
+    lua_path = Path("var/test4/Missions/Saves/FootHold_Germany_Modern_V0.1.lua")
+    sitac = load_sitac(lua_path)
+
+    assert len(sitac.players) == 1
+    assert sitac.players[0].player_name == "Ninja 1-1 | Zip"
+    assert sitac.players[0].coalition == "blue"
+    assert sitac.players[0].unit_type == "AH-64D_BLK_II"
+
+
+def test_load_sitac_without_players() -> None:
+    """Test loading sitac without players section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+
+    # Should default to empty list
+    assert sitac.players == []

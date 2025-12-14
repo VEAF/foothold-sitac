@@ -65,6 +65,23 @@ class Connection(BaseModel):
     to_zone: str = Field(alias="to")
 
 
+class Player(BaseModel):
+    coalition: str
+    unit_type: str = Field(alias="unitType")
+    player_name: str = Field(alias="playerName")
+    latitude: float
+    longitude: float
+    altitude: float | None = None
+
+    @property
+    def side_color(self) -> str:
+        if self.coalition == "red":
+            return "red"
+        elif self.coalition == "blue":
+            return "blue"
+        return "gray"
+
+
 class PlayerStats(BaseModel):
     air: int = Field(alias="Air", default=0)
     SAM: int = Field(alias="SAM", default=0)
@@ -85,8 +102,9 @@ class Sitac(BaseModel):
     player_stats: dict[str, PlayerStats] = Field(alias="playerStats")
     missions: list[Mission] = Field(default_factory=list)
     connections: list[Connection] = Field(default_factory=list)
+    players: list[Player] = Field(default_factory=list)
 
-    @field_validator("missions", "connections", mode="before")
+    @field_validator("missions", "connections", "players", mode="before")
     @classmethod
     def convert_lua_table_to_list(cls, v: Any) -> list[Any]:
         """Convert Lua table (dict with numeric keys) to list."""
