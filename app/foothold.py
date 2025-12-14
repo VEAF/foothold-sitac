@@ -134,6 +134,14 @@ def load_sitac(file: Path) -> Sitac:
     zone_persistance = lua.globals().zonePersistance
     zone_persistance_dict = lua_to_dict(zone_persistance)
 
+    # Merge zonesDetails into zones (new format support)
+    # In new format, flavorText is stored in zonesDetails instead of directly in zones
+    zones_details = zone_persistance_dict.get("zonesDetails", {})  # type: ignore[union-attr]
+    if zones_details and "zones" in zone_persistance_dict:  # type: ignore[operator]
+        for zone_name, details in zones_details.items():
+            if zone_name in zone_persistance_dict["zones"]:  # type: ignore[index]
+                zone_persistance_dict["zones"][zone_name].update(details)  # type: ignore[index]
+
     return Sitac(
         **zone_persistance_dict,  # type: ignore[arg-type]
         updated_at=datetime.fromtimestamp(file.stat().st_mtime),
