@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Connection, Mission, Player, Zone, load_sitac
+from app.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
 
 
 @pytest.fixture
@@ -297,3 +297,73 @@ def test_load_sitac_without_players() -> None:
 
     # Should default to empty list
     assert sitac.players == []
+
+
+# Ejected pilots tests
+
+
+def test_ejected_pilot_model_validation() -> None:
+    """Test EjectedPilot model validation with valid data"""
+    pilot_data = {
+        "playerName": "Unknown",
+        "latitude": 52.850300007598,
+        "longitude": 11.059029269508,
+        "altitude": 49.431312561035,
+        "lostCredits": 0,
+    }
+    pilot = EjectedPilot.model_validate(pilot_data)
+    assert pilot.player_name == "Unknown"
+    assert pilot.latitude == 52.850300007598
+    assert pilot.longitude == 11.059029269508
+    assert pilot.altitude == 49.431312561035
+    assert pilot.lost_credits == 0
+
+
+def test_ejected_pilot_model_with_credits() -> None:
+    """Test EjectedPilot model with lost credits"""
+    pilot_data = {
+        "playerName": "Viper 1-1",
+        "latitude": 50.0,
+        "longitude": 10.0,
+        "altitude": 100.0,
+        "lostCredits": 500,
+    }
+    pilot = EjectedPilot.model_validate(pilot_data)
+    assert pilot.player_name == "Viper 1-1"
+    assert pilot.lost_credits == 500
+
+
+def test_ejected_pilot_model_defaults() -> None:
+    """Test EjectedPilot model with default values"""
+    pilot_data = {
+        "playerName": "Test Pilot",
+        "latitude": 51.0,
+        "longitude": 9.0,
+    }
+    pilot = EjectedPilot.model_validate(pilot_data)
+    assert pilot.altitude == 0
+    assert pilot.lost_credits == 0
+
+
+def test_load_sitac_with_ejected_pilots() -> None:
+    """Test loading sitac with ejected pilots"""
+    lua_path = Path("tests/fixtures/test_ejected/Missions/Saves/foothold_ejected.lua")
+    sitac = load_sitac(lua_path)
+
+    assert len(sitac.ejected_pilots) == 3
+    # All pilots have playerName "Unknown"
+    assert all(p.player_name == "Unknown" for p in sitac.ejected_pilots)
+    # Check that all expected latitudes are present (order may vary)
+    latitudes = {p.latitude for p in sitac.ejected_pilots}
+    assert 52.850300007598 in latitudes
+    assert 52.903069323266 in latitudes
+    assert 52.90260133955 in latitudes
+
+
+def test_load_sitac_without_ejected_pilots() -> None:
+    """Test loading sitac without ejectedPilots section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+
+    # Should default to empty list
+    assert sitac.ejected_pilots == []
