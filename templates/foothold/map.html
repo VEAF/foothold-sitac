@@ -87,10 +87,36 @@
             padding: 8px 12px;
             border-radius: 4px;
             transition: background 0.2s ease;
+            position: relative;
         }
 
         .navbar-links a:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-links a .navbar-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #1a1f2a;
+            color: #e8eaed;
+            font-size: 12px;
+            font-weight: 400;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 1002;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-links a:hover .navbar-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .navbar-links a.disabled {
@@ -126,6 +152,80 @@
         .navbar-links a.disabled .navbar-badge {
             background: rgba(90, 98, 112, 0.5);
             box-shadow: none;
+        }
+
+        .navbar-badge-orange {
+            background: linear-gradient(145deg, #e67e22 0%, #d35400 100%);
+            box-shadow: 0 2px 6px rgba(230, 126, 34, 0.4);
+        }
+
+        .navbar-badge-gray {
+            background: rgba(90, 98, 112, 0.5);
+            box-shadow: none;
+        }
+
+        .navbar-item {
+            display: inline-flex;
+            align-items: center;
+            color: white;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+            position: relative;
+        }
+
+        .navbar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-item i {
+            margin-right: 6px;
+        }
+
+        .navbar-item .navbar-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #1a1f2a;
+            color: #e8eaed;
+            font-size: 12px;
+            font-weight: 400;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 1002;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-item:hover .navbar-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive navbar - hide labels below 1000px */
+        @media (max-width: 1000px) {
+            .navbar-link-label {
+                display: none;
+            }
+
+            .navbar-links {
+                gap: 10px;
+            }
+
+            .navbar-links a,
+            .navbar-item {
+                padding: 8px;
+            }
+
+            .navbar-brand {
+                font-size: 14px;
+            }
         }
 
         /* Map container */
@@ -351,12 +451,11 @@
     <nav class="navbar">
         <span class="navbar-brand"><i class="fa-solid fa-server"></i> {{ server }}</span>
         <div class="navbar-links">
-            <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
-            <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>
-            <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> Missions<span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span></a>
-            <span class="navbar-progress" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer; {% if sitac.ejected_pilots|length == 0 %}display: none;{% endif %} background: linear-gradient(145deg, #e67e22 0%, #d35400 100%); box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4);"><i class="fa-solid fa-parachute-box"></i> <span id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue (click for details)</span></span>
-            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> <span id="progress-value">{{ "%.0f"|format(progress) }}</span>%<span class="navbar-tooltip">Campaign progress</span></span>
-            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Servers</a>
+            <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> Player Rankings</span><span class="navbar-tooltip">View player statistics and rankings</span></a>
+            <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
+            <span class="navbar-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
+            <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
+            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i><span class="navbar-link-label"> Servers</span><span class="navbar-tooltip">Back to server list</span></a>
         </div>
     </nav>
 
@@ -685,14 +784,17 @@
                 }
             }
 
-            // Update ejected pilots count
+            // Update ejected pilots count and badge style
             const ejectedCount = document.getElementById('ejected-pilots-count');
-            const ejectedInfo = document.getElementById('ejected-pilots-info');
             if (ejectedCount) {
                 ejectedCount.textContent = ejectedPilotsCount;
-            }
-            if (ejectedInfo) {
-                ejectedInfo.style.display = ejectedPilotsCount > 0 ? 'inline-flex' : 'none';
+                if (ejectedPilotsCount > 0) {
+                    ejectedCount.classList.add('navbar-badge-orange');
+                    ejectedCount.classList.remove('navbar-badge-gray');
+                } else {
+                    ejectedCount.classList.remove('navbar-badge-orange');
+                    ejectedCount.classList.add('navbar-badge-gray');
+                }
             }
         }
 
