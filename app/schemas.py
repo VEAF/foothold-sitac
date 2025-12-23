@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Server(BaseModel):
@@ -36,11 +36,21 @@ class MapPlayer(BaseModel):
     color: str
 
 
+class MapEjectedPilot(BaseModel):
+    player_name: str
+    lat: float
+    lon: float
+    altitude: float
+    lost_credits: int
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
     zones: list[MapZone]
     connections: list[MapConnection]
-    players: list[MapPlayer] = []
+    players: list[MapPlayer] = Field(default_factory=list)
+    ejected_pilots: list[MapEjectedPilot] = Field(default_factory=list)
     progress: float
     missions_count: int
+    ejected_pilots_count: int = 0

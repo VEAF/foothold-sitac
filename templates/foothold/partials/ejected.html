@@ -1,0 +1,97 @@
+<style>
+    .modal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modal-table th,
+    .modal-table td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-table td.n {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .modal-table th {
+        background: rgba(230, 126, 34, 0.15);
+        color: #e8eaed;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(230, 126, 34, 0.3);
+    }
+
+    .modal-table tbody tr {
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    .modal-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-table tbody tr:hover {
+        background: rgba(230, 126, 34, 0.1);
+    }
+
+    .modal-table td {
+        color: #c9cdd4;
+    }
+
+    .ejected-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .ejected-header i {
+        color: #e67e22;
+        font-size: 24px;
+    }
+
+    .ejected-header h2 {
+        margin: 0;
+    }
+
+    .coords {
+        font-family: monospace;
+        font-size: 12px;
+    }
+</style>
+
+<div class="ejected-header">
+    <i class="fa-solid fa-parachute-box"></i>
+    <h2>Ejected Pilots</h2>
+</div>
+<table class="modal-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Pilot</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Altitude</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pilot in ejected_pilots %}
+        <tr>
+            <td class="n">{{ loop.index }}</td>
+            <td>{{ pilot.player_name }}</td>
+            <td class="coords">{{ "%.6f"|format(pilot.latitude) }}</td>
+            <td class="coords">{{ "%.6f"|format(pilot.longitude) }}</td>
+            <td class="n">{{ pilot.altitude | int }}m</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #5a6270;">No ejected pilots</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

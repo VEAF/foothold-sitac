@@ -46,6 +46,33 @@
             font-weight: 600;
             background: linear-gradient(145deg, #4263eb 0%, #3451c9 100%);
             box-shadow: 0 2px 8px rgba(66, 99, 235, 0.4);
+            position: relative;
+            cursor: default;
+        }
+
+        .navbar-progress .navbar-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #1a1f2a;
+            color: #e8eaed;
+            font-size: 12px;
+            font-weight: 400;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 1002;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-progress:hover .navbar-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .navbar-links {
@@ -298,6 +325,23 @@
         .player-label .fa-plane {
             font-size: 16px;
         }
+
+        /* Ejected pilots labels */
+        .ejection-label {
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 10px;
+            color: #333;
+            text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+            text-align: center;
+        }
+
+        .ejection-label .fa-parachute-box {
+            font-size: 16px;
+            color: orange;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -310,7 +354,8 @@
             <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
             <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>
             <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> Missions<span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span></a>
-            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> <span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span>
+            <span class="navbar-progress" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer; {% if sitac.ejected_pilots|length == 0 %}display: none;{% endif %} background: linear-gradient(145deg, #e67e22 0%, #d35400 100%); box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4);"><i class="fa-solid fa-parachute-box"></i> <span id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue (click for details)</span></span>
+            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> <span id="progress-value">{{ "%.0f"|format(progress) }}</span>%<span class="navbar-tooltip">Campaign progress</span></span>
             <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Servers</a>
         </div>
     </nav>
@@ -341,7 +386,8 @@
         const modalEndpoints = {
             players: '{{ request.url_for("foothold_players_modal", server=server) }}',
             zones: '{{ request.url_for("foothold_zones_modal", server=server) }}',
-            missions: '{{ request.url_for("foothold_missions_modal", server=server) }}'
+            missions: '{{ request.url_for("foothold_missions_modal", server=server) }}',
+            ejected: '{{ request.url_for("foothold_ejected_modal", server=server) }}'
         };
 
         async function openModal(type) {
@@ -416,9 +462,11 @@
         const zonesLayer = L.layerGroup().addTo(map);
         const playersLayer = L.layerGroup().addTo(map);
         const labelsLayer = L.layerGroup().addTo(map);
+        const ejectionsLayer = L.layerGroup().addTo(map);
         let zonesData = [];
         let connectionsData = [];
         let playersData = [];
+        let ejectionsData = [];
 
         // Coordinate conversion
         function toDMS(decimal, isLat) {
@@ -581,13 +629,42 @@
             });
         }
 
+        // Ejected pilots
+        function updateEjections() {
+            const zoom = map.getZoom();
+            ejectionsLayer.clearLayers();
+
+            ejectionsData.forEach(pilot => {
+                const icon = `<i class="fa-solid fa-parachute-box"></i>`;
+                const content = zoom >= 10
+                    ? `${icon}<br><span style="font-size: 9px;">${pilot.player_name}</span>`
+                    : icon;
+
+                const marker = L.marker([pilot.lat, pilot.lon], {
+                    icon: L.divIcon({
+                        className: 'ejection-label',
+                        html: content,
+                        iconSize: [100, 40],
+                        iconAnchor: [50, 20]
+                    })
+                });
+
+                marker.bindTooltip(`${pilot.player_name}<br>Alt: ${Math.round(pilot.altitude)}m`, {
+                    direction: 'top',
+                    offset: [0, -10]
+                });
+
+                marker.addTo(ejectionsLayer);
+            });
+        }
+
         // Freshness widget state
         const REFRESH_INTERVAL = 30;
         let nextRefresh = REFRESH_INTERVAL;
         let dataAgeSeconds = 0;
         let isConnected = true;
 
-        function updateNavbar(progress, missionsCount) {
+        function updateNavbar(progress, missionsCount, ejectedPilotsCount) {
             // Update progress percentage
             const progressElement = document.getElementById('progress-value');
             if (progressElement) {
@@ -606,6 +683,16 @@
                 } else {
                     missionsLink.classList.remove('disabled');
                 }
+            }
+
+            // Update ejected pilots count
+            const ejectedCount = document.getElementById('ejected-pilots-count');
+            const ejectedInfo = document.getElementById('ejected-pilots-info');
+            if (ejectedCount) {
+                ejectedCount.textContent = ejectedPilotsCount;
+            }
+            if (ejectedInfo) {
+                ejectedInfo.style.display = ejectedPilotsCount > 0 ? 'inline-flex' : 'none';
             }
         }
 
@@ -647,7 +734,7 @@
                     dataAgeSeconds = data.age_seconds;
                     nextRefresh = REFRESH_INTERVAL;
                     updateFreshnessWidget();
-                    updateNavbar(data.progress, data.missions_count);
+                    updateNavbar(data.progress, data.missions_count, data.ejected_pilots_count);
 
                     zonesLayer.clearLayers();
                     data.zones.forEach(p => {
@@ -664,8 +751,10 @@
                     zonesData = data.zones;
                     connectionsData = data.connections || [];
                     playersData = data.players || [];
+                    ejectionsData = data.ejected_pilots || [];
                     updateConnections();
                     updatePlayers();
+                    updateEjections();
                     updateLabels();
                 })
                 .catch(error => {
@@ -690,10 +779,11 @@
         loadData(); // initial load
         setInterval(loadData, REFRESH_INTERVAL * 1000); // refresh every REFRESH_INTERVAL seconds
 
-        // Update labels and players on zoom change
+        // Update labels, players and ejections on zoom change
         map.on('zoomend', () => {
             updateLabels();
             updatePlayers();
+            updateEjections();
         });
     </script>
 </body>

@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from app.dependencies import get_active_sitac
 from app.foothold import Sitac, list_servers
-from app.schemas import MapConnection, MapData, MapPlayer, MapZone, Server
+from app.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server
 
 router = APIRouter()
 
@@ -80,12 +80,27 @@ async def foothold_get_map_data(
         for player in sitac.players
     ]
 
+    # Build ejected pilots list (exclude "Unknown" pilots)
+    ejected_pilots = [
+        MapEjectedPilot(
+            player_name=pilot.player_name,
+            lat=pilot.latitude,
+            lon=pilot.longitude,
+            altitude=pilot.altitude,
+            lost_credits=pilot.lost_credits,
+        )
+        for pilot in sitac.ejected_pilots
+        if pilot.player_name != "Unknown"
+    ]
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
         zones=zones,
         connections=connections,
         players=players,
+        ejected_pilots=ejected_pilots,
         progress=sitac.campaign_progress,
         missions_count=len(sitac.missions),
+        ejected_pilots_count=len(ejected_pilots),
     )

@@ -82,6 +82,14 @@ class Player(BaseModel):
         return "gray"
 
 
+class EjectedPilot(BaseModel):
+    player_name: str = Field(alias="playerName")
+    latitude: float
+    longitude: float
+    altitude: float = 0
+    lost_credits: int = Field(alias="lostCredits", default=0)
+
+
 class PlayerStats(BaseModel):
     air: int = Field(alias="Air", default=0)
     SAM: int = Field(alias="SAM", default=0)
@@ -103,8 +111,9 @@ class Sitac(BaseModel):
     missions: list[Mission] = Field(default_factory=list)
     connections: list[Connection] = Field(default_factory=list)
     players: list[Player] = Field(default_factory=list)
+    ejected_pilots: list[EjectedPilot] = Field(alias="ejectedPilots", default_factory=list)
 
-    @field_validator("missions", "connections", "players", mode="before")
+    @field_validator("missions", "connections", "players", "ejected_pilots", mode="before")
     @classmethod
     def convert_lua_table_to_list(cls, v: Any) -> list[Any]:
         """Convert Lua table (dict with numeric keys) to list."""
