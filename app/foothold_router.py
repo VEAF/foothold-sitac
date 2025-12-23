@@ -80,3 +80,11 @@ async def foothold_zones_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)
 async def foothold_missions_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/partials/missions.html")
     return template.render({"missions": sitac.missions})
+
+
+@router.get("/map/{server}/ejected", response_class=HTMLResponse)
+async def foothold_ejected_modal(sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
+    template = env.get_template("foothold/partials/ejected.html")
+    # Filter out "Unknown" pilots
+    ejected_pilots = [p for p in sitac.ejected_pilots if p.player_name != "Unknown"]
+    return template.render({"ejected_pilots": ejected_pilots})
