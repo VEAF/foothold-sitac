@@ -309,8 +309,8 @@
         <div class="navbar-links">
             <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i> Player Rankings</a>
             <a href="#" onclick="openModal('zones'); return false;"><i class="fa-solid fa-bullseye"></i> Objectives</a>
-            <a href="#" onclick="openModal('missions'); return false;" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> Missions<span class="navbar-badge">{{ sitac.missions|length }}</span></a>
-            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> {{ "%.0f"|format(progress) }}%</span>
+            <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> Missions<span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span></a>
+            <span class="navbar-progress"><i class="fa-solid fa-flag"></i> <span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span>
             <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Servers</a>
         </div>
     </nav>
@@ -587,6 +587,28 @@
         let dataAgeSeconds = 0;
         let isConnected = true;
 
+        function updateNavbar(progress, missionsCount) {
+            // Update progress percentage
+            const progressElement = document.getElementById('progress-value');
+            if (progressElement) {
+                progressElement.textContent = Math.round(progress);
+            }
+
+            // Update missions count and link state
+            const missionsLink = document.getElementById('missions-link');
+            const missionsBadge = document.getElementById('missions-badge');
+            if (missionsBadge) {
+                missionsBadge.textContent = missionsCount;
+            }
+            if (missionsLink) {
+                if (missionsCount === 0) {
+                    missionsLink.classList.add('disabled');
+                } else {
+                    missionsLink.classList.remove('disabled');
+                }
+            }
+        }
+
         function updateFreshnessWidget() {
             const widget = document.getElementById('freshness-widget');
             const icon = document.getElementById('freshness-icon');
@@ -625,6 +647,7 @@
                     dataAgeSeconds = data.age_seconds;
                     nextRefresh = REFRESH_INTERVAL;
                     updateFreshnessWidget();
+                    updateNavbar(data.progress, data.missions_count);
 
                     zonesLayer.clearLayers();
                     data.zones.forEach(p => {

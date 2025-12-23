@@ -81,5 +81,11 @@ async def foothold_get_map_data(
     ]
 
     return MapData(
-        updated_at=sitac.updated_at, age_seconds=age_seconds, zones=zones, connections=connections, players=players
+        updated_at=sitac.updated_at,
+        age_seconds=age_seconds,
+        zones=zones,
+        connections=connections,
+        players=players,
+        progress=sitac.campaign_progress,
+        missions_count=len(sitac.missions),
     )

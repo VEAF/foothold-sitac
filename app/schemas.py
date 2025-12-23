@@ -42,3 +42,5 @@ class MapData(BaseModel):
     zones: list[MapZone]
     connections: list[MapConnection]
     players: list[MapPlayer] = []
+    progress: float
+    missions_count: int
