@@ -41,7 +41,7 @@ class MapEjectedPilot(BaseModel):
     lat: float
     lon: float
     altitude: float
-    lost_credits: int
+    lost_credits: float
 
 
 class MapData(BaseModel):

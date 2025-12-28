@@ -14,7 +14,7 @@ zonePersistance['ejectedPilots'] = {
         ['longitude']=11.059029269508,
         ['latitude']=52.850300007598,
         ['playerName']='Unknown',
-        ['lostCredits']=0,
+        ['lostCredits']=337.5,
     },
     [2]={
         ['altitude']=51.940250396729,
