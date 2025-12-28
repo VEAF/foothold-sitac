@@ -442,6 +442,10 @@
             font-size: 16px;
             color: orange;
         }
+
+        .ejection-label.green .fa-parachute-box {
+            color: #28a745;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -515,6 +519,134 @@
 
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('visible', 'zone-modal');
+        }
+
+        // Convert decimal degrees to DMS (degrees, minutes, seconds)
+        function decimalToDMS(decimal, isLat) {
+            const direction = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const absolute = Math.abs(decimal);
+            const degrees = Math.floor(absolute);
+            const minutesDecimal = (absolute - degrees) * 60;
+            const minutes = Math.floor(minutesDecimal);
+            const seconds = ((minutesDecimal - minutes) * 60).toFixed(2);
+            return `${degrees}° ${minutes}' ${seconds}" ${direction}`;
+        }
+
+        // Convert decimal degrees to decimal minutes (DDM)
+        function decimalToDDM(decimal, isLat) {
+            const direction = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const absolute = Math.abs(decimal);
+            const degrees = Math.floor(absolute);
+            const minutes = ((absolute - degrees) * 60).toFixed(4);
+            return `${degrees}° ${minutes}' ${direction}`;
+        }
+
+        // Open modal for ejected pilot details
+        function openPilotModal(pilot) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+
+            const color = pilot.lost_credits > 0 ? '#28a745' : '#e67e22';
+
+            body.innerHTML = `
+                <style>
+                    .pilot-modal-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin-bottom: 16px;
+                    }
+                    .pilot-modal-header i {
+                        color: ${color};
+                        font-size: 24px;
+                    }
+                    .pilot-modal-header h2 {
+                        margin: 0;
+                    }
+                    .pilot-coords {
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 8px;
+                        padding: 16px;
+                        margin-bottom: 12px;
+                    }
+                    .pilot-coords h3 {
+                        margin: 0 0 12px 0;
+                        font-size: 14px;
+                        color: #888;
+                        text-transform: uppercase;
+                    }
+                    .pilot-coords-row {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 0;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                        font-family: monospace;
+                    }
+                    .pilot-coords-row:last-child {
+                        border-bottom: none;
+                    }
+                    .pilot-coords-label {
+                        color: #888;
+                    }
+                    .pilot-coords-value {
+                        color: #e8eaed;
+                    }
+                    .pilot-info-row {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 0;
+                    }
+                </style>
+                <div class="pilot-modal-header">
+                    <i class="fa-solid fa-parachute-box"></i>
+                    <h2>${pilot.player_name}</h2>
+                </div>
+                <div class="pilot-coords">
+                    <h3>Decimal Degrees</h3>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Latitude</span>
+                        <span class="pilot-coords-value">${pilot.lat.toFixed(6)}°</span>
+                    </div>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Longitude</span>
+                        <span class="pilot-coords-value">${pilot.lon.toFixed(6)}°</span>
+                    </div>
+                </div>
+                <div class="pilot-coords">
+                    <h3>Degrees Decimal Minutes (DDM)</h3>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Latitude</span>
+                        <span class="pilot-coords-value">${decimalToDDM(pilot.lat, true)}</span>
+                    </div>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Longitude</span>
+                        <span class="pilot-coords-value">${decimalToDDM(pilot.lon, false)}</span>
+                    </div>
+                </div>
+                <div class="pilot-coords">
+                    <h3>Degrees Minutes Seconds (DMS)</h3>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Latitude</span>
+                        <span class="pilot-coords-value">${decimalToDMS(pilot.lat, true)}</span>
+                    </div>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Longitude</span>
+                        <span class="pilot-coords-value">${decimalToDMS(pilot.lon, false)}</span>
+                    </div>
+                </div>
+                <div class="pilot-coords">
+                    <h3>Other Info</h3>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Altitude</span>
+                        <span class="pilot-coords-value">${Math.round(pilot.altitude)}m</span>
+                    </div>
+                    <div class="pilot-coords-row">
+                        <span class="pilot-coords-label">Lost Credits</span>
+                        <span class="pilot-coords-value">${Math.round(pilot.lost_credits)}</span>
+                    </div>
+                </div>
+            `;
+            overlay.classList.add('visible');
         }
 
         function closeModalOnOverlay(event) {
@@ -741,7 +873,7 @@
 
                 const marker = L.marker([pilot.lat, pilot.lon], {
                     icon: L.divIcon({
-                        className: 'ejection-label',
+                        className: pilot.lost_credits > 0 ? 'ejection-label green' : 'ejection-label',
                         html: content,
                         iconSize: [100, 40],
                         iconAnchor: [50, 20]
@@ -752,6 +884,8 @@
                     direction: 'top',
                     offset: [0, -10]
                 });
+
+                marker.on('click', () => openPilotModal(pilot));
 
                 marker.addTo(ejectionsLayer);
             });
