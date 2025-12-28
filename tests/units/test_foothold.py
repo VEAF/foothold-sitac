@@ -333,6 +333,20 @@ def test_ejected_pilot_model_with_credits() -> None:
     assert pilot.lost_credits == 500
 
 
+def test_ejected_pilot_model_with_float_credits() -> None:
+    """Test EjectedPilot model with float lost credits (DCS can send decimals)"""
+    pilot_data = {
+        "playerName": "Viper 1-1",
+        "latitude": 50.0,
+        "longitude": 10.0,
+        "altitude": 100.0,
+        "lostCredits": 337.5,
+    }
+    pilot = EjectedPilot.model_validate(pilot_data)
+    assert pilot.player_name == "Viper 1-1"
+    assert pilot.lost_credits == 337.5
+
+
 def test_ejected_pilot_model_defaults() -> None:
     """Test EjectedPilot model with default values"""
     pilot_data = {

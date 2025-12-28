@@ -90,7 +90,7 @@ async def foothold_get_map_data(
             lost_credits=pilot.lost_credits,
         )
         for pilot in sitac.ejected_pilots
-        if pilot.player_name != "Unknown"
+        # if pilot.player_name != "Unknown" # don't hide Unknown pilots, real pilots have this name
     ]
 
     return MapData(

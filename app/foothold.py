@@ -87,7 +87,7 @@ class EjectedPilot(BaseModel):
     latitude: float
     longitude: float
     altitude: float = 0
-    lost_credits: int = Field(alias="lostCredits", default=0)
+    lost_credits: float = Field(alias="lostCredits", default=0)
 
 
 class PlayerStats(BaseModel):
