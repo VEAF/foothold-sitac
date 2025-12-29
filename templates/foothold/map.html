@@ -1178,13 +1178,12 @@
         }
 
         // Cursor position display
+        const cursorCoordsEl = document.getElementById('cursor-coords');
         map.on('mousemove', function(e) {
-            document.getElementById('cursor-coords').textContent =
-                formatCursorCoords(e.latlng.lat, e.latlng.lng);
+            cursorCoordsEl.textContent = formatCursorCoords(e.latlng.lat, e.latlng.lng);
         });
-
         map.on('mouseout', function() {
-            document.getElementById('cursor-coords').textContent = '';
+            cursorCoordsEl.textContent = '';
         });
     </script>
 </body>
