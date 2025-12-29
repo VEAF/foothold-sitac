@@ -85,8 +85,8 @@
         <tr>
             <td class="n">{{ loop.index }}</td>
             <td><i class="fa-solid fa-parachute-box" style="color: {% if pilot.lost_credits > 0 %}#28a745{% else %}#e67e22{% endif %};"></i> {{ pilot.player_name }}</td>
-            <td class="coords">{{ "%.6f"|format(pilot.latitude) }}</td>
-            <td class="coords">{{ "%.6f"|format(pilot.longitude) }}</td>
+            <td class="coords" data-lat="{{ pilot.latitude }}">{{ "%.6f"|format(pilot.latitude) }}</td>
+            <td class="coords" data-lon="{{ pilot.longitude }}">{{ "%.6f"|format(pilot.longitude) }}</td>
             <td class="n">{{ pilot.altitude | int }}m</td>
             <td class="n">{{ pilot.lost_credits | int }}</td>
         </tr>
@@ -97,3 +97,19 @@
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+    // Update coordinates based on user preference
+    (function() {
+        if (typeof formatCoord === 'function') {
+            document.querySelectorAll('td[data-lat]').forEach(td => {
+                const lat = parseFloat(td.dataset.lat);
+                td.textContent = formatCoord(lat, true);
+            });
+            document.querySelectorAll('td[data-lon]').forEach(td => {
+                const lon = parseFloat(td.dataset.lon);
+                td.textContent = formatCoord(lon, false);
+            });
+        }
+    })();
+</script>

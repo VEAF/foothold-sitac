@@ -282,6 +282,34 @@
             white-space: nowrap;
         }
 
+        /* Settings modal */
+        .settings-section {
+            margin: 16px 0;
+        }
+        .settings-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        .settings-section select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            background: #1e2433;
+            color: white;
+            border: 1px solid #333;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .settings-section select:hover {
+            border-color: #4266e8;
+        }
+        .settings-section select:focus {
+            outline: none;
+            border-color: #4266e8;
+        }
+
         .tooltip {
             visibility: hidden;
             opacity: 0;
@@ -479,6 +507,7 @@
             <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
             <span class="navbar-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
             <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
+            <span class="navbar-item" onclick="openSettingsModal()" style="cursor: pointer;"><i class="fa-solid fa-gear"></i><span class="navbar-link-label"> Settings</span><span class="navbar-tooltip">Display settings</span></span>
             <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i><span class="navbar-link-label"> Servers</span><span class="navbar-tooltip">Back to server list</span></a>
         </div>
     </nav>
@@ -546,6 +575,34 @@
             document.getElementById('modal-overlay').classList.remove('visible', 'zone-modal');
         }
 
+        // Settings modal
+        function openSettingsModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            const currentFormat = localStorage.getItem('foothold-coord-format') || 'dms';
+
+            body.innerHTML = `
+                <h2 style="margin-top: 0;"><i class="fa-solid fa-gear"></i> Settings</h2>
+                <div class="settings-section">
+                    <label>Coordinate format</label>
+                    <select id="coord-format-select" onchange="saveCoordFormat(this.value)">
+                        <option value="dms" ${currentFormat === 'dms' ? 'selected' : ''}>DMS (N41°07'24.42")</option>
+                        <option value="ddm" ${currentFormat === 'ddm' ? 'selected' : ''}>DDM (N41°07.4070')</option>
+                        <option value="decimal" ${currentFormat === 'decimal' ? 'selected' : ''}>Decimal (41.123456°)</option>
+                    </select>
+                </div>
+            `;
+            overlay.classList.add('visible', 'zone-modal');
+        }
+
+        function saveCoordFormat(format) {
+            localStorage.setItem('foothold-coord-format', format);
+        }
+
+        function getCoordFormat() {
+            return localStorage.getItem('foothold-coord-format') || 'dms';
+        }
+
         // Convert decimal degrees to DMS (degrees, minutes, seconds)
         function decimalToDMS(decimal, isLat) {
             const direction = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
@@ -564,6 +621,48 @@
             const degrees = Math.floor(absolute);
             const minutes = ((absolute - degrees) * 60).toFixed(4);
             return `${degrees}° ${minutes}' ${direction}`;
+        }
+
+        // Format coordinate with prefix N/S E/W and fixed width
+        function formatCoordDecimal(decimal, isLat) {
+            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const abs = Math.abs(decimal);
+            const degPad = isLat ? 2 : 3;
+            return `${dir}${abs.toFixed(6).padStart(degPad + 7, '0')}°`;
+        }
+
+        function formatCoordDDM(decimal, isLat) {
+            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const abs = Math.abs(decimal);
+            const degPad = isLat ? 2 : 3;
+            const deg = Math.floor(abs);
+            const min = ((abs - deg) * 60).toFixed(4);
+            return `${dir}${String(deg).padStart(degPad, '0')}°${min.padStart(7, '0')}'`;
+        }
+
+        function formatCoordDMS(decimal, isLat) {
+            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+            const abs = Math.abs(decimal);
+            const degPad = isLat ? 2 : 3;
+            const deg = Math.floor(abs);
+            const minDec = (abs - deg) * 60;
+            const min = Math.floor(minDec);
+            const sec = ((minDec - min) * 60).toFixed(2);
+            return `${dir}${String(deg).padStart(degPad, '0')}°${String(min).padStart(2, '0')}'${sec.padStart(5, '0')}"`;
+        }
+
+        // Format coordinate based on user preference
+        function formatCoord(decimal, isLat) {
+            const format = getCoordFormat();
+            switch(format) {
+                case 'decimal':
+                    return formatCoordDecimal(decimal, isLat);
+                case 'ddm':
+                    return formatCoordDDM(decimal, isLat);
+                case 'dms':
+                default:
+                    return formatCoordDMS(decimal, isLat);
+            }
         }
 
         // Open modal for ejected pilot details
@@ -630,33 +729,33 @@
                     <h3>Decimal Degrees</h3>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Latitude</span>
-                        <span class="pilot-coords-value">${pilot.lat.toFixed(6)}°</span>
+                        <span class="pilot-coords-value">${formatCoordDecimal(pilot.lat, true)}</span>
                     </div>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Longitude</span>
-                        <span class="pilot-coords-value">${pilot.lon.toFixed(6)}°</span>
+                        <span class="pilot-coords-value">${formatCoordDecimal(pilot.lon, false)}</span>
                     </div>
                 </div>
                 <div class="pilot-coords">
                     <h3>Degrees Decimal Minutes (DDM)</h3>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Latitude</span>
-                        <span class="pilot-coords-value">${decimalToDDM(pilot.lat, true)}</span>
+                        <span class="pilot-coords-value">${formatCoordDDM(pilot.lat, true)}</span>
                     </div>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Longitude</span>
-                        <span class="pilot-coords-value">${decimalToDDM(pilot.lon, false)}</span>
+                        <span class="pilot-coords-value">${formatCoordDDM(pilot.lon, false)}</span>
                     </div>
                 </div>
                 <div class="pilot-coords">
                     <h3>Degrees Minutes Seconds (DMS)</h3>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Latitude</span>
-                        <span class="pilot-coords-value">${decimalToDMS(pilot.lat, true)}</span>
+                        <span class="pilot-coords-value">${formatCoordDMS(pilot.lat, true)}</span>
                     </div>
                     <div class="pilot-coords-row">
                         <span class="pilot-coords-label">Longitude</span>
-                        <span class="pilot-coords-value">${decimalToDMS(pilot.lon, false)}</span>
+                        <span class="pilot-coords-value">${formatCoordDMS(pilot.lon, false)}</span>
                     </div>
                 </div>
                 <div class="pilot-coords">
@@ -724,24 +823,15 @@
         let playersData = [];
         let ejectionsData = [];
 
-        // Coordinate conversion
-        function toDMS(decimal, isLat) {
-            const dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
-            const abs = Math.abs(decimal);
-            const deg = Math.floor(abs);
-            const minFloat = (abs - deg) * 60;
-            const min = Math.floor(minFloat);
-            const sec = ((minFloat - min) * 60).toFixed(2);
-            return `${deg}° ${min}' ${sec}" ${dir}`;
-        }
-
         // Zone modal
         function openZoneModal(zone) {
             const overlay = document.getElementById('modal-overlay');
             const body = document.getElementById('modal-body');
 
-            const dmsLat = toDMS(zone.lat, true);
-            const dmsLon = toDMS(zone.lon, false);
+            const format = getCoordFormat();
+            const formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : 'Decimal');
+            const formattedLat = formatCoord(zone.lat, true);
+            const formattedLon = formatCoord(zone.lon, false);
 
             body.innerHTML = `
                 <h3 style="margin-top: 0; color: ${zone.color};">${zone.name || 'Zone inconnue'}</h3>
@@ -759,8 +849,8 @@
                         <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${zone.lat.toFixed(6)}, ${zone.lon.toFixed(6)}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 8px 0; color: #8892a0;">DMS</td>
-                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${dmsLat}<br>${dmsLon}</td>
+                        <td style="padding: 8px 0; color: #8892a0;">${formatLabel}</td>
+                        <td style="padding: 8px 0; text-align: right; color: #e8eaed;">${formattedLat}<br>${formattedLon}</td>
                     </tr>
                 </table>
             `;
@@ -1047,28 +1137,43 @@
             updateEjections();
         });
 
-        // Format coordinates for cursor widget (fixed width: N12°34'56.78" E012°34'56.78")
+        // Format coordinates for cursor widget with fixed width based on format preference
         function formatCursorCoords(lat, lng) {
+            const format = getCoordFormat();
             const latDir = lat >= 0 ? 'N' : 'S';
             const lngDir = lng >= 0 ? 'E' : 'W';
-
             const absLat = Math.abs(lat);
             const absLng = Math.abs(lng);
 
+            if (format === 'decimal') {
+                // Format: N 41.123456° E 042.654321°
+                const latStr = `${latDir} ${absLat.toFixed(6).padStart(10, '0')}°`;
+                const lngStr = `${lngDir} ${absLng.toFixed(6).padStart(11, '0')}°`;
+                return `${latStr} ${lngStr}`;
+            }
+
             const latDeg = Math.floor(absLat);
             const latMinDec = (absLat - latDeg) * 60;
-            const latMin = Math.floor(latMinDec);
-            const latSec = ((latMinDec - latMin) * 60).toFixed(2);
-
             const lngDeg = Math.floor(absLng);
             const lngMinDec = (absLng - lngDeg) * 60;
+
+            if (format === 'ddm') {
+                // Format: N41°07.4070' E042°39.2593'
+                const latMin = latMinDec.toFixed(4);
+                const lngMin = lngMinDec.toFixed(4);
+                const latStr = `${latDir}${String(latDeg).padStart(2, '0')}°${latMin.padStart(7, '0')}'`;
+                const lngStr = `${lngDir}${String(lngDeg).padStart(3, '0')}°${lngMin.padStart(7, '0')}'`;
+                return `${latStr} ${lngStr}`;
+            }
+
+            // DMS format: N41°07'24.42" E042°39'15.56"
+            const latMin = Math.floor(latMinDec);
+            const latSec = ((latMinDec - latMin) * 60).toFixed(2);
             const lngMin = Math.floor(lngMinDec);
             const lngSec = ((lngMinDec - lngMin) * 60).toFixed(2);
 
-            // Format: N12°34'56.78" E012°34'56.78"
             const latStr = `${latDir}${String(latDeg).padStart(2, '0')}°${String(latMin).padStart(2, '0')}'${latSec.padStart(5, '0')}"`;
             const lngStr = `${lngDir}${String(lngDeg).padStart(3, '0')}°${String(lngMin).padStart(2, '0')}'${lngSec.padStart(5, '0')}"`;
-
             return `${latStr} ${lngStr}`;
         }
 
