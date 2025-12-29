@@ -1,0 +1,176 @@
+/* Map CSS - Leaflet map and related widgets */
+
+/* Map container */
+#map {
+    height: calc(100vh - 50px);
+    width: 100%;
+    margin-top: 50px;
+}
+
+/* Freshness widget */
+#freshness-widget {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: var(--color-success);
+    color: white;
+    font-family: sans-serif;
+    font-size: 14px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+}
+
+#freshness-widget.fresh {
+    background-color: var(--color-success);
+}
+
+#freshness-widget.stale {
+    background-color: var(--color-danger);
+}
+
+#freshness-widget.disconnected {
+    background-color: #555;
+}
+
+#freshness-widget:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Cursor coordinates widget */
+#cursor-coords-widget {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 1000;
+    box-shadow: var(--shadow-sm);
+    line-height: 1.4;
+}
+
+#cursor-coords-widget div {
+    white-space: nowrap;
+}
+
+/* Tooltip */
+.tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 12px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+}
+
+/* Zone labels */
+.zone-label {
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 12px;
+    color: #333;
+    text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+    text-align: center;
+}
+
+.zone-label .fa-truck {
+    font-size: 14px;
+}
+
+/* Player labels */
+.player-label {
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 11px;
+    color: #333;
+    text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+    text-align: center;
+}
+
+.player-label .fa-plane {
+    font-size: 16px;
+}
+
+/* Ejected pilots labels */
+.ejection-label {
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 10px;
+    color: #333;
+    text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+    text-align: center;
+}
+
+.ejection-label .fa-parachute-box {
+    font-size: 16px;
+    color: orange;
+}
+
+.ejection-label.green .fa-parachute-box {
+    color: var(--color-success-dark);
+}
+
+/* Settings modal */
+.settings-section {
+    margin: 16px 0;
+}
+
+.settings-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.settings-section select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    background: var(--bg-dark-5);
+    color: white;
+    border: 1px solid #333;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.settings-section select:hover {
+    border-color: #4266e8;
+}
+
+.settings-section select:focus {
+    outline: none;
+    border-color: #4266e8;
+}

@@ -1,77 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>{{ config.web.title }} - Home</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Home{% endblock %}
 
-    <style>
-        body {
-            font-family: "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 50%, #0d1219 100%);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+{% block styles %}
+<link rel="stylesheet" href="/static/css/cards.css">
+{% endblock %}
 
-        .container {
-            background: linear-gradient(145deg, #1e2433 0%, #161b26 100%);
-            border: 1px solid rgba(66, 99, 235, 0.2);
-            border-radius: 12px;
-            padding: 40px 50px;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(66, 99, 235, 0.1);
-            text-align: center;
-            max-width: 420px;
-        }
+{% block body_class %}bg-gradient-dark home-container{% endblock %}
 
-        h1 {
-            margin-top: 0;
-            color: #e8eaed;
-            font-weight: 600;
-            text-shadow: 0 2px 10px rgba(66, 99, 235, 0.3);
-        }
+{% block content %}
+<div class="home-card">
+    <h1>Welcome</h1>
+    <p>Access to Foothold Sitac.</p>
 
-        p {
-            color: #8892a0;
-        }
-
-        .cta-btn {
-            margin-top: 25px;
-            display: inline-block;
-            background: linear-gradient(145deg, #4263eb 0%, #3451c9 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 16px;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(66, 99, 235, 0.5);
-            box-shadow: 0 4px 15px rgba(66, 99, 235, 0.3);
-        }
-
-        .cta-btn:hover {
-            background: linear-gradient(145deg, #5274f7 0%, #4263eb 100%);
-            box-shadow: 0 6px 20px rgba(66, 99, 235, 0.5);
-            transform: translateY(-2px);
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="container">
-        <h1>Welcome</h1>
-        <p>Access to Foothold Sitac.</p>
-
-        <a class="cta-btn" href="{{ request.url_for('foothold_servers') }}">
-            Go to Foothold
-        </a>
-    </div>
-
-</body>
-
-</html>
+    <a class="btn btn-primary cta-btn" href="{{ request.url_for('foothold_servers') }}">
+        Go to Foothold
+    </a>
+</div>
+{% endblock %}
