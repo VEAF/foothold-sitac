@@ -2,22 +2,51 @@
 
 POC about a web sitac for Foothold missions
 
-## Work or install this project
+## Installation
+
+### Prerequisites
+
+- Git
+- Python 3.12+
+- Poetry
+
+### Clone the project
 
 ```shell
 git clone git@github.com:VEAF/foothold-sitac.git
 cd foothold-sitac
 ```
 
-- Copy app/config.yml.dist to app/config.yml
-- Update app/config.yml values 
-- install dependencies:
+### Windows (recommended)
+
+1. Run `install.cmd` (copies config and installs dependencies)
+2. Edit `config/config.yml` if needed (mandatory: set `dcs.saved_games` path)
+3. Run `run.cmd` to start the web server
+
+### Linux/Mac
+
+1. Copy `config/config.yml.dist` to `config/config.yml`
+2. Edit `config/config.yml` (mandatory: set `dcs.saved_games` path)
+3. Install dependencies:
 ```shell
 poetry install --only main
 ```
-- start web service
+4. Start web service:
 ```shell
 poetry run python -m app.main
+```
+
+## Update
+
+### Windows
+
+Run `update.cmd`
+
+### Linux/Mac
+
+```shell
+git pull origin main
+poetry install --only main
 ```
 
 ## Run tests
