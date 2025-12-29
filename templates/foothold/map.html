@@ -17,10 +17,11 @@
 <nav class="navbar">
     <span class="navbar-brand"><i class="fa-solid fa-server"></i> {{ server }}</span>
     <div class="navbar-links">
-        <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> Player Rankings</span><span class="navbar-tooltip">View player statistics and rankings</span></a>
+        <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> Ranking</span><span class="navbar-tooltip">View player statistics and rankings</span></a>
         <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
         <span class="navbar-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
         <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
+        <span class="navbar-item ruler-toggle" id="ruler-toggle" onclick="toggleRulerMode()" style="cursor: pointer;"><i class="fa-solid fa-ruler"></i><span class="navbar-link-label"> Ruler</span><span class="navbar-tooltip">Measure distance between two points</span></span>
         <span class="navbar-item" onclick="openSettingsModal()" style="cursor: pointer;"><i class="fa-solid fa-gear"></i><span class="navbar-link-label"> Settings</span><span class="navbar-tooltip">Display settings</span></span>
         <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i><span class="navbar-link-label"> Servers</span><span class="navbar-tooltip">Back to server list</span></a>
     </div>
@@ -34,6 +35,39 @@
     <span id="freshness-icon">🕐</span>
     <span id="countdown">30s</span>
     <span class="tooltip" id="freshness-tooltip">Refresh in 30s</span>
+</div>
+
+<!-- Ruler measurement widget -->
+<div id="ruler-widget" class="ruler-widget hidden">
+    <div class="ruler-header">
+        <i class="fa-solid fa-ruler"></i>
+        <span>Measure</span>
+        <button class="ruler-clear" onclick="clearRuler()" title="Clear measurement">&times;</button>
+    </div>
+    <div class="ruler-body">
+        <div class="ruler-row">
+            <span class="ruler-label">Distance</span>
+            <span class="ruler-value" id="ruler-distance">--</span>
+        </div>
+        <div class="ruler-row">
+            <span class="ruler-label">Bearing</span>
+            <span class="ruler-value" id="ruler-bearing">--</span>
+        </div>
+        <div class="ruler-row">
+            <span class="ruler-label">Flight time</span>
+            <span class="ruler-value" id="ruler-time">--</span>
+        </div>
+    </div>
+    <div class="ruler-points">
+        <div class="ruler-point">
+            <span class="ruler-point-marker">A</span>
+            <span class="ruler-point-coords" id="ruler-point-1">Click to set</span>
+        </div>
+        <div class="ruler-point">
+            <span class="ruler-point-marker">B</span>
+            <span class="ruler-point-coords" id="ruler-point-2">Click to set</span>
+        </div>
+    </div>
 </div>
 
 <!-- Cursor coordinates widget -->

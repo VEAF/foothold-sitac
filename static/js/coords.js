@@ -74,6 +74,79 @@ function formatCoord(decimal, isLat) {
     }
 }
 
+// Calculate distance between two points using Haversine formula
+// Returns distance in meters
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    var R = 6371000; // Earth's radius in meters
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// Calculate bearing from point 1 to point 2
+// Returns bearing in degrees (0-360)
+function calculateBearing(lat1, lon1, lat2, lon2) {
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var lat1Rad = lat1 * Math.PI / 180;
+    var lat2Rad = lat2 * Math.PI / 180;
+
+    var y = Math.sin(dLon) * Math.cos(lat2Rad);
+    var x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+            Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+
+    var bearing = Math.atan2(y, x) * 180 / Math.PI;
+    return (bearing + 360) % 360; // Normalize to 0-360
+}
+
+// Format distance in km and nautical miles
+function formatDistance(meters) {
+    var km = meters / 1000;
+    var nm = meters / 1852; // 1 nautical mile = 1852 meters
+    return km.toFixed(1) + ' km / ' + nm.toFixed(1) + ' NM';
+}
+
+// Format bearing with cardinal direction
+function formatBearing(degrees) {
+    var cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                     'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    var index = Math.round(degrees / 22.5) % 16;
+    return degrees.toFixed(0) + '° (' + cardinals[index] + ')';
+}
+
+// Calculate flight time given distance (meters) and speed (knots)
+function calculateFlightTime(distanceMeters, speedKnots) {
+    var distanceNm = distanceMeters / 1852;
+    var hours = distanceNm / speedKnots;
+    var minutes = Math.round(hours * 60);
+
+    if (minutes < 60) {
+        return minutes + ' min';
+    } else {
+        var hrs = Math.floor(minutes / 60);
+        var mins = minutes % 60;
+        return hrs + 'h ' + mins + 'min';
+    }
+}
+
+// Get ruler speed preference from localStorage (default 250 knots)
+function getRulerSpeed() {
+    var speed = localStorage.getItem('foothold-ruler-speed');
+    return speed ? parseInt(speed) : 250;
+}
+
+// Save ruler speed preference
+function saveRulerSpeed(speed) {
+    localStorage.setItem('foothold-ruler-speed', speed);
+    // If ruler is active, update the display
+    if (typeof updateRulerWidget === 'function') {
+        updateRulerWidget();
+    }
+}
+
 // Format coordinates for cursor widget with fixed width based on format preference
 function formatCursorCoords(lat, lng) {
     var format = getCoordFormat();
