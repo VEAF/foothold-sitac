@@ -5,6 +5,20 @@ var map_center = null;
 var map_options = null;
 var map = null;
 
+// Server dropdown toggle
+function toggleServerDropdown() {
+    var dropdown = document.querySelector('.navbar-brand-dropdown');
+    dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    var dropdown = document.querySelector('.navbar-brand-dropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
 // Layer groups
 var connectionsLayer = null;
 var zonesLayer = null;
