@@ -262,6 +262,26 @@
             opacity: 1;
         }
 
+        /* Cursor coordinates widget */
+        #cursor-coords-widget {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            line-height: 1.4;
+        }
+
+        #cursor-coords-widget div {
+            white-space: nowrap;
+        }
+
         .tooltip {
             visibility: hidden;
             opacity: 0;
@@ -471,6 +491,11 @@
         <span id="freshness-icon">🕐</span>
         <span id="countdown">30s</span>
         <span class="tooltip" id="freshness-tooltip">Refresh in 30s</span>
+    </div>
+
+    <!-- Cursor coordinates widget -->
+    <div id="cursor-coords-widget">
+        <span id="cursor-coords"></span>
     </div>
 
     <!-- Modal -->
@@ -1020,6 +1045,41 @@
             updateLabels();
             updatePlayers();
             updateEjections();
+        });
+
+        // Format coordinates for cursor widget (fixed width: N12°34'56.78" E012°34'56.78")
+        function formatCursorCoords(lat, lng) {
+            const latDir = lat >= 0 ? 'N' : 'S';
+            const lngDir = lng >= 0 ? 'E' : 'W';
+
+            const absLat = Math.abs(lat);
+            const absLng = Math.abs(lng);
+
+            const latDeg = Math.floor(absLat);
+            const latMinDec = (absLat - latDeg) * 60;
+            const latMin = Math.floor(latMinDec);
+            const latSec = ((latMinDec - latMin) * 60).toFixed(2);
+
+            const lngDeg = Math.floor(absLng);
+            const lngMinDec = (absLng - lngDeg) * 60;
+            const lngMin = Math.floor(lngMinDec);
+            const lngSec = ((lngMinDec - lngMin) * 60).toFixed(2);
+
+            // Format: N12°34'56.78" E012°34'56.78"
+            const latStr = `${latDir}${String(latDeg).padStart(2, '0')}°${String(latMin).padStart(2, '0')}'${latSec.padStart(5, '0')}"`;
+            const lngStr = `${lngDir}${String(lngDeg).padStart(3, '0')}°${String(lngMin).padStart(2, '0')}'${lngSec.padStart(5, '0')}"`;
+
+            return `${latStr} ${lngStr}`;
+        }
+
+        // Cursor position display
+        map.on('mousemove', function(e) {
+            document.getElementById('cursor-coords').textContent =
+                formatCursorCoords(e.latlng.lat, e.latlng.lng);
+        });
+
+        map.on('mouseout', function() {
+            document.getElementById('cursor-coords').textContent = '';
         });
     </script>
 </body>
