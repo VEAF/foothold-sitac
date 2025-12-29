@@ -88,14 +88,14 @@ function openZoneModal(zone) {
     var formattedLon = formatCoord(zone.lon, false);
 
     body.innerHTML =
-        '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Zone inconnue') + '</h3>' +
+        '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Unknown zone') + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Coalition</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.side + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Unités détectées</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">Detected units</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
             '</tr>' +
             '<tr>' +
@@ -344,6 +344,11 @@ function loadData() {
                     fillOpacity: 0.3,
                     radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                 }).addTo(zonesLayer);
+
+                circle.bindTooltip(p.name + '<br>Units: ' + p.units, {
+                    direction: 'top',
+                    offset: [0, -10]
+                });
 
                 circle.on('click', function() {
                     openZoneModal(p);
