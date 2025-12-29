@@ -169,6 +169,9 @@ function updateLabels() {
                     iconAnchor: [50, 20]
                 })
             });
+            marker.on('click', function() {
+                openZoneModal(zone);
+            });
             marker.addTo(labelsLayer);
         }
     });
@@ -344,11 +347,6 @@ function loadData() {
                     fillOpacity: 0.3,
                     radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                 }).addTo(zonesLayer);
-
-                circle.bindTooltip(p.name + '<br>Units: ' + p.units, {
-                    direction: 'top',
-                    offset: [0, -10]
-                });
 
                 circle.on('click', function() {
                     openZoneModal(p);
