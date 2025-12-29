@@ -2,6 +2,15 @@
 
 POC about a web sitac for Foothold missions
 
+## Features
+
+See [docs/features.md](docs/features.md) for a complete list of features including:
+- Interactive tactical map with zone and player tracking
+- Distance measurement tool (ruler)
+- Player rankings and statistics
+- Campaign progress tracking
+- REST API for programmatic access
+
 ## Installation
 
 ### Prerequisites
