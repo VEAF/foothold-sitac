@@ -5,6 +5,20 @@ var map_center = null;
 var map_options = null;
 var map = null;
 
+// Server dropdown toggle
+function toggleServerDropdown() {
+    var dropdown = document.querySelector('.navbar-brand-dropdown');
+    dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    var dropdown = document.querySelector('.navbar-brand-dropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
 // Layer groups
 var connectionsLayer = null;
 var zonesLayer = null;
@@ -23,6 +37,13 @@ var REFRESH_INTERVAL = 30;
 var nextRefresh = REFRESH_INTERVAL;
 var dataAgeSeconds = 0;
 var isConnected = true;
+
+// Ruler state
+var rulerMode = false;
+var rulerPoints = [null, null]; // [{lat, lon, name}, {lat, lon, name}]
+var rulerLine = null;
+var rulerMarkers = [];
+var rulerLayer = null;
 
 // API endpoint (to be set by the page)
 var mapDataEndpoint = '';
@@ -59,6 +80,7 @@ function initMap() {
     playersLayer = L.layerGroup().addTo(map);
     labelsLayer = L.layerGroup().addTo(map);
     ejectionsLayer = L.layerGroup().addTo(map);
+    rulerLayer = L.layerGroup().addTo(map);
 
     // Update labels, players and ejections on zoom change
     map.on('zoomend', function() {
@@ -74,6 +96,13 @@ function initMap() {
     });
     map.on('mouseout', function() {
         cursorCoordsEl.textContent = '';
+    });
+
+    // Map click for ruler mode
+    map.on('click', function(e) {
+        if (rulerMode) {
+            setRulerPoint(e.latlng.lat, e.latlng.lng, null);
+        }
     });
 }
 
@@ -169,8 +198,13 @@ function updateLabels() {
                     iconAnchor: [50, 20]
                 })
             });
-            marker.on('click', function() {
-                openZoneModal(zone);
+            marker.on('click', function(e) {
+                if (rulerMode) {
+                    setRulerPoint(zone.lat, zone.lon, zone.name);
+                    L.DomEvent.stopPropagation(e);
+                } else {
+                    openZoneModal(zone);
+                }
             });
             marker.addTo(labelsLayer);
         }
@@ -227,6 +261,12 @@ function updatePlayers() {
             direction: 'top',
             offset: [0, -10]
         });
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(player.lat, player.lon, player.player_name);
+                L.DomEvent.stopPropagation(e);
+            }
+        });
         marker.addTo(playersLayer);
     });
 }
@@ -256,8 +296,13 @@ function updateEjections() {
             offset: [0, -10]
         });
 
-        marker.on('click', function() {
-            openPilotModal(pilot);
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(pilot.lat, pilot.lon, pilot.player_name);
+                L.DomEvent.stopPropagation(e);
+            } else {
+                openPilotModal(pilot);
+            }
         });
 
         marker.addTo(ejectionsLayer);
@@ -348,8 +393,13 @@ function loadData() {
                     radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
                 }).addTo(zonesLayer);
 
-                circle.on('click', function() {
-                    openZoneModal(p);
+                circle.on('click', function(e) {
+                    if (rulerMode) {
+                        setRulerPoint(p.lat, p.lon, p.name);
+                        L.DomEvent.stopPropagation(e);
+                    } else {
+                        openZoneModal(p);
+                    }
                 });
             });
 
@@ -388,4 +438,128 @@ function startRefreshTimer() {
 
     // Refresh every REFRESH_INTERVAL seconds
     setInterval(loadData, REFRESH_INTERVAL * 1000);
+}
+
+// Toggle ruler measurement mode
+function toggleRulerMode() {
+    rulerMode = !rulerMode;
+    var toggle = document.getElementById('ruler-toggle');
+    var widget = document.getElementById('ruler-widget');
+
+    if (rulerMode) {
+        toggle.classList.add('active');
+        widget.classList.remove('hidden');
+        document.getElementById('map').style.cursor = 'crosshair';
+    } else {
+        toggle.classList.remove('active');
+        widget.classList.add('hidden');
+        document.getElementById('map').style.cursor = '';
+        clearRuler();
+    }
+}
+
+// Clear ruler measurement
+function clearRuler() {
+    rulerPoints = [null, null];
+    rulerLayer.clearLayers();
+    rulerLine = null;
+    rulerMarkers = [];
+    updateRulerWidget();
+}
+
+// Set a ruler measurement point
+function setRulerPoint(lat, lon, name) {
+    if (!rulerMode) return;
+
+    // If both points are set, start fresh
+    if (rulerPoints[0] && rulerPoints[1]) {
+        clearRuler();
+    }
+
+    // Determine which point to set
+    var pointIndex = rulerPoints[0] ? 1 : 0;
+    rulerPoints[pointIndex] = { lat: lat, lon: lon, name: name || null };
+
+    // Create marker for this point
+    var markerLabel = pointIndex === 0 ? 'A' : 'B';
+    var marker = L.marker([lat, lon], {
+        icon: L.divIcon({
+            className: 'ruler-marker',
+            html: '<div class="ruler-marker-label">' + markerLabel + '</div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        })
+    }).addTo(rulerLayer);
+    rulerMarkers.push(marker);
+
+    // If both points set, draw line
+    if (rulerPoints[0] && rulerPoints[1]) {
+        drawRulerLine();
+    }
+
+    updateRulerWidget();
+}
+
+// Draw the ruler line between two points
+function drawRulerLine() {
+    if (!rulerPoints[0] || !rulerPoints[1]) return;
+
+    if (rulerLine) {
+        rulerLayer.removeLayer(rulerLine);
+    }
+
+    rulerLine = L.polyline([
+        [rulerPoints[0].lat, rulerPoints[0].lon],
+        [rulerPoints[1].lat, rulerPoints[1].lon]
+    ], {
+        color: '#fbbf24',
+        weight: 3,
+        opacity: 0.9,
+        dashArray: '10, 10'
+    }).addTo(rulerLayer);
+}
+
+// Update the ruler widget display
+function updateRulerWidget() {
+    var point1Coords = document.getElementById('ruler-point-1');
+    var point2Coords = document.getElementById('ruler-point-2');
+    var distanceEl = document.getElementById('ruler-distance');
+    var bearingEl = document.getElementById('ruler-bearing');
+    var timeEl = document.getElementById('ruler-time');
+
+    // Update point displays
+    if (rulerPoints[0]) {
+        var label1 = rulerPoints[0].name ? rulerPoints[0].name : 'Point A';
+        point1Coords.textContent = label1;
+    } else {
+        point1Coords.textContent = 'Click to set';
+    }
+
+    if (rulerPoints[1]) {
+        var label2 = rulerPoints[1].name ? rulerPoints[1].name : 'Point B';
+        point2Coords.textContent = label2;
+    } else {
+        point2Coords.textContent = 'Click to set';
+    }
+
+    // Calculate and display measurements
+    if (rulerPoints[0] && rulerPoints[1]) {
+        var distance = calculateDistance(
+            rulerPoints[0].lat, rulerPoints[0].lon,
+            rulerPoints[1].lat, rulerPoints[1].lon
+        );
+        var bearing = calculateBearing(
+            rulerPoints[0].lat, rulerPoints[0].lon,
+            rulerPoints[1].lat, rulerPoints[1].lon
+        );
+        var speed = getRulerSpeed();
+
+        distanceEl.textContent = formatDistance(distance);
+        bearingEl.textContent = formatBearing(bearing);
+        timeEl.textContent = calculateFlightTime(distance, speed) + ' @ ' + speed + ' kt';
+    } else {
+        distanceEl.textContent = '--';
+        bearingEl.textContent = '--';
+        timeEl.textContent = '--';
+    }
 }

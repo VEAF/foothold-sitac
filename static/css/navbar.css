@@ -16,9 +16,83 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.navbar-brand-dropdown {
+    position: relative;
+}
+
 .navbar-brand {
     font-weight: 600;
     font-size: 16px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.navbar-brand:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand-chevron {
+    font-size: 10px;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand-dropdown.open .navbar-brand-chevron {
+    transform: rotate(180deg);
+}
+
+.navbar-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-dark-6);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    z-index: 1002;
+    min-width: 180px;
+}
+
+.navbar-brand-dropdown.open .navbar-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.navbar-dropdown a {
+    display: block;
+    padding: 10px 14px;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.navbar-dropdown a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-dropdown a:first-child {
+    border-radius: 6px 6px 0 0;
+}
+
+.navbar-dropdown a:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
+.navbar-dropdown a:only-child {
+    border-radius: 6px;
+}
+
+.navbar-dropdown a i {
+    margin-right: 8px;
 }
 
 .navbar-brand i,
@@ -117,6 +191,15 @@
 
 .navbar-item i {
     margin-right: 6px;
+}
+
+/* Ruler toggle active state */
+.navbar-item.ruler-toggle.active {
+    background: rgba(251, 191, 36, 0.2);
+}
+
+.navbar-item.ruler-toggle.active i {
+    color: #fbbf24;
 }
 
 /* Navbar tooltips */
