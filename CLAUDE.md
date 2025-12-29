@@ -62,3 +62,7 @@ Key config sections:
 ### Server Detection
 
 The app auto-discovers Foothold servers by scanning `dcs.saved_games` for directories containing a `foothold.status` file in their `Missions/Saves/` subfolder.
+
+## Documentation
+
+- **docs/features.md**: Complete list of user-facing features (map, ruler, modals, API endpoints)
