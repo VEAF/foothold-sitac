@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Request
 from app.config import get_config
@@ -17,6 +17,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def home(request: Request) -> str:
     template = env.get_template("home.html")
     return template.render(request=request)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return RedirectResponse(url="/static/favicon.ico")
 
 
 app.include_router(foothold_router, prefix="/foothold", include_in_schema=False)
