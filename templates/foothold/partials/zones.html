@@ -2,15 +2,13 @@
 {% set neutral_zones = [] %}
 {% set red_zones = [] %}
 
-{% for name, zone in sitac.zones.items() | sort %}
-    {% if not zone.hidden %}
-        {% if zone.side == 2 %}
-            {% set _ = blue_zones.append((name, zone)) %}
-        {% elif zone.side == 1 %}
-            {% set _ = red_zones.append((name, zone)) %}
-        {% else %}
-            {% set _ = neutral_zones.append((name, zone)) %}
-        {% endif %}
+{% for name, zone in sitac.zones.items() | sort if not zone.hidden %}
+    {% if zone.side == 2 %}
+        {% set _ = blue_zones.append((name, zone)) %}
+    {% elif zone.side == 1 %}
+        {% set _ = red_zones.append((name, zone)) %}
+    {% else %}
+        {% set _ = neutral_zones.append((name, zone)) %}
     {% endif %}
 {% endfor %}
 
