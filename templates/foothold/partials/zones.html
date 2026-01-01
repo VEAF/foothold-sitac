@@ -2,7 +2,7 @@
 {% set neutral_zones = [] %}
 {% set red_zones = [] %}
 
-{% for name, zone in sitac.zones.items() | sort %}
+{% for name, zone in sitac.zones.items() | sort if not zone.hidden %}
     {% if zone.side == 2 %}
         {% set _ = blue_zones.append((name, zone)) %}
     {% elif zone.side == 1 %}
