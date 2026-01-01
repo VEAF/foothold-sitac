@@ -42,6 +42,32 @@
     opacity: 1;
 }
 
+/* Progress ring */
+.progress-ring-container {
+    width: 24px;
+    height: 24px;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 3;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: white;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 62.83;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+}
+
 /* Cursor coordinates widget */
 #cursor-coords-widget {
     position: fixed;

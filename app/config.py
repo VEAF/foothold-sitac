@@ -10,6 +10,7 @@ class WebConfig(BaseModel):
     port: int = 8080
     title: str = "Foothold Sitac Server"
     reload: bool = False
+    refresh_interval: int = 60
 
 
 class DcsConfig(BaseModel):
