@@ -32,8 +32,8 @@ var connectionsData = [];
 var playersData = [];
 var ejectionsData = [];
 
-// Freshness widget state
-var REFRESH_INTERVAL = 30;
+// Freshness widget state (REFRESH_INTERVAL is set by the page from config)
+var REFRESH_INTERVAL = 60;
 var nextRefresh = REFRESH_INTERVAL;
 var dataAgeSeconds = 0;
 var isConnected = true;
@@ -346,25 +346,30 @@ function updateNavbar(progress, missionsCount, ejectedPilotsCount) {
 
 function updateFreshnessWidget() {
     var widget = document.getElementById('freshness-widget');
-    var icon = document.getElementById('freshness-icon');
     var countdown = document.getElementById('countdown');
     var tooltip = document.getElementById('freshness-tooltip');
+    var progressRing = document.querySelector('.progress-ring-fill');
 
     widget.classList.remove('fresh', 'stale', 'disconnected');
 
+    // Update progress ring
+    if (progressRing) {
+        var circumference = 2 * Math.PI * 10; // r=10
+        var progressPercent = nextRefresh / REFRESH_INTERVAL;
+        var offset = circumference * (1 - progressPercent);
+        progressRing.style.strokeDashoffset = offset;
+    }
+
     if (!isConnected) {
         widget.classList.add('disconnected');
-        icon.textContent = '⚠️';
         countdown.textContent = 'Offline';
         tooltip.textContent = 'Connection to server lost';
     } else if (dataAgeSeconds < 90) {
         widget.classList.add('fresh');
-        icon.textContent = '🕐';
         countdown.textContent = nextRefresh + 's';
         tooltip.textContent = 'Data up to date (' + Math.round(dataAgeSeconds) + 's) • Refresh in ' + nextRefresh + 's';
     } else {
         widget.classList.add('stale');
-        icon.textContent = '🕐';
         countdown.textContent = nextRefresh + 's';
         var minutes = Math.floor(dataAgeSeconds / 60);
         tooltip.textContent = 'Stale data (' + minutes + 'min) • Refresh in ' + nextRefresh + 's';

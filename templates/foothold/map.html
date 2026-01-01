@@ -38,9 +38,14 @@
 
 <!-- Freshness widget -->
 <div id="freshness-widget" class="fresh">
-    <span id="freshness-icon">🕐</span>
-    <span id="countdown">30s</span>
-    <span class="tooltip" id="freshness-tooltip">Refresh in 30s</span>
+    <div class="progress-ring-container">
+        <svg class="progress-ring" width="24" height="24">
+            <circle class="progress-ring-bg" cx="12" cy="12" r="10" />
+            <circle class="progress-ring-fill" cx="12" cy="12" r="10" />
+        </svg>
+    </div>
+    <span id="countdown">{{ config.web.refresh_interval }}s</span>
+    <span class="tooltip" id="freshness-tooltip">Refresh in {{ config.web.refresh_interval }}s</span>
 </div>
 
 <!-- Ruler measurement widget -->
@@ -110,6 +115,7 @@
     map_center = JSON.parse('{{ center }}');
     map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
     mapDataEndpoint = '{{ request.url_for("foothold_get_map_data", server=server) }}';
+    REFRESH_INTERVAL = {{ config.web.refresh_interval }};
 
     // Initialize map and start refresh timer
     initMap();

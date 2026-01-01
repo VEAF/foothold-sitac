@@ -14,6 +14,9 @@ web:
   # automatic python service reload when scripts are updated (dev environment only)
   # reload: false
 
+  # refresh interval in seconds (default: 60)
+  # refresh_interval: 60
+
 dcs:
     saved_games: "C:\\Users\\veaf\\Saved Games" # !! update your setup
 
