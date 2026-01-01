@@ -95,6 +95,26 @@
     margin-right: 8px;
 }
 
+.navbar-dropdown-header {
+    display: block;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-dropdown-header i {
+    margin-right: 8px;
+}
+
+.navbar-dropdown-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
 .navbar-brand i,
 .navbar-links a i {
     margin-right: 6px;
@@ -232,7 +252,8 @@
 
 /* Responsive navbar */
 @media (max-width: 1000px) {
-    .navbar-link-label {
+    .navbar-link-label,
+    .navbar-brand-label {
         display: none;
     }
 

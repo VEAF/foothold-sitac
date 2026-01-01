@@ -17,10 +17,13 @@
 <nav class="navbar">
     <div class="navbar-brand-dropdown">
         <span class="navbar-brand" onclick="toggleServerDropdown()">
-            <i class="fa-solid fa-server"></i> {{ server }} <i class="fa-solid fa-chevron-down navbar-brand-chevron"></i>
+            <i class="fa-solid fa-server"></i><span class="navbar-brand-label"> {{ server }}</span> <i class="fa-solid fa-chevron-down navbar-brand-chevron"></i>
         </span>
         <div class="navbar-dropdown" id="server-dropdown">
+            <span class="navbar-dropdown-header"><i class="fa-solid fa-server"></i> {{ server }}</span>
             <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Back to server list</a>
+            <div class="navbar-dropdown-separator"></div>
+            <a href="https://github.com/VEAF/foothold-sitac" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
         </div>
     </div>
     <div class="navbar-links">
