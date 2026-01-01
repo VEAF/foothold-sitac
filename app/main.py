@@ -20,7 +20,7 @@ async def home(request: Request) -> str:
 
 
 @app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
+async def favicon() -> RedirectResponse:
     return RedirectResponse(url="/static/favicon.ico")
 
 
