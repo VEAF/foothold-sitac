@@ -34,6 +34,8 @@ class Zone(BaseModel):
 
     @property
     def side_color(self) -> str:
+        if not self.active:
+            return "darkgray"
         if self.side == 1:
             return "red"
         elif self.side == 2:
@@ -42,11 +44,14 @@ class Zone(BaseModel):
 
     @property
     def side_str(self) -> str:
+        if not self.active:
+            return "disabled"
         if self.side == 1:
             return "red"
         elif self.side == 2:
             return "blue"
         return "neutral"
+
 
     @property
     def total_units(self) -> int:
@@ -130,13 +135,18 @@ class Sitac(BaseModel):
         Progress is calculated as:
         (visible_zones - red_zones) / visible_zones * 100
 
-        Hidden zones (hidden=True) are excluded from the calculation.
+        Hidden zones (hidden=True) and inactive zones (active=False) are
+        excluded.
         """
-        visible_zones = [z for z in self.zones.values() if not z.hidden]
+        visible_zones = [
+            z for z in self.zones.values()
+            if not z.hidden and z.active
+        ]
         if not visible_zones:
             return 0.0
         red_zones = sum(1 for z in visible_zones if z.side == 1)
         return (len(visible_zones) - red_zones) / len(visible_zones) * 100
+
 
 
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:
