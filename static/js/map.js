@@ -147,7 +147,12 @@ function getShortName(name) {
 
 function getFirstLine(text) {
     if (!text) return '';
-    return text.split('\n')[0].trim();
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line) return line;
+    }
+    return '';
 }
 
 function createLabelContent(zone, zoom) {
