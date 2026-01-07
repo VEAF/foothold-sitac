@@ -145,6 +145,16 @@ function getShortName(name) {
     return name.substring(0, 5) + '.';
 }
 
+function getFirstLine(text) {
+    if (!text) return '';
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line) return line;
+    }
+    return '';
+}
+
 function createLabelContent(zone, zoom) {
     var truckIcon = zone.units > 0
         ? '<i class="fa-solid fa-truck" style="color: ' + zone.color + ';"></i>'
@@ -155,7 +165,7 @@ function createLabelContent(zone, zoom) {
         return truckIcon;
     } else if (zoom <= 9) {
         // low zoom: flavor_text only (if available) + truck
-        var label = zone.flavor_text || '';
+        var label = getFirstLine(zone.flavor_text);
         if (truckIcon) {
             label += label ? '<br>' + truckIcon : truckIcon;
         }
@@ -163,8 +173,9 @@ function createLabelContent(zone, zoom) {
     } else if (zoom <= 10) {
         // medium zoom: short name + flavor_text + truck
         var label = getShortName(zone.name);
-        if (zone.flavor_text) {
-            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + zone.flavor_text + '</span>';
+        var flavorLine = getFirstLine(zone.flavor_text);
+        if (flavorLine) {
+            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
         }
         if (truckIcon) {
             label += '<br>' + truckIcon;
@@ -173,8 +184,9 @@ function createLabelContent(zone, zoom) {
     } else {
         // high zoom: full name + flavor_text + truck with count
         var label = zone.name || '';
-        if (zone.flavor_text) {
-            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + zone.flavor_text + '</span>';
+        var flavorLine = getFirstLine(zone.flavor_text);
+        if (flavorLine) {
+            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
         }
         if (zone.units > 0) {
             label += '<br>' + truckIcon + ' x' + zone.units;
