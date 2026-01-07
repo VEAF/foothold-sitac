@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 import yaml
 
-from app.config import (
+from foothold_sitac.config import (
     AppConfig,
     TileLayerConfig,
     load_config,
