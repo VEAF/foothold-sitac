@@ -5,7 +5,7 @@ from typing import Any
 from lupa import LuaRuntime  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field, field_validator
 
-from app.config import get_config
+from foothold_sitac.config import get_config
 
 
 class ConfigError(Exception): ...
@@ -252,9 +252,3 @@ def get_sitac_center(sitac: Sitac) -> Position:
         latitude=(max_pos.latitude + min_pos.latitude) / 2,
         longitude=(max_pos.longitude + min_pos.longitude) / 2,
     )
-
-
-if __name__ == "__main__":
-    # only for debug
-    test = load_sitac(Path("var/footholdSyria_Extended_0.1.lua"))
-    print(test)

@@ -1,10 +1,21 @@
 [tool.poetry]
 name = "foothold-sitac"
 version = "0.1.0"
-description = ""
+description = "Web application displaying tactical maps for DCS World Foothold missions"
 authors = ["Michel NAUD <michel.naud26400@gmail.com>"]
 readme = "README.md"
-package-mode = false
+license = "MIT"
+packages = [{include = "foothold_sitac", from = "src"}]
+include = [
+    "src/foothold_sitac/static/**/*",
+    "src/foothold_sitac/templates/**/*",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment :: Simulation",
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -28,7 +39,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "src"]
 
 [tool.ruff]
 line-length = 120
