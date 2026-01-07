@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from app.foothold import Sitac, get_sitac_center, list_servers
-from app.templater import env
-from app.dependencies import get_active_sitac, get_sitac_or_none
+from foothold_sitac.foothold import Sitac, get_sitac_center, list_servers
+from foothold_sitac.templater import env
+from foothold_sitac.dependencies import get_active_sitac, get_sitac_or_none
 
 router = APIRouter()
 

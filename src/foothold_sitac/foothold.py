@@ -5,7 +5,7 @@ from typing import Any
 from lupa import LuaRuntime  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field, field_validator
 
-from app.config import get_config
+from foothold_sitac.config import get_config
 
 
 class ConfigError(Exception): ...

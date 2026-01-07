@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from app.foothold import (
+from foothold_sitac.foothold import (
     Sitac,
     detect_foothold_mission_path,
     get_server_path_by_name,

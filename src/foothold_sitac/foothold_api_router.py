@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Annotated, Any
 from fastapi import APIRouter, Depends
-from app.dependencies import get_active_sitac
-from app.foothold import Sitac, list_servers
-from app.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server
+from foothold_sitac.dependencies import get_active_sitac
+from foothold_sitac.foothold import Sitac, list_servers
+from foothold_sitac.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server
 
 router = APIRouter()
 

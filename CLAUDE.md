@@ -13,7 +13,7 @@ Foothold Sitac is a web application that displays tactical maps (sitac) for DCS 
 poetry install --only main
 
 # Run the web server
-poetry run python -m app.main
+python run.py
 
 # Run tests
 poetry run pytest
@@ -45,13 +45,15 @@ Key config sections:
 
 ### Key Components
 
-- **app/foothold.py**: Core domain logic - Lua parsing, Pydantic models (Zone, Sitac, Position, PlayerStats), server discovery functions
-- **app/config.py**: YAML config loading with env var expansion, cached via `get_config()`
-- **app/dependencies.py**: FastAPI dependency injection for loading sitac by server name
-- **app/foothold_api_router.py**: REST API endpoints under `/api/foothold`
-- **app/foothold_router.py**: HTML page routes under `/foothold`
-- **app/templater.py**: Jinja2 environment setup with config globals
-- **templates/**: Jinja2 HTML templates for map and server list pages
+- **src/foothold_sitac/foothold.py**: Core domain logic - Lua parsing, Pydantic models (Zone, Sitac, Position, PlayerStats), server discovery functions
+- **src/foothold_sitac/config.py**: YAML config loading with env var expansion, cached via `get_config()`
+- **src/foothold_sitac/dependencies.py**: FastAPI dependency injection for loading sitac by server name
+- **src/foothold_sitac/foothold_api_router.py**: REST API endpoints under `/api/foothold`
+- **src/foothold_sitac/foothold_router.py**: HTML page routes under `/foothold`
+- **src/foothold_sitac/templater.py**: Jinja2 environment setup with config globals
+- **src/foothold_sitac/templates/**: Jinja2 HTML templates for map and server list pages
+- **src/foothold_sitac/static/**: CSS, JS, and favicon assets
+- **run.py**: Standalone script to launch the application
 
 ### Pydantic Models
 

@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
+from foothold_sitac.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
 
 
 @pytest.fixture
@@ -91,11 +91,11 @@ def test_sitac_campaign_progress_mixed() -> None:
 
 
 def test_sitac_campaign_progress_with_neutral() -> None:
-    """Les zones neutres comptent comme non-rouges"""
+    """Inactive neutral zones are excluded from progress calculation"""
     lua_path = Path("tests/fixtures/test_progress/foothold_with_neutral.lua")
     sitac = load_sitac(lua_path)
-    # 1 rouge, 1 bleu, 1 neutre = (3-1)/3 = 66.67%
-    assert sitac.campaign_progress == pytest.approx(66.67, rel=0.01)
+    # 1 red, 1 blue (inactive neutral excluded) = (2-1)/2 = 50%
+    assert sitac.campaign_progress == 50.0
 
 
 def test_sitac_campaign_progress_excludes_hidden() -> None:

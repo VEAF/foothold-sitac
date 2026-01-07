@@ -3,8 +3,8 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import get_config
-from app.main import app
+from foothold_sitac.config import get_config
+from foothold_sitac.main import app
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def client() -> Generator[TestClient, None, None]:
 @pytest.fixture(autouse=True)
 def override_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "app.config.get_config",
+        "foothold_sitac.config.get_config",
         lambda: type(
             "AppConfig",
             (),
@@ -28,7 +28,7 @@ def override_config(monkeypatch: pytest.MonkeyPatch) -> None:
         )(),
     )
     monkeypatch.setattr(
-        "app.foothold.get_config",
+        "foothold_sitac.foothold.get_config",
         lambda: type(
             "AppConfig",
             (),

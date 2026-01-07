@@ -42,7 +42,7 @@ poetry install --only main
 ```
 4. Start web service:
 ```shell
-poetry run python -m app.main
+poetry run python run.py
 ```
 
 ## Update
