@@ -281,7 +281,7 @@ def test_player_model_unknown_coalition() -> None:
 
 def test_load_sitac_with_players() -> None:
     """Test loading sitac with players"""
-    lua_path = Path("var/test4/Missions/Saves/FootHold_Germany_Modern_V0.1.lua")
+    lua_path = Path("tests/fixtures/test_players/Missions/Saves/foothold_players.lua")
     sitac = load_sitac(lua_path)
 
     assert len(sitac.players) == 1
