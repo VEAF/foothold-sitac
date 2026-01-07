@@ -61,4 +61,7 @@ def load_config(path: str) -> AppConfig:
 
 @cache
 def get_config() -> AppConfig:
-    return load_config("config/config.yml")
+    config_path = "config/config.yml"
+    if not os.path.exists(config_path):
+        return AppConfig(web=WebConfig(), dcs=DcsConfig(), map=MapConfig(alternative_tiles=[]))
+    return load_config(config_path)
