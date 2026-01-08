@@ -13,7 +13,7 @@ Foothold Sitac is a web application that displays tactical maps (sitac) for DCS 
 poetry install --only main
 
 # Run the web server
-python run.py
+poetry run python run.py
 
 # Run tests
 poetry run pytest

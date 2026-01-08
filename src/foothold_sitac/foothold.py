@@ -132,16 +132,20 @@ class Sitac(BaseModel):
         """Return the campaign progress percentage (0-100).
 
         Progress is calculated as:
-        (visible_zones - red_zones) / visible_zones * 100
+        blue_zones / (blue_zones + red_zones) * 100
 
         Hidden zones (hidden=True) and inactive zones (active=False) are
-        excluded.
+        excluded. Neutral zones (side=0) are ignored.
         """
         visible_zones = [z for z in self.zones.values() if not z.hidden and z.active]
         if not visible_zones:
             return 0.0
+        blue_zones = sum(1 for z in visible_zones if z.side == 2)
         red_zones = sum(1 for z in visible_zones if z.side == 1)
-        return (len(visible_zones) - red_zones) / len(visible_zones) * 100
+        total_contested = blue_zones + red_zones
+        if total_contested == 0:
+            return 0.0
+        return blue_zones / total_contested * 100
 
 
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:

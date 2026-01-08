@@ -94,7 +94,7 @@ def test_sitac_campaign_progress_with_neutral() -> None:
     """Inactive neutral zones are excluded from progress calculation"""
     lua_path = Path("tests/fixtures/test_progress/foothold_with_neutral.lua")
     sitac = load_sitac(lua_path)
-    # 1 red, 1 blue (inactive neutral excluded) = (2-1)/2 = 50%
+    # 1 red, 1 blue (inactive neutral excluded) = 1/(1+1) = 50%
     assert sitac.campaign_progress == 50.0
 
 
@@ -103,7 +103,15 @@ def test_sitac_campaign_progress_excludes_hidden() -> None:
     lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
     # Zones visibles: VisibleZone1 (rouge), VisibleZone2 (bleu)
-    # = (2-1)/2 = 50%
+    # = 1/(1+1) = 50%
+    assert sitac.campaign_progress == 50.0
+
+
+def test_sitac_campaign_progress_with_active_neutral() -> None:
+    """Active neutral zones are ignored in progress calculation"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_with_active_neutral.lua")
+    sitac = load_sitac(lua_path)
+    # 1 red, 1 blue, 2 neutral (active but ignored) = 1/(1+1) = 50%
     assert sitac.campaign_progress == 50.0
 
 
