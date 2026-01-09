@@ -25,12 +25,14 @@ var zonesLayer = null;
 var playersLayer = null;
 var labelsLayer = null;
 var ejectionsLayer = null;
+var markpointsLayer = null;
 
 // Data arrays
 var zonesData = [];
 var connectionsData = [];
 var playersData = [];
 var ejectionsData = [];
+var markpointsData = [];
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -80,13 +82,18 @@ function initMap() {
     playersLayer = L.layerGroup().addTo(map);
     labelsLayer = L.layerGroup().addTo(map);
     ejectionsLayer = L.layerGroup().addTo(map);
+    markpointsLayer = L.layerGroup().addTo(map);
     rulerLayer = L.layerGroup().addTo(map);
 
-    // Update labels, players and ejections on zoom change
+    // Load markpoints from localStorage
+    loadMarkpoints();
+
+    // Update labels, players, ejections and markpoints on zoom change
     map.on('zoomend', function() {
         updateLabels();
         updatePlayers();
         updateEjections();
+        updateMarkpoints();
     });
 
     // Cursor position display
@@ -579,4 +586,87 @@ function updateRulerWidget() {
         bearingEl.textContent = '--';
         timeEl.textContent = '--';
     }
+}
+
+// ============================================
+// Markpoint management functions
+// ============================================
+
+// Save markpoints to localStorage
+function saveMarkpoints() {
+    localStorage.setItem('foothold-markpoints', JSON.stringify(markpointsData));
+}
+
+// Load markpoints from localStorage
+function loadMarkpoints() {
+    var saved = localStorage.getItem('foothold-markpoints');
+    if (saved) {
+        try {
+            markpointsData = JSON.parse(saved);
+            updateMarkpoints();
+        } catch (e) {
+            console.error('Failed to load markpoints:', e);
+            markpointsData = [];
+        }
+    }
+}
+
+// Add a new markpoint
+function addMarkpoint(lat, lon, label) {
+    var markpoint = { lat: lat, lon: lon, label: label || 'Markpoint' };
+    markpointsData.push(markpoint);
+    saveMarkpoints();
+    updateMarkpoints();
+}
+
+// Remove a markpoint by index
+function removeMarkpoint(index) {
+    markpointsData.splice(index, 1);
+    saveMarkpoints();
+    updateMarkpoints();
+}
+
+// Clear all markpoints
+function clearAllMarkpoints() {
+    markpointsData = [];
+    saveMarkpoints();
+    updateMarkpoints();
+}
+
+// Update markpoints display on map
+function updateMarkpoints() {
+    markpointsLayer.clearLayers();
+
+    markpointsData.forEach(function(mp, index) {
+        var zoom = map.getZoom();
+        var content = '<i class="fa-solid fa-location-dot"></i>';
+        if (zoom >= 10) {
+            content += '<br><span style="font-size: 10px;">' + mp.label + '</span>';
+        }
+
+        var marker = L.marker([mp.lat, mp.lon], {
+            icon: L.divIcon({
+                className: 'markpoint-label',
+                html: content,
+                iconSize: [100, 40],
+                iconAnchor: [50, 20]
+            })
+        });
+
+        marker.bindTooltip(mp.label + '<br>' + formatCoord(mp.lat, true) + '<br>' + formatCoord(mp.lon, false), {
+            direction: 'top',
+            offset: [0, -10]
+        });
+
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(mp.lat, mp.lon, mp.label);
+                L.DomEvent.stopPropagation(e);
+            } else {
+                openMarkpointDetailModal(mp, index);
+            }
+        });
+
+        marker.addTo(markpointsLayer);
+    });
 }

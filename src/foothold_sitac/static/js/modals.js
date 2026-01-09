@@ -172,3 +172,107 @@ document.addEventListener('keydown', function(event) {
         closeModal();
     }
 });
+
+// ============================================
+// Markpoint modal functions
+// ============================================
+
+// Open modal to add a new markpoint
+function openMarkpointModal() {
+    var overlay = document.getElementById('modal-overlay');
+    var body = document.getElementById('modal-body');
+
+    body.innerHTML =
+        '<h2 style="margin-top: 0;"><i class="fa-solid fa-location-dot"></i> Add Markpoint</h2>' +
+        '<div class="settings-section">' +
+            '<label>Paste coordinates</label>' +
+            '<textarea id="markpoint-input" rows="3" placeholder="N 31°35\'09&quot; E 64°23\'10&quot;"></textarea>' +
+            '<div id="markpoint-preview" class="markpoint-preview"></div>' +
+        '</div>' +
+        '<div class="settings-section">' +
+            '<label>Label (optional)</label>' +
+            '<input type="text" id="markpoint-label" placeholder="Target">' +
+        '</div>' +
+        '<div class="settings-actions">' +
+            '<button class="settings-save-btn" onclick="addMarkpointFromModal()"><i class="fa-solid fa-plus"></i> Add</button>' +
+        '</div>';
+
+    overlay.classList.add('visible', 'zone-modal');
+
+    // Live preview on input
+    document.getElementById('markpoint-input').addEventListener('input', updateMarkpointPreview);
+}
+
+// Update the preview when coordinates are entered
+function updateMarkpointPreview() {
+    var input = document.getElementById('markpoint-input');
+    var preview = document.getElementById('markpoint-preview');
+    var text = input.value.trim();
+
+    if (!text) {
+        preview.textContent = '';
+        preview.className = 'markpoint-preview';
+        return;
+    }
+
+    var coords = parseCoordinates(text);
+    if (coords) {
+        preview.textContent = formatCoordDMS(coords.lat, true) + ' ' + formatCoordDMS(coords.lon, false);
+        preview.className = 'markpoint-preview valid';
+    } else {
+        preview.textContent = 'Invalid coordinates';
+        preview.className = 'markpoint-preview invalid';
+    }
+}
+
+// Add markpoint from modal form
+function addMarkpointFromModal() {
+    var input = document.getElementById('markpoint-input');
+    var labelInput = document.getElementById('markpoint-label');
+    var text = input.value.trim();
+    var label = labelInput.value.trim() || 'Markpoint';
+
+    var coords = parseCoordinates(text);
+    if (!coords) {
+        alert('Invalid coordinates. Please enter valid DMS, DDM, or decimal coordinates.');
+        return;
+    }
+
+    addMarkpoint(coords.lat, coords.lon, label);
+    closeModal();
+
+    // Center map on new markpoint
+    if (typeof map !== 'undefined' && map) {
+        map.setView([coords.lat, coords.lon], Math.max(map.getZoom(), 10));
+    }
+}
+
+// Open modal showing markpoint details
+function openMarkpointDetailModal(mp, index) {
+    var overlay = document.getElementById('modal-overlay');
+    var body = document.getElementById('modal-body');
+
+    body.innerHTML =
+        '<div class="pilot-modal-header">' +
+            '<i class="fa-solid fa-location-dot" style="color: #f59e0b;"></i>' +
+            '<h2>' + mp.label + '</h2>' +
+        '</div>' +
+        '<div class="pilot-coords">' +
+            '<div class="pilot-coords-row">' +
+                '<span class="pilot-coords-label">DMS</span>' +
+                '<span class="pilot-coords-value">' + formatCoordDMS(mp.lat, true) + ' ' + formatCoordDMS(mp.lon, false) + '</span>' +
+            '</div>' +
+            '<div class="pilot-coords-row">' +
+                '<span class="pilot-coords-label">DDM</span>' +
+                '<span class="pilot-coords-value">' + formatCoordDDM(mp.lat, true) + ' ' + formatCoordDDM(mp.lon, false) + '</span>' +
+            '</div>' +
+            '<div class="pilot-coords-row">' +
+                '<span class="pilot-coords-label">Decimal</span>' +
+                '<span class="pilot-coords-value">' + mp.lat.toFixed(6) + ', ' + mp.lon.toFixed(6) + '</span>' +
+            '</div>' +
+        '</div>' +
+        '<div class="settings-actions">' +
+            '<button class="settings-delete-btn" onclick="removeMarkpoint(' + index + '); closeModal();"><i class="fa-solid fa-trash"></i> Delete</button>' +
+        '</div>';
+    overlay.classList.add('visible');
+}
