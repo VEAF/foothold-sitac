@@ -69,6 +69,11 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Set version from tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          poetry version $VERSION
+
       - name: Build package
         run: poetry build
 
