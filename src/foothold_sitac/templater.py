@@ -10,8 +10,10 @@ static_path = Path(str(files("foothold_sitac") / "static"))
 
 
 def _base36_encode(num: int) -> str:
-    """Encode an integer to base36 string."""
+    """Encode a non-negative integer to base36 string."""
     chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+    if num < 0:
+        raise ValueError("Cannot encode negative numbers")
     if num == 0:
         return "0"
     result = ""
