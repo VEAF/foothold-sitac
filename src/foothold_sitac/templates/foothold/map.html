@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
     integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="/static/css/navbar.css">
-<link rel="stylesheet" href="/static/css/map.css">
-<link rel="stylesheet" href="/static/css/modals.css">
+<link rel="stylesheet" href="{{ static_url('css/navbar.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/map.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/modals.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -102,9 +102,9 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="/static/js/coords.js"></script>
-<script src="/static/js/modals.js"></script>
-<script src="/static/js/map.js"></script>
+<script src="{{ static_url('js/coords.js') }}"></script>
+<script src="{{ static_url('js/modals.js') }}"></script>
+<script src="{{ static_url('js/map.js') }}"></script>
 <script>
     // Set modal endpoints
     modalEndpoints = {
