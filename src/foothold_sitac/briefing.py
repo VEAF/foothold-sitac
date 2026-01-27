@@ -21,8 +21,9 @@ class MissionType(str, Enum):
 
 
 class Homeplate(BaseModel):
-    """Home base for the mission."""
+    """An airbase that can be used as departure/arrival."""
 
+    id: UUID = Field(default_factory=uuid4)
     name: str  # Ex: "Incirlik", "Batumi"
     latitude: float
     longitude: float
@@ -49,6 +50,8 @@ class Flight(BaseModel):
     aircraft_type: str  # Ex: "F-16C"
     num_aircraft: int = 1
     mission_type: MissionType
+    departure_id: UUID | None = None  # Reference to Homeplate.id for departure
+    arrival_id: UUID | None = None  # Reference to Homeplate.id for arrival (if different)
     push_time: str | None = None  # Ex: "0900L" or "ASAP"
     tot: str | None = None  # Time on Target
     waypoints: list[Waypoint] = Field(default_factory=list)
@@ -86,8 +89,8 @@ class Briefing(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
-    # Homeplate
-    homeplate: Homeplate | None = None
+    # Homeplates (airbases available for this briefing)
+    homeplates: list[Homeplate] = Field(default_factory=list)
 
     # Mission timing
     mission_date: str | None = None  # Ex: "2024-01-15"
@@ -128,8 +131,8 @@ class BriefingUpdate(BaseModel):
     notes: str | None = None
 
 
-class HomeplateUpdate(BaseModel):
-    """Request body for updating homeplate."""
+class HomeplateCreate(BaseModel):
+    """Request body for creating a homeplate."""
 
     name: str
     latitude: float
@@ -137,6 +140,17 @@ class HomeplateUpdate(BaseModel):
     runway_heading: int | None = None
     tacan: str | None = None
     frequencies: list[str] = Field(default_factory=list)
+
+
+class HomeplateUpdate(BaseModel):
+    """Request body for updating a homeplate."""
+
+    name: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    runway_heading: int | None = None
+    tacan: str | None = None
+    frequencies: list[str] | None = None
 
 
 class ObjectiveCreate(BaseModel):
@@ -181,6 +195,8 @@ class FlightCreate(BaseModel):
     aircraft_type: str
     num_aircraft: int = 1
     mission_type: MissionType
+    departure_id: UUID | None = None
+    arrival_id: UUID | None = None
     push_time: str | None = None
     tot: str | None = None
     notes: str | None = None
@@ -193,6 +209,8 @@ class FlightUpdate(BaseModel):
     aircraft_type: str | None = None
     num_aircraft: int | None = None
     mission_type: MissionType | None = None
+    departure_id: UUID | None = None
+    arrival_id: UUID | None = None
     push_time: str | None = None
     tot: str | None = None
     notes: str | None = None

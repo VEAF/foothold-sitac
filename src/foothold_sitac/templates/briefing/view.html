@@ -33,20 +33,26 @@
         </div>
         {% endif %}
 
-        <!-- Homeplate -->
-        {% if briefing.homeplate %}
+        <!-- Airbases -->
+        {% if briefing.homeplates %}
         <section class="briefing-section">
-            <h2><i class="fa-solid fa-house"></i> Homeplate</h2>
-            <div class="homeplate-card">
-                <div class="homeplate-name">{{ briefing.homeplate.name }}</div>
-                {% if briefing.homeplate.tacan %}
-                <div class="homeplate-info"><i class="fa-solid fa-tower-broadcast"></i> TACAN: {{ briefing.homeplate.tacan }}</div>
-                {% endif %}
-                {% if briefing.homeplate.runway_heading %}
-                <div class="homeplate-info"><i class="fa-solid fa-compass"></i> Runway: {{ briefing.homeplate.runway_heading }}°</div>
-                {% endif %}
-                {% for freq in briefing.homeplate.frequencies %}
-                <div class="homeplate-info"><i class="fa-solid fa-headset"></i> {{ freq }}</div>
+            <h2><i class="fa-solid fa-plane-departure"></i> Airbases</h2>
+            <div class="homeplates-list">
+                {% for homeplate in briefing.homeplates %}
+                <div class="homeplate-card">
+                    <div class="homeplate-name">{{ homeplate.name }}</div>
+                    <div class="homeplate-details">
+                        {% if homeplate.tacan %}
+                        <span class="info-tag"><i class="fa-solid fa-broadcast-tower"></i> {{ homeplate.tacan }}</span>
+                        {% endif %}
+                        {% if homeplate.runway_heading %}
+                        <span class="info-tag"><i class="fa-solid fa-road"></i> {{ homeplate.runway_heading }}°</span>
+                        {% endif %}
+                        {% if homeplate.frequencies %}
+                        <span class="info-tag"><i class="fa-solid fa-headset"></i> {{ homeplate.frequencies | join(', ') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
                 {% endfor %}
             </div>
         </section>
@@ -109,17 +115,23 @@
                                 <th>Aircraft</th>
                                 <th>#</th>
                                 <th>Mission</th>
+                                <th>Departure</th>
+                                <th>Arrival</th>
                                 <th>PUSH</th>
                                 <th>TOT</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for flight in package.flights %}
+                            {% set departure = briefing.homeplates | selectattr('id', 'equalto', flight.departure_id) | first | default(none) %}
+                            {% set arrival = briefing.homeplates | selectattr('id', 'equalto', flight.arrival_id) | first | default(none) %}
                             <tr>
                                 <td>{{ flight.callsign }}</td>
                                 <td>{{ flight.aircraft_type }}</td>
                                 <td>{{ flight.num_aircraft }}</td>
                                 <td><span class="mission-type-badge {{ flight.mission_type.value }} small">{{ flight.mission_type.value }}</span></td>
+                                <td>{{ departure.name if departure else '-' }}</td>
+                                <td>{{ arrival.name if arrival else (departure.name if departure else '-') }}</td>
                                 <td>{{ flight.push_time or '-' }}</td>
                                 <td>{{ flight.tot or '-' }}</td>
                             </tr>

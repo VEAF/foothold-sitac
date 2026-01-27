@@ -49,12 +49,24 @@
 }
 
 .briefing-editor-panel {
-    width: 480px;
+    width: 550px;
     background: var(--bg-dark-2);
     overflow-y: auto;
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
+}
+
+/* Expanded layout - map hidden, editor full width */
+.briefing-layout.expanded .briefing-map-panel {
+    display: none;
+}
+
+.briefing-layout.expanded .briefing-editor-panel {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-left: none;
 }
 
 /* ============ Container Styles ============ */
@@ -141,6 +153,51 @@
     border-color: rgba(66, 99, 235, 0.5);
     transform: translateX(4px);
     box-shadow: var(--shadow-primary);
+}
+
+/* Briefing card wrapper with edit link */
+.briefing-card-wrapper {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.briefing-card-wrapper .briefing-card {
+    flex: 1;
+    border-radius: 8px 0 0 8px;
+}
+
+.briefing-card-wrapper .edit-link {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.briefing-card-wrapper .edit-link:hover {
+    background: rgba(66, 99, 235, 0.2);
+    color: var(--color-primary-light);
+}
+
+.briefing-card-wrapper.has-edit-token .briefing-card {
+    border-right: none;
+}
+
+.briefing-card-wrapper:not(.has-edit-token) .briefing-card {
+    border-radius: 8px;
+}
+
+.editable-badge {
+    margin-left: 8px;
+    padding: 2px 6px;
+    font-size: 10px;
 }
 
 .briefing-card-header {
@@ -455,12 +512,76 @@
     font-size: 13px;
     color: var(--text-secondary);
     margin: 4px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .homeplate-info i {
     width: 16px;
     color: var(--text-muted);
     margin-right: 6px;
+}
+
+.info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(66, 99, 235, 0.15);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.info-tag i {
+    font-size: 10px;
+    color: var(--color-primary);
+    width: auto;
+    margin: 0;
+}
+
+/* Homeplates container */
+#homeplates-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.homeplate-card + .homeplate-card {
+    margin-top: 0;
+}
+
+.homeplate-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-edit {
+    padding: 4px 8px;
+    background: rgba(66, 99, 235, 0.15);
+    border: none;
+    border-radius: 4px;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-edit:hover {
+    background: rgba(66, 99, 235, 0.3);
+}
+
+.homeplates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.homeplate-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .homeplate-fields {
@@ -747,11 +868,12 @@
     border-color: var(--color-primary);
 }
 
-.callsign-input { min-width: 80px; }
-.aircraft-input { min-width: 60px; }
-.num-input { width: 36px; text-align: center; }
-.mission-select { min-width: 60px; }
-.time-input { width: 50px; text-align: center; }
+.callsign-input { min-width: 70px; }
+.aircraft-input { min-width: 55px; }
+.num-input { width: 32px; text-align: center; }
+.mission-select { min-width: 55px; }
+.homeplate-select { min-width: 65px; }
+.time-input { width: 45px; text-align: center; }
 
 /* ============ View Mode ============ */
 
@@ -1053,5 +1175,16 @@
     .briefing-editor-panel {
         width: 100%;
         height: 60vh;
+    }
+
+    .briefing-layout.expanded .briefing-editor-panel {
+        height: 100vh;
+    }
+}
+
+/* Wider screens - expanded mode gets more space */
+@media (min-width: 1400px) {
+    .briefing-layout.expanded .briefing-editor-panel {
+        max-width: 1400px;
     }
 }

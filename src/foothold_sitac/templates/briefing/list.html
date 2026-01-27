@@ -34,17 +34,20 @@
     {% if briefings %}
     <div class="briefing-list">
         {% for briefing in briefings %}
-        <a href="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" class="briefing-card">
-            <div class="briefing-card-header">
-                <h3>{{ briefing.title }}</h3>
-                <span class="server-badge">{{ briefing.server_name }}</span>
-            </div>
-            <div class="briefing-card-meta">
-                <span><i class="fa-solid fa-crosshairs"></i> {{ briefing.objectives|length }} objectives</span>
-                <span><i class="fa-solid fa-layer-group"></i> {{ briefing.packages|length }} packages</span>
-                <span><i class="fa-solid fa-clock"></i> {{ briefing.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
-            </div>
-        </a>
+        <div class="briefing-card-wrapper" data-id="{{ briefing.id }}">
+            <a href="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" class="briefing-card">
+                <div class="briefing-card-header">
+                    <h3 class="briefing-title">{{ briefing.title }}</h3>
+                    <span class="server-badge">{{ briefing.server_name }}</span>
+                </div>
+                <div class="briefing-card-meta">
+                    <span><i class="fa-solid fa-crosshairs"></i> {{ briefing.objectives|length }} objectives</span>
+                    <span><i class="fa-solid fa-layer-group"></i> {{ briefing.packages|length }} packages</span>
+                    <span><i class="fa-solid fa-clock"></i> {{ briefing.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+            </a>
+            <a href="#" class="edit-link" title="Edit briefing"><i class="fa-solid fa-pen"></i></a>
+        </div>
         {% endfor %}
     </div>
     {% else %}
@@ -59,4 +62,41 @@
         <a class="btn btn-secondary" href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-arrow-left"></i> Back to servers</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Check localStorage for edit tokens and show edit buttons
+document.addEventListener('DOMContentLoaded', function() {
+    var tokens = {};
+    try {
+        tokens = JSON.parse(localStorage.getItem('briefing_edit_tokens') || '{}');
+    } catch (e) {
+        tokens = {};
+    }
+
+    document.querySelectorAll('.briefing-card-wrapper').forEach(function(wrapper) {
+        var id = wrapper.dataset.id;
+        var editLink = wrapper.querySelector('.edit-link');
+
+        if (tokens[id]) {
+            // User has edit token for this briefing
+            wrapper.classList.add('has-edit-token');
+            editLink.href = '/foothold/briefing/' + id + '/edit?token=' + tokens[id];
+            editLink.style.display = 'flex';
+
+            // Add badge to title
+            var title = wrapper.querySelector('.briefing-title');
+            var badge = document.createElement('span');
+            badge.className = 'badge badge-primary editable-badge';
+            badge.innerHTML = '<i class="fa-solid fa-pen"></i>';
+            badge.title = 'You can edit this briefing';
+            title.appendChild(badge);
+        } else {
+            // No token, hide edit link
+            editLink.style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}

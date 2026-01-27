@@ -4,7 +4,7 @@
 var briefingMap = null;
 var zonesLayer = null;
 var objectiveMarkers = {};
-var homeplateMarker = null;
+var homeplateMarkers = {};
 var saveTimeout = null;
 
 // Initialize when DOM is ready
@@ -14,8 +14,86 @@ document.addEventListener('DOMContentLoaded', function() {
     if (IS_EDIT_MODE) {
         setupAutoSave();
         populateZoneSelector();
+        populateHomeplateSelects();
+        restoreLayoutPreference();
+
+        // Save edit token to localStorage
+        saveEditToken(BRIEFING_ID, EDIT_TOKEN);
     }
 });
+
+// ============ LocalStorage Functions ============
+
+function saveEditToken(briefingId, token) {
+    try {
+        var tokens = JSON.parse(localStorage.getItem('briefing_edit_tokens') || '{}');
+        tokens[briefingId] = token;
+        localStorage.setItem('briefing_edit_tokens', JSON.stringify(tokens));
+    } catch (e) {
+        console.warn('Could not save edit token to localStorage', e);
+    }
+}
+
+function getEditToken(briefingId) {
+    try {
+        var tokens = JSON.parse(localStorage.getItem('briefing_edit_tokens') || '{}');
+        return tokens[briefingId] || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function removeEditToken(briefingId) {
+    try {
+        var tokens = JSON.parse(localStorage.getItem('briefing_edit_tokens') || '{}');
+        delete tokens[briefingId];
+        localStorage.setItem('briefing_edit_tokens', JSON.stringify(tokens));
+    } catch (e) {
+        console.warn('Could not remove edit token from localStorage', e);
+    }
+}
+
+// ============ Layout Toggle Functions ============
+
+function toggleMapPanel() {
+    var layout = document.querySelector('.briefing-layout');
+    var btn = document.getElementById('toggle-map-btn');
+    if (!layout || !btn) return;
+
+    var isExpanded = layout.classList.toggle('expanded');
+
+    // Save preference
+    try {
+        localStorage.setItem('briefing_editor_expanded', isExpanded ? '1' : '0');
+    } catch (e) {}
+
+    // Update button text
+    var span = btn.querySelector('span');
+    if (span) {
+        span.textContent = isExpanded ? 'Show map' : 'Hide map';
+    }
+
+    // If showing map again, invalidate size
+    if (!isExpanded && briefingMap) {
+        setTimeout(function() {
+            briefingMap.invalidateSize();
+        }, 100);
+    }
+}
+
+function restoreLayoutPreference() {
+    try {
+        if (localStorage.getItem('briefing_editor_expanded') === '1') {
+            var layout = document.querySelector('.briefing-layout');
+            var btn = document.getElementById('toggle-map-btn');
+            if (layout && btn) {
+                layout.classList.add('expanded');
+                var span = btn.querySelector('span');
+                if (span) span.textContent = 'Show map';
+            }
+        }
+    } catch (e) {}
+}
 
 // ============ Map Functions ============
 
@@ -86,12 +164,14 @@ function initBriefingMap() {
         });
     }
 
-    // Draw homeplate if exists
-    if (BRIEFING_DATA.homeplate) {
-        drawHomeplateMarker(BRIEFING_DATA.homeplate);
+    // Draw homeplates
+    if (BRIEFING_DATA.homeplates) {
+        BRIEFING_DATA.homeplates.forEach(function(hp) {
+            drawHomeplateMarker(hp);
+        });
     }
 
-    // Right-click to set homeplate in edit mode
+    // Right-click to add homeplate in edit mode
     if (IS_EDIT_MODE) {
         briefingMap.on('contextmenu', function(e) {
             openHomeplateModalWithCoords(e.latlng.lat, e.latlng.lng);
@@ -127,24 +207,33 @@ function removeObjectiveFromMap(objectiveId) {
 }
 
 function drawHomeplateMarker(homeplate) {
-    if (homeplateMarker) {
-        briefingMap.removeLayer(homeplateMarker);
+    // Remove existing marker for this homeplate
+    if (homeplateMarkers[homeplate.id]) {
+        briefingMap.removeLayer(homeplateMarkers[homeplate.id]);
     }
 
     var icon = L.divIcon({
         className: 'homeplate-marker',
-        html: '<i class="fa-solid fa-house"></i>',
+        html: '<i class="fa-solid fa-plane-departure"></i>',
         iconSize: [24, 24],
         iconAnchor: [12, 12]
     });
 
-    homeplateMarker = L.marker([homeplate.latitude, homeplate.longitude], { icon: icon });
-    homeplateMarker.bindTooltip(homeplate.name, {
+    var marker = L.marker([homeplate.latitude, homeplate.longitude], { icon: icon });
+    marker.bindTooltip(homeplate.name, {
         permanent: true,
         direction: 'bottom',
         className: 'homeplate-label-tooltip'
     });
-    homeplateMarker.addTo(briefingMap);
+    marker.addTo(briefingMap);
+    homeplateMarkers[homeplate.id] = marker;
+}
+
+function removeHomeplateMarker(homeplateId) {
+    if (homeplateMarkers[homeplateId]) {
+        briefingMap.removeLayer(homeplateMarkers[homeplateId]);
+        delete homeplateMarkers[homeplateId];
+    }
 }
 
 // ============ API Functions ============
@@ -174,12 +263,6 @@ function setupAutoSave() {
     var inputs = document.querySelectorAll('#briefing-title, #mission-date, #mission-time, #situation, #weather, #comms-plan, #notes');
     inputs.forEach(function(el) {
         el.addEventListener('input', scheduleSave);
-    });
-
-    // Homeplate fields
-    var homeplateInputs = document.querySelectorAll('#homeplate-name, #homeplate-tacan, #homeplate-runway, #homeplate-frequencies');
-    homeplateInputs.forEach(function(el) {
-        el.addEventListener('input', scheduleHomeplateSave);
     });
 }
 
@@ -227,51 +310,59 @@ function showSaveError() {
 
 // ============ Homeplate Functions ============
 
-var homeplateSaveTimeout = null;
+var editingHomeplateId = null;
 
-function scheduleHomeplateSave() {
-    if (homeplateSaveTimeout) clearTimeout(homeplateSaveTimeout);
-    homeplateSaveTimeout = setTimeout(saveHomeplate, 800);
-    showSaving();
-}
+function openHomeplateModal(homeplateId) {
+    editingHomeplateId = homeplateId || null;
+    var modal = document.getElementById('homeplate-modal');
+    var title = document.getElementById('homeplate-modal-title');
+    var submitBtn = document.getElementById('homeplate-submit-btn');
+    var idField = document.getElementById('edit-homeplate-id');
 
-function saveHomeplate() {
-    var name = document.getElementById('homeplate-name');
-    if (!name || !name.value) return;
+    if (homeplateId) {
+        // Edit mode
+        var hp = BRIEFING_DATA.homeplates.find(function(h) { return h.id === homeplateId; });
+        if (hp) {
+            document.getElementById('new-homeplate-name').value = hp.name;
+            document.getElementById('new-homeplate-lat').value = hp.latitude;
+            document.getElementById('new-homeplate-lon').value = hp.longitude;
+            document.getElementById('new-homeplate-tacan').value = hp.tacan || '';
+            document.getElementById('new-homeplate-runway').value = hp.runway_heading || '';
+            document.getElementById('new-homeplate-freqs').value = (hp.frequencies || []).join(', ');
+            idField.value = homeplateId;
+            title.textContent = 'Edit Airbase';
+            submitBtn.textContent = 'Update Airbase';
+        }
+    } else {
+        // Add mode
+        document.getElementById('homeplate-form').reset();
+        idField.value = '';
+        title.textContent = 'Add Airbase';
+        submitBtn.textContent = 'Add Airbase';
+    }
 
-    var freqStr = document.getElementById('homeplate-frequencies').value;
-    var frequencies = freqStr ? freqStr.split(',').map(function(f) { return f.trim(); }).filter(Boolean) : [];
-
-    var data = {
-        name: name.value,
-        latitude: BRIEFING_DATA.homeplate ? BRIEFING_DATA.homeplate.latitude : 0,
-        longitude: BRIEFING_DATA.homeplate ? BRIEFING_DATA.homeplate.longitude : 0,
-        tacan: document.getElementById('homeplate-tacan').value || null,
-        runway_heading: parseInt(document.getElementById('homeplate-runway').value) || null,
-        frequencies: frequencies
-    };
-
-    apiCall('PUT', '/homeplate', data).then(function(hp) {
-        BRIEFING_DATA.homeplate = hp;
-        showSaved();
-    }).catch(function() {
-        showSaveError();
-    });
-}
-
-function openHomeplateModal() {
-    document.getElementById('homeplate-modal').classList.add('visible');
+    modal.classList.add('visible');
 }
 
 function openHomeplateModalWithCoords(lat, lon) {
+    editingHomeplateId = null;
+    document.getElementById('homeplate-form').reset();
+    document.getElementById('edit-homeplate-id').value = '';
     document.getElementById('new-homeplate-lat').value = lat.toFixed(6);
     document.getElementById('new-homeplate-lon').value = lon.toFixed(6);
-    openHomeplateModal();
+    document.getElementById('homeplate-modal-title').textContent = 'Add Airbase';
+    document.getElementById('homeplate-submit-btn').textContent = 'Add Airbase';
+    document.getElementById('homeplate-modal').classList.add('visible');
 }
 
 function closeHomeplateModal() {
     document.getElementById('homeplate-modal').classList.remove('visible');
     document.getElementById('homeplate-form').reset();
+    editingHomeplateId = null;
+}
+
+function editHomeplate(homeplateId) {
+    openHomeplateModal(homeplateId);
 }
 
 function submitHomeplate(event) {
@@ -289,47 +380,109 @@ function submitHomeplate(event) {
         frequencies: frequencies
     };
 
-    apiCall('PUT', '/homeplate', data).then(function(hp) {
-        BRIEFING_DATA.homeplate = hp;
-        drawHomeplateMarker(hp);
-        renderHomeplateCard(hp);
-        closeHomeplateModal();
-        showSaved();
-    });
+    var homeplateId = document.getElementById('edit-homeplate-id').value;
+
+    if (homeplateId) {
+        // Update existing
+        apiCall('PUT', '/homeplates/' + homeplateId, data).then(function(hp) {
+            // Update in local data
+            var idx = BRIEFING_DATA.homeplates.findIndex(function(h) { return h.id === homeplateId; });
+            if (idx >= 0) {
+                BRIEFING_DATA.homeplates[idx] = hp;
+            }
+            drawHomeplateMarker(hp);
+            renderHomeplatesContainer();
+            populateHomeplateSelects();
+            closeHomeplateModal();
+            showSaved();
+        });
+    } else {
+        // Create new
+        apiCall('POST', '/homeplates', data).then(function(hp) {
+            BRIEFING_DATA.homeplates.push(hp);
+            drawHomeplateMarker(hp);
+            renderHomeplatesContainer();
+            populateHomeplateSelects();
+            closeHomeplateModal();
+            showSaved();
+        });
+    }
 }
 
-function renderHomeplateCard(hp) {
-    var container = document.getElementById('homeplate-container');
-    container.innerHTML = '<div class="homeplate-card editable" id="homeplate-card">' +
-        '<div class="homeplate-header">' +
-        '<input type="text" id="homeplate-name" value="' + hp.name + '" class="homeplate-name-input" placeholder="Base name">' +
-        '<button onclick="removeHomeplate()" class="btn-remove"><i class="fa-solid fa-trash"></i></button>' +
-        '</div>' +
-        '<div class="homeplate-fields">' +
-        '<div class="field-row"><label>TACAN</label><input type="text" id="homeplate-tacan" value="' + (hp.tacan || '') + '" placeholder="e.g., 21X ICK"></div>' +
-        '<div class="field-row"><label>Runway</label><input type="number" id="homeplate-runway" value="' + (hp.runway_heading || '') + '" placeholder="Heading °"></div>' +
-        '<div class="field-row"><label>Frequencies</label><input type="text" id="homeplate-frequencies" value="' + (hp.frequencies || []).join(', ') + '" placeholder="e.g., 251.0 Tower, 360.0 ATIS"></div>' +
-        '</div></div>';
+function renderHomeplatesContainer() {
+    var container = document.getElementById('homeplates-container');
+    if (!container) return;
 
-    // Re-attach auto-save listeners
-    var inputs = container.querySelectorAll('input');
-    inputs.forEach(function(el) {
-        el.addEventListener('input', scheduleHomeplateSave);
-    });
-}
+    if (BRIEFING_DATA.homeplates.length === 0) {
+        container.innerHTML = '<div class="empty-section" id="homeplates-empty">' +
+            '<p>No airbases defined. Right-click on the map or click <i class="fa-solid fa-plus"></i> to add.</p></div>';
+        return;
+    }
 
-function removeHomeplate() {
-    if (!confirm('Remove homeplate?')) return;
+    var html = '';
+    BRIEFING_DATA.homeplates.forEach(function(hp) {
+        html += '<div class="homeplate-card editable" data-id="' + hp.id + '">' +
+            '<div class="homeplate-header">' +
+            '<span class="homeplate-name">' + hp.name + '</span>' +
+            '<div class="homeplate-actions">' +
+            '<button onclick="editHomeplate(\'' + hp.id + '\')" class="btn-edit"><i class="fa-solid fa-pen"></i></button>' +
+            '<button onclick="removeHomeplate(\'' + hp.id + '\')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>' +
+            '</div></div>' +
+            '<div class="homeplate-info">';
 
-    apiCall('DELETE', '/homeplate').then(function() {
-        BRIEFING_DATA.homeplate = null;
-        if (homeplateMarker) {
-            briefingMap.removeLayer(homeplateMarker);
-            homeplateMarker = null;
+        if (hp.tacan) {
+            html += '<span class="info-tag"><i class="fa-solid fa-broadcast-tower"></i> ' + hp.tacan + '</span>';
         }
-        document.getElementById('homeplate-container').innerHTML =
-            '<div class="empty-section"><p>No homeplate defined. Right-click on the map or click <i class="fa-solid fa-plus"></i> to add.</p></div>';
+        if (hp.runway_heading) {
+            html += '<span class="info-tag"><i class="fa-solid fa-road"></i> ' + hp.runway_heading + '°</span>';
+        }
+        if (hp.frequencies && hp.frequencies.length > 0) {
+            html += '<span class="info-tag"><i class="fa-solid fa-headset"></i> ' + hp.frequencies.length + ' freq</span>';
+        }
+
+        html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function removeHomeplate(homeplateId) {
+    if (!confirm('Remove this airbase?')) return;
+
+    apiCall('DELETE', '/homeplates/' + homeplateId).then(function() {
+        BRIEFING_DATA.homeplates = BRIEFING_DATA.homeplates.filter(function(h) { return h.id !== homeplateId; });
+        removeHomeplateMarker(homeplateId);
+        renderHomeplatesContainer();
+        populateHomeplateSelects();
         showSaved();
+    });
+}
+
+// Populate all homeplate select dropdowns
+function populateHomeplateSelects() {
+    var selects = document.querySelectorAll('.homeplate-select');
+    selects.forEach(function(select) {
+        var currentValue = select.value;
+        var isDeparture = select.classList.contains('departure-select');
+        var defaultOption = isDeparture ? '<option value="">-</option>' : '<option value="">Same</option>';
+
+        var options = defaultOption;
+        BRIEFING_DATA.homeplates.forEach(function(hp) {
+            options += '<option value="' + hp.id + '">' + hp.name + '</option>';
+        });
+
+        select.innerHTML = options;
+        select.value = currentValue;
+    });
+
+    // Also restore selected values from data attributes
+    document.querySelectorAll('tr[data-departure-id]').forEach(function(row) {
+        var departureId = row.dataset.departureId;
+        var arrivalId = row.dataset.arrivalId;
+        var depSelect = row.querySelector('.departure-select');
+        var arrSelect = row.querySelector('.arrival-select');
+        if (depSelect && departureId) depSelect.value = departureId;
+        if (arrSelect && arrivalId) arrSelect.value = arrivalId;
     });
 }
 
@@ -500,7 +653,7 @@ function appendPackageCard(pkg) {
         '<button onclick="removePackage(\'' + pkg.id + '\')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>' +
         '</div>' +
         '<div class="flights-container">' +
-        '<table class="flights-table"><thead><tr><th>Callsign</th><th>Aircraft</th><th>#</th><th>Mission</th><th>PUSH</th><th>TOT</th><th></th></tr></thead>' +
+        '<table class="flights-table"><thead><tr><th>Callsign</th><th>Aircraft</th><th>#</th><th>Mission</th><th>Departure</th><th>Arrival</th><th>PUSH</th><th>TOT</th><th></th></tr></thead>' +
         '<tbody id="flights-' + pkg.id + '"></tbody></table>' +
         '<button onclick="addFlight(\'' + pkg.id + '\')" class="btn-add-flight"><i class="fa-solid fa-plus"></i> Add Flight</button>' +
         '</div>' +
@@ -575,11 +728,22 @@ function appendFlightRow(packageId, flight) {
         missionOptions += '<option value="' + mt + '"' + sel + '>' + mt + '</option>';
     });
 
-    var html = '<tr id="flight-' + flight.id + '" data-id="' + flight.id + '">' +
+    var homeplateOptions = '<option value="">-</option>';
+    var arrivalOptions = '<option value="">Same</option>';
+    BRIEFING_DATA.homeplates.forEach(function(hp) {
+        var depSel = flight.departure_id === hp.id ? ' selected' : '';
+        var arrSel = flight.arrival_id === hp.id ? ' selected' : '';
+        homeplateOptions += '<option value="' + hp.id + '"' + depSel + '>' + hp.name + '</option>';
+        arrivalOptions += '<option value="' + hp.id + '"' + arrSel + '>' + hp.name + '</option>';
+    });
+
+    var html = '<tr id="flight-' + flight.id + '" data-id="' + flight.id + '" data-departure-id="' + (flight.departure_id || '') + '" data-arrival-id="' + (flight.arrival_id || '') + '">' +
         '<td><input type="text" value="' + flight.callsign + '" class="flight-input callsign-input" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'callsign\', this.value)"></td>' +
         '<td><input type="text" value="' + flight.aircraft_type + '" class="flight-input aircraft-input" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'aircraft_type\', this.value)"></td>' +
         '<td><input type="number" min="1" max="8" value="' + flight.num_aircraft + '" class="flight-input num-input" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'num_aircraft\', parseInt(this.value))"></td>' +
         '<td><select class="flight-input mission-select" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'mission_type\', this.value)">' + missionOptions + '</select></td>' +
+        '<td><select class="flight-input homeplate-select departure-select" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'departure_id\', this.value || null)">' + homeplateOptions + '</select></td>' +
+        '<td><select class="flight-input homeplate-select arrival-select" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'arrival_id\', this.value || null)">' + arrivalOptions + '</select></td>' +
         '<td><input type="text" value="' + (flight.push_time || '') + '" class="flight-input time-input" placeholder="-" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'push_time\', this.value || null)"></td>' +
         '<td><input type="text" value="' + (flight.tot || '') + '" class="flight-input time-input" placeholder="-" onchange="updateFlight(\'' + packageId + '\', \'' + flight.id + '\', \'tot\', this.value || null)"></td>' +
         '<td><button onclick="removeFlight(\'' + packageId + '\', \'' + flight.id + '\')" class="btn-remove-small"><i class="fa-solid fa-times"></i></button></td>' +
@@ -604,6 +768,13 @@ function updateFlight(packageId, flightId, field, value) {
     data[field] = value;
 
     apiCall('PUT', '/packages/' + packageId + '/flights/' + flightId, data).then(function() {
+        // Update data attribute if departure/arrival changed
+        if (field === 'departure_id' || field === 'arrival_id') {
+            var row = document.getElementById('flight-' + flightId);
+            if (row) {
+                row.dataset[field === 'departure_id' ? 'departureId' : 'arrivalId'] = value || '';
+            }
+        }
         showSaved();
     });
 }
@@ -654,6 +825,9 @@ function closeModalOnOverlay(event, modalId) {
 
 function deleteBriefing() {
     if (!confirm('Are you sure you want to delete this briefing? This cannot be undone.')) return;
+
+    // Remove edit token from localStorage
+    removeEditToken(BRIEFING_ID);
 
     apiCall('DELETE', '').then(function() {
         window.location.href = '/foothold/briefing';

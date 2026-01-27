@@ -29,6 +29,7 @@
         <div class="briefing-title-bar">
             <input type="text" id="briefing-title" value="{{ briefing.title }}" class="title-input">
             <div class="title-actions">
+                <button id="toggle-map-btn" onclick="toggleMapPanel()" class="btn btn-secondary btn-sm"><i class="fa-solid fa-map"></i> <span>Hide map</span></button>
                 <button onclick="openShareModal()" class="btn btn-secondary btn-sm"><i class="fa-solid fa-share-nodes"></i> Share</button>
                 <span class="save-indicator" id="save-indicator"><i class="fa-solid fa-check"></i> Saved</span>
             </div>
@@ -40,39 +41,33 @@
             <input type="text" id="mission-time" value="{{ briefing.mission_time or '' }}" placeholder="Time (e.g., 0800L)" class="meta-input">
         </div>
 
-        <!-- Homeplate Section -->
+        <!-- Airbases (Homeplates) Section -->
         <section class="briefing-section">
             <div class="section-header">
-                <h2><i class="fa-solid fa-house"></i> Homeplate</h2>
-                {% if not briefing.homeplate %}
-                <button onclick="openHomeplateModal()" class="btn-add"><i class="fa-solid fa-plus"></i></button>
-                {% endif %}
+                <h2><i class="fa-solid fa-plane-departure"></i> Airbases</h2>
+                <button onclick="openHomeplateModal()" class="btn-add"><i class="fa-solid fa-plus"></i> Add</button>
             </div>
-            <div id="homeplate-container">
-                {% if briefing.homeplate %}
-                <div class="homeplate-card editable" id="homeplate-card">
+            <div id="homeplates-container">
+                {% if briefing.homeplates %}
+                {% for homeplate in briefing.homeplates %}
+                <div class="homeplate-card editable" data-id="{{ homeplate.id }}">
                     <div class="homeplate-header">
-                        <input type="text" id="homeplate-name" value="{{ briefing.homeplate.name }}" class="homeplate-name-input" placeholder="Base name">
-                        <button onclick="removeHomeplate()" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                        <span class="homeplate-name">{{ homeplate.name }}</span>
+                        <div class="homeplate-actions">
+                            <button onclick="editHomeplate('{{ homeplate.id }}')" class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="removeHomeplate('{{ homeplate.id }}')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
-                    <div class="homeplate-fields">
-                        <div class="field-row">
-                            <label>TACAN</label>
-                            <input type="text" id="homeplate-tacan" value="{{ briefing.homeplate.tacan or '' }}" placeholder="e.g., 21X ICK">
-                        </div>
-                        <div class="field-row">
-                            <label>Runway</label>
-                            <input type="number" id="homeplate-runway" value="{{ briefing.homeplate.runway_heading or '' }}" placeholder="Heading °">
-                        </div>
-                        <div class="field-row">
-                            <label>Frequencies</label>
-                            <input type="text" id="homeplate-frequencies" value="{{ briefing.homeplate.frequencies | join(', ') }}" placeholder="e.g., 251.0 Tower, 360.0 ATIS">
-                        </div>
+                    <div class="homeplate-info">
+                        {% if homeplate.tacan %}<span class="info-tag"><i class="fa-solid fa-broadcast-tower"></i> {{ homeplate.tacan }}</span>{% endif %}
+                        {% if homeplate.runway_heading %}<span class="info-tag"><i class="fa-solid fa-road"></i> {{ homeplate.runway_heading }}°</span>{% endif %}
+                        {% if homeplate.frequencies %}<span class="info-tag"><i class="fa-solid fa-headset"></i> {{ homeplate.frequencies | length }} freq</span>{% endif %}
                     </div>
                 </div>
+                {% endfor %}
                 {% else %}
-                <div class="empty-section">
-                    <p>No homeplate defined. Right-click on the map or click <i class="fa-solid fa-plus"></i> to add.</p>
+                <div class="empty-section" id="homeplates-empty">
+                    <p>No airbases defined. Right-click on the map or click <i class="fa-solid fa-plus"></i> to add.</p>
                 </div>
                 {% endif %}
             </div>
@@ -205,8 +200,9 @@
 <div id="homeplate-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'homeplate-modal')">
     <div class="modal-content zone-modal">
         <button class="modal-close" onclick="closeHomeplateModal()">&times;</button>
-        <h3><i class="fa-solid fa-house"></i> Set Homeplate</h3>
+        <h3><i class="fa-solid fa-plane-departure"></i> <span id="homeplate-modal-title">Add Airbase</span></h3>
         <form id="homeplate-form" onsubmit="submitHomeplate(event)">
+            <input type="hidden" id="edit-homeplate-id" value="">
             <div class="form-group">
                 <label for="new-homeplate-name">Base Name</label>
                 <input type="text" id="new-homeplate-name" required placeholder="e.g., Incirlik">
@@ -237,7 +233,7 @@
             </div>
             <div class="form-actions">
                 <button type="button" onclick="closeHomeplateModal()" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Set Homeplate</button>
+                <button type="submit" class="btn btn-primary" id="homeplate-submit-btn">Add Airbase</button>
             </div>
         </form>
     </div>

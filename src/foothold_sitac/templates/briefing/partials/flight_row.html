@@ -1,4 +1,4 @@
-<tr id="flight-{{ flight.id }}" data-id="{{ flight.id }}">
+<tr id="flight-{{ flight.id }}" data-id="{{ flight.id }}" data-departure-id="{{ flight.departure_id or '' }}" data-arrival-id="{{ flight.arrival_id or '' }}">
     <td><input type="text" value="{{ flight.callsign }}" class="flight-input callsign-input"
                onchange="updateFlight('{{ package.id }}', '{{ flight.id }}', 'callsign', this.value)"></td>
     <td><input type="text" value="{{ flight.aircraft_type }}" class="flight-input aircraft-input"
@@ -11,6 +11,20 @@
             {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
             <option value="{{ mt }}" {% if flight.mission_type.value == mt %}selected{% endif %}>{{ mt }}</option>
             {% endfor %}
+        </select>
+    </td>
+    <td>
+        <select class="flight-input homeplate-select departure-select"
+                onchange="updateFlight('{{ package.id }}', '{{ flight.id }}', 'departure_id', this.value || null)">
+            <option value="">-</option>
+            <!-- Populated by JS -->
+        </select>
+    </td>
+    <td>
+        <select class="flight-input homeplate-select arrival-select"
+                onchange="updateFlight('{{ package.id }}', '{{ flight.id }}', 'arrival_id', this.value || null)">
+            <option value="">Same</option>
+            <!-- Populated by JS -->
         </select>
     </td>
     <td><input type="text" value="{{ flight.push_time or '' }}" class="flight-input time-input" placeholder="-"

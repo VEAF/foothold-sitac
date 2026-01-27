@@ -2,10 +2,33 @@
 
 import json
 from pathlib import Path
-from uuid import UUID
+from typing import Any
+from uuid import UUID, uuid4
 
 from foothold_sitac.briefing import Briefing
 from foothold_sitac.config import get_config
+
+
+def _migrate_briefing_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Migrate old briefing format to new format.
+
+    Handles migration of:
+    - homeplate (single) -> homeplates (list)
+    - Adds id to homeplate if missing
+    """
+    # Migration: old single homeplate -> homeplates list
+    if "homeplate" in data:
+        old_homeplate = data.pop("homeplate")
+        if old_homeplate is not None:
+            # Add id if missing
+            if "id" not in old_homeplate:
+                old_homeplate["id"] = str(uuid4())
+            # Initialize homeplates list if not present
+            if "homeplates" not in data:
+                data["homeplates"] = []
+            data["homeplates"].append(old_homeplate)
+
+    return data
 
 
 def get_briefings_path() -> Path:
@@ -35,6 +58,10 @@ def load_briefing(briefing_id: UUID) -> Briefing | None:
         return None
     with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
+
+    # Apply migrations for old format
+    data = _migrate_briefing_data(data)
+
     return Briefing.model_validate(data)
 
 

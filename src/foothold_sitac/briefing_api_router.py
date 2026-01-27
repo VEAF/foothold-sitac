@@ -17,6 +17,7 @@ from foothold_sitac.briefing import (
     FlightCreate,
     FlightUpdate,
     Homeplate,
+    HomeplateCreate,
     HomeplateUpdate,
     Objective,
     ObjectiveCreate,
@@ -136,37 +137,63 @@ async def delete_briefing_endpoint(
     delete_briefing(briefing_id)
 
 
-# === Homeplate ===
+# === Homeplates (airbases) ===
 
 
-@router.put("/{briefing_id}/homeplate", response_model=Homeplate)
-async def set_homeplate(
+@router.post("/{briefing_id}/homeplates", response_model=Homeplate, status_code=status.HTTP_201_CREATED)
+async def add_homeplate(
     briefing_id: UUID,
-    data: HomeplateUpdate,
+    data: HomeplateCreate,
     token: Annotated[UUID, Query()],
 ) -> Homeplate:
-    """Set or update the homeplate."""
+    """Add an airbase (homeplate) to the briefing."""
     briefing = get_briefing_or_404(briefing_id)
     verify_edit_token(briefing, token)
 
     homeplate = Homeplate(**data.model_dump())
-    briefing.homeplate = homeplate
+    briefing.homeplates.append(homeplate)
     briefing.updated_at = datetime.now()
     save_briefing(briefing)
 
     return homeplate
 
 
-@router.delete("/{briefing_id}/homeplate", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_homeplate(
+@router.put("/{briefing_id}/homeplates/{homeplate_id}", response_model=Homeplate)
+async def update_homeplate(
     briefing_id: UUID,
+    homeplate_id: UUID,
+    data: HomeplateUpdate,
     token: Annotated[UUID, Query()],
-) -> None:
-    """Remove the homeplate."""
+) -> Homeplate:
+    """Update an airbase (homeplate)."""
     briefing = get_briefing_or_404(briefing_id)
     verify_edit_token(briefing, token)
 
-    briefing.homeplate = None
+    homeplate = next((h for h in briefing.homeplates if h.id == homeplate_id), None)
+    if not homeplate:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Homeplate not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        if value is not None:
+            setattr(homeplate, key, value)
+    briefing.updated_at = datetime.now()
+    save_briefing(briefing)
+
+    return homeplate
+
+
+@router.delete("/{briefing_id}/homeplates/{homeplate_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_homeplate(
+    briefing_id: UUID,
+    homeplate_id: UUID,
+    token: Annotated[UUID, Query()],
+) -> None:
+    """Remove an airbase (homeplate) from the briefing."""
+    briefing = get_briefing_or_404(briefing_id)
+    verify_edit_token(briefing, token)
+
+    briefing.homeplates = [h for h in briefing.homeplates if h.id != homeplate_id]
     briefing.updated_at = datetime.now()
     save_briefing(briefing)
 
