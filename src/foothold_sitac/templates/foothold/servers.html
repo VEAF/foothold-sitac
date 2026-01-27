@@ -3,6 +3,9 @@
 {% block title %}Servers{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="{{ static_url('css/cards.css') }}">
 {% endblock %}
 
@@ -40,8 +43,9 @@
     </div>
     {% endif %}
 
-    <div class="back-link">
+    <div class="back-link" style="display: flex; gap: 12px; justify-content: center;">
         <a class="btn btn-primary" href="{{ request.url_for('home') }}">Back to home</a>
+        <a class="btn btn-primary" href="{{ request.url_for('briefing_list') }}"><i class="fa-solid fa-file-lines"></i> Briefings</a>
     </div>
 </div>
 {% endblock %}

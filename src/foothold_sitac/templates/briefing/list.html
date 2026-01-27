@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Briefings{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/cards.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/briefing.css') }}">
+{% endblock %}
+
+{% block body_class %}bg-gradient-dark{% endblock %}
+
+{% block content %}
+<div class="container briefing-container">
+    <div class="briefing-header">
+        <h1><i class="fa-solid fa-file-lines"></i> Briefings</h1>
+        <a href="{{ request.url_for('briefing_new') }}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Briefing
+        </a>
+    </div>
+
+    {% if servers|length > 0 %}
+    <div class="filter-bar">
+        <span class="filter-label">Filter by server:</span>
+        <a href="{{ request.url_for('briefing_list') }}" class="filter-chip {% if not server_filter %}active{% endif %}">All</a>
+        {% for s in servers %}
+        <a href="{{ request.url_for('briefing_list') }}?server={{ s }}" class="filter-chip {% if server_filter == s %}active{% endif %}">{{ s }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if briefings %}
+    <div class="briefing-list">
+        {% for briefing in briefings %}
+        <a href="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" class="briefing-card">
+            <div class="briefing-card-header">
+                <h3>{{ briefing.title }}</h3>
+                <span class="server-badge">{{ briefing.server_name }}</span>
+            </div>
+            <div class="briefing-card-meta">
+                <span><i class="fa-solid fa-crosshairs"></i> {{ briefing.objectives|length }} objectives</span>
+                <span><i class="fa-solid fa-layer-group"></i> {{ briefing.packages|length }} packages</span>
+                <span><i class="fa-solid fa-clock"></i> {{ briefing.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-file-lines"></i>
+        <p>No briefings yet</p>
+        <a href="{{ request.url_for('briefing_new') }}" class="btn btn-primary">Create your first briefing</a>
+    </div>
+    {% endif %}
+
+    <div class="back-link">
+        <a class="btn btn-secondary" href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-arrow-left"></i> Back to servers</a>
+    </div>
+</div>
+{% endblock %}

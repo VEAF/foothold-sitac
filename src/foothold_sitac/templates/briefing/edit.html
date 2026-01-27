@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Edit: {{ briefing.title }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/briefing.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/modals.css') }}">
+{% endblock %}
+
+{% block body_class %}briefing-page{% endblock %}
+
+{% block content %}
+<div class="briefing-layout">
+    <!-- Left panel: Map with zone selection -->
+    <div class="briefing-map-panel">
+        <div id="briefing-map"></div>
+        <div class="map-instructions">
+            <span><i class="fa-solid fa-mouse-pointer"></i> Click zone to add objective</span>
+            <span><i class="fa-solid fa-hand-pointer"></i> Right-click to set homeplate</span>
+        </div>
+    </div>
+
+    <!-- Right panel: Briefing editor -->
+    <div class="briefing-editor-panel">
+        <div class="briefing-title-bar">
+            <input type="text" id="briefing-title" value="{{ briefing.title }}" class="title-input">
+            <div class="title-actions">
+                <button onclick="openShareModal()" class="btn btn-secondary btn-sm"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                <span class="save-indicator" id="save-indicator"><i class="fa-solid fa-check"></i> Saved</span>
+            </div>
+        </div>
+
+        <div class="briefing-meta-bar">
+            <span class="server-badge">{{ briefing.server_name }}</span>
+            <input type="text" id="mission-date" value="{{ briefing.mission_date or '' }}" placeholder="Date (e.g., 2024-01-15)" class="meta-input">
+            <input type="text" id="mission-time" value="{{ briefing.mission_time or '' }}" placeholder="Time (e.g., 0800L)" class="meta-input">
+        </div>
+
+        <!-- Homeplate Section -->
+        <section class="briefing-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-house"></i> Homeplate</h2>
+                {% if not briefing.homeplate %}
+                <button onclick="openHomeplateModal()" class="btn-add"><i class="fa-solid fa-plus"></i></button>
+                {% endif %}
+            </div>
+            <div id="homeplate-container">
+                {% if briefing.homeplate %}
+                <div class="homeplate-card editable" id="homeplate-card">
+                    <div class="homeplate-header">
+                        <input type="text" id="homeplate-name" value="{{ briefing.homeplate.name }}" class="homeplate-name-input" placeholder="Base name">
+                        <button onclick="removeHomeplate()" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="homeplate-fields">
+                        <div class="field-row">
+                            <label>TACAN</label>
+                            <input type="text" id="homeplate-tacan" value="{{ briefing.homeplate.tacan or '' }}" placeholder="e.g., 21X ICK">
+                        </div>
+                        <div class="field-row">
+                            <label>Runway</label>
+                            <input type="number" id="homeplate-runway" value="{{ briefing.homeplate.runway_heading or '' }}" placeholder="Heading °">
+                        </div>
+                        <div class="field-row">
+                            <label>Frequencies</label>
+                            <input type="text" id="homeplate-frequencies" value="{{ briefing.homeplate.frequencies | join(', ') }}" placeholder="e.g., 251.0 Tower, 360.0 ATIS">
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-section">
+                    <p>No homeplate defined. Right-click on the map or click <i class="fa-solid fa-plus"></i> to add.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Situation Section -->
+        <section class="briefing-section collapsible">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fa-solid fa-info-circle"></i> Situation</h2>
+                <i class="fa-solid fa-chevron-down section-toggle"></i>
+            </div>
+            <div class="section-content">
+                <textarea id="situation" placeholder="Intelligence and situation briefing...">{{ briefing.situation or '' }}</textarea>
+            </div>
+        </section>
+
+        <!-- Objectives Section -->
+        <section class="briefing-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-crosshairs"></i> Objectives</h2>
+                <button onclick="openZoneSelectorModal()" class="btn-add"><i class="fa-solid fa-plus"></i> Add</button>
+            </div>
+            <div id="objectives-list">
+                {% for objective in briefing.objectives|sort(attribute='priority') %}
+                {% include "briefing/partials/objective_card.html" %}
+                {% endfor %}
+            </div>
+            {% if not briefing.objectives %}
+            <div class="empty-section" id="objectives-empty">
+                <p>No objectives. Click on a zone on the map or click <i class="fa-solid fa-plus"></i> to add.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Packages Section -->
+        <section class="briefing-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-layer-group"></i> Packages</h2>
+                <button onclick="addPackage()" class="btn-add"><i class="fa-solid fa-plus"></i> Add</button>
+            </div>
+            <div id="packages-list">
+                {% for package in briefing.packages %}
+                {% include "briefing/partials/package_card.html" %}
+                {% endfor %}
+            </div>
+            {% if not briefing.packages %}
+            <div class="empty-section" id="packages-empty">
+                <p>No packages. Click <i class="fa-solid fa-plus"></i> to add a package.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Weather Section -->
+        <section class="briefing-section collapsible">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fa-solid fa-cloud-sun"></i> Weather</h2>
+                <i class="fa-solid fa-chevron-down section-toggle"></i>
+            </div>
+            <div class="section-content">
+                <textarea id="weather" placeholder="Weather conditions...">{{ briefing.weather or '' }}</textarea>
+            </div>
+        </section>
+
+        <!-- Comms Plan Section -->
+        <section class="briefing-section collapsible">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fa-solid fa-headset"></i> Comms Plan</h2>
+                <i class="fa-solid fa-chevron-down section-toggle"></i>
+            </div>
+            <div class="section-content">
+                <textarea id="comms-plan" placeholder="Communication frequencies and procedures...">{{ briefing.comms_plan or '' }}</textarea>
+            </div>
+        </section>
+
+        <!-- Notes Section -->
+        <section class="briefing-section collapsible">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fa-solid fa-sticky-note"></i> Notes</h2>
+                <i class="fa-solid fa-chevron-down section-toggle"></i>
+            </div>
+            <div class="section-content">
+                <textarea id="notes" placeholder="Additional notes...">{{ briefing.notes or '' }}</textarea>
+            </div>
+        </section>
+
+        <div class="briefing-footer">
+            <a href="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" class="btn btn-secondary"><i class="fa-solid fa-eye"></i> Preview</a>
+            <button onclick="deleteBriefing()" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="share-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'share-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeShareModal()">&times;</button>
+        <h3><i class="fa-solid fa-share-nodes"></i> Share Briefing</h3>
+        <div class="share-links">
+            <div class="share-link-group">
+                <label><i class="fa-solid fa-eye"></i> View-only link (public)</label>
+                <div class="share-link-row">
+                    <input type="text" readonly value="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" id="view-link">
+                    <button onclick="copyToClipboard('view-link')" class="btn-copy"><i class="fa-solid fa-copy"></i></button>
+                </div>
+            </div>
+            <div class="share-link-group">
+                <label><i class="fa-solid fa-pen"></i> Edit link (keep private!)</label>
+                <div class="share-link-row">
+                    <input type="text" readonly value="{{ request.url_for('briefing_edit', briefing_id=briefing.id) }}?token={{ edit_token }}" id="edit-link">
+                    <button onclick="copyToClipboard('edit-link')" class="btn-copy"><i class="fa-solid fa-copy"></i></button>
+                </div>
+                <p class="share-warning"><i class="fa-solid fa-triangle-exclamation"></i> Anyone with this link can edit the briefing!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zone Selector Modal -->
+<div id="zone-selector-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'zone-selector-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeZoneSelectorModal()">&times;</button>
+        <h3><i class="fa-solid fa-crosshairs"></i> Select Zone</h3>
+        <div id="zone-selector-list" class="zone-selector-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Homeplate Modal -->
+<div id="homeplate-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'homeplate-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeHomeplateModal()">&times;</button>
+        <h3><i class="fa-solid fa-house"></i> Set Homeplate</h3>
+        <form id="homeplate-form" onsubmit="submitHomeplate(event)">
+            <div class="form-group">
+                <label for="new-homeplate-name">Base Name</label>
+                <input type="text" id="new-homeplate-name" required placeholder="e.g., Incirlik">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="new-homeplate-lat">Latitude</label>
+                    <input type="number" step="any" id="new-homeplate-lat" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-homeplate-lon">Longitude</label>
+                    <input type="number" step="any" id="new-homeplate-lon" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="new-homeplate-tacan">TACAN</label>
+                    <input type="text" id="new-homeplate-tacan" placeholder="e.g., 21X ICK">
+                </div>
+                <div class="form-group">
+                    <label for="new-homeplate-runway">Runway Heading</label>
+                    <input type="number" id="new-homeplate-runway" placeholder="e.g., 050">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="new-homeplate-freqs">Frequencies (comma-separated)</label>
+                <input type="text" id="new-homeplate-freqs" placeholder="e.g., 251.0 Tower, 360.0 ATIS">
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeHomeplateModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Set Homeplate</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="{{ static_url('js/coords.js') }}"></script>
+<script>
+    var BRIEFING_ID = '{{ briefing.id }}';
+    var EDIT_TOKEN = '{{ edit_token }}';
+    var API_BASE = '/api/briefing/' + BRIEFING_ID;
+    var BRIEFING_DATA = {{ briefing.model_dump(mode='json') | tojson }};
+    var ZONES_DATA = {{ zones_json | safe }};
+    var IS_EDIT_MODE = true;
+    var MISSION_TYPES = ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'];
+</script>
+<script src="{{ static_url('js/briefing.js') }}"></script>
+{% endblock %}

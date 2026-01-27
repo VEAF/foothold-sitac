@@ -1,0 +1,28 @@
+<div class="objective-card" id="objective-{{ objective.id }}" data-id="{{ objective.id }}">
+    <div class="objective-header">
+        <div class="objective-priority-control">
+            <label>P</label>
+            <input type="number" min="1" max="9" value="{{ objective.priority }}"
+                   onchange="updateObjectivePriority('{{ objective.id }}', this.value)"
+                   class="priority-input">
+        </div>
+        <span class="objective-zone">{{ objective.zone_name }}</span>
+        <button onclick="removeObjective('{{ objective.id }}')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    <div class="mission-badges-editor">
+        {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
+        <label class="mission-type-toggle">
+            <input type="checkbox"
+                   {% if mt in objective.mission_requirements|map(attribute='value')|list %}checked{% endif %}
+                   onchange="toggleObjectiveMission('{{ objective.id }}', '{{ mt }}', this.checked)">
+            <span class="mission-type-badge {{ mt }}">{{ mt }}</span>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="objective-notes-row">
+        <input type="text" value="{{ objective.notes or '' }}"
+               placeholder="Notes..."
+               onchange="updateObjectiveNotes('{{ objective.id }}', this.value)"
+               class="notes-input">
+    </div>
+</div>

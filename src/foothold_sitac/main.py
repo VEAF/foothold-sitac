@@ -4,6 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from foothold_sitac.briefing_api_router import router as briefing_api_router
+from foothold_sitac.briefing_router import router as briefing_router
 from foothold_sitac.config import get_config
 from foothold_sitac.foothold_api_router import router as foothold_api_router
 from foothold_sitac.foothold_router import router as foothold_router
@@ -29,3 +31,5 @@ async def favicon() -> RedirectResponse:
 
 app.include_router(foothold_router, prefix="/foothold", include_in_schema=False)
 app.include_router(foothold_api_router, prefix="/api/foothold", tags=["foothold"])
+app.include_router(briefing_router, prefix="/foothold/briefing", include_in_schema=False)
+app.include_router(briefing_api_router, prefix="/api/briefing", tags=["briefing"])

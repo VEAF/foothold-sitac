@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}New Briefing{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/briefing.css') }}">
+{% endblock %}
+
+{% block body_class %}bg-gradient-dark{% endblock %}
+
+{% block content %}
+<div class="container briefing-container">
+    <div class="briefing-header">
+        <h1><i class="fa-solid fa-plus"></i> New Briefing</h1>
+    </div>
+
+    <form id="new-briefing-form" class="briefing-form">
+        <div class="form-group">
+            <label for="server_name">Server</label>
+            <select id="server_name" name="server_name" required>
+                <option value="">Select a server...</option>
+                {% for s in servers %}
+                <option value="{{ s }}" {% if preselected_server == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Briefing Title</label>
+            <input type="text" id="title" name="title" placeholder="e.g., Operation Desert Storm - Day 1" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="mission_date">Mission Date</label>
+                <input type="text" id="mission_date" name="mission_date" placeholder="e.g., 2024-01-15">
+            </div>
+            <div class="form-group">
+                <label for="mission_time">Mission Time</label>
+                <input type="text" id="mission_time" name="mission_time" placeholder="e.g., 0800L">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ request.url_for('briefing_list') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Briefing</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('new-briefing-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    var data = {
+        server_name: document.getElementById('server_name').value,
+        title: document.getElementById('title').value,
+        mission_date: document.getElementById('mission_date').value || null,
+        mission_time: document.getElementById('mission_time').value || null
+    };
+
+    try {
+        var response = await fetch('/api/briefing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create briefing');
+        }
+
+        var result = await response.json();
+        // Redirect to edit page with token
+        window.location.href = result.links.edit_url;
+    } catch (err) {
+        alert('Error creating briefing: ' + err.message);
+    }
+});
+</script>
+{% endblock %}

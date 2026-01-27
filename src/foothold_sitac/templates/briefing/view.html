@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ briefing.title }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/briefing.css') }}">
+{% endblock %}
+
+{% block body_class %}briefing-page{% endblock %}
+
+{% block content %}
+<div class="briefing-layout">
+    <!-- Left panel: Map -->
+    <div class="briefing-map-panel">
+        <div id="briefing-map"></div>
+    </div>
+
+    <!-- Right panel: Briefing content (read-only) -->
+    <div class="briefing-editor-panel">
+        <div class="briefing-title-bar">
+            <h1>{{ briefing.title }}</h1>
+            <span class="server-badge">{{ briefing.server_name }}</span>
+        </div>
+
+        {% if briefing.mission_date or briefing.mission_time %}
+        <div class="briefing-timing">
+            {% if briefing.mission_date %}<span><i class="fa-solid fa-calendar"></i> {{ briefing.mission_date }}</span>{% endif %}
+            {% if briefing.mission_time %}<span><i class="fa-solid fa-clock"></i> {{ briefing.mission_time }}</span>{% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Homeplate -->
+        {% if briefing.homeplate %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-house"></i> Homeplate</h2>
+            <div class="homeplate-card">
+                <div class="homeplate-name">{{ briefing.homeplate.name }}</div>
+                {% if briefing.homeplate.tacan %}
+                <div class="homeplate-info"><i class="fa-solid fa-tower-broadcast"></i> TACAN: {{ briefing.homeplate.tacan }}</div>
+                {% endif %}
+                {% if briefing.homeplate.runway_heading %}
+                <div class="homeplate-info"><i class="fa-solid fa-compass"></i> Runway: {{ briefing.homeplate.runway_heading }}°</div>
+                {% endif %}
+                {% for freq in briefing.homeplate.frequencies %}
+                <div class="homeplate-info"><i class="fa-solid fa-headset"></i> {{ freq }}</div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Situation -->
+        {% if briefing.situation %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-info-circle"></i> Situation</h2>
+            <div class="briefing-text">{{ briefing.situation }}</div>
+        </section>
+        {% endif %}
+
+        <!-- Objectives -->
+        {% if briefing.objectives %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-crosshairs"></i> Objectives</h2>
+            <div class="objectives-list">
+                {% for objective in briefing.objectives|sort(attribute='priority') %}
+                <div class="objective-card">
+                    <div class="objective-header">
+                        <span class="objective-priority">P{{ objective.priority }}</span>
+                        <span class="objective-zone">{{ objective.zone_name }}</span>
+                    </div>
+                    <div class="mission-badges">
+                        {% for mt in objective.mission_requirements %}
+                        <span class="mission-type-badge {{ mt.value }}">{{ mt.value }}</span>
+                        {% endfor %}
+                    </div>
+                    {% if objective.notes %}
+                    <div class="objective-notes">{{ objective.notes }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Packages -->
+        {% if briefing.packages %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-layer-group"></i> Packages</h2>
+            <div class="packages-list">
+                {% for package in briefing.packages %}
+                <div class="package-card">
+                    <div class="package-header">
+                        <span class="package-name">{{ package.name }}</span>
+                        {% if package.target_zone %}
+                        <span class="package-target"><i class="fa-solid fa-crosshairs"></i> {{ package.target_zone }}</span>
+                        {% endif %}
+                        {% if package.mission_type %}
+                        <span class="mission-type-badge {{ package.mission_type.value }}">{{ package.mission_type.value }}</span>
+                        {% endif %}
+                    </div>
+                    {% if package.flights %}
+                    <table class="flights-table">
+                        <thead>
+                            <tr>
+                                <th>Callsign</th>
+                                <th>Aircraft</th>
+                                <th>#</th>
+                                <th>Mission</th>
+                                <th>PUSH</th>
+                                <th>TOT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for flight in package.flights %}
+                            <tr>
+                                <td>{{ flight.callsign }}</td>
+                                <td>{{ flight.aircraft_type }}</td>
+                                <td>{{ flight.num_aircraft }}</td>
+                                <td><span class="mission-type-badge {{ flight.mission_type.value }} small">{{ flight.mission_type.value }}</span></td>
+                                <td>{{ flight.push_time or '-' }}</td>
+                                <td>{{ flight.tot or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                    {% if package.notes %}
+                    <div class="package-notes">{{ package.notes }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Weather -->
+        {% if briefing.weather %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-cloud-sun"></i> Weather</h2>
+            <div class="briefing-text">{{ briefing.weather }}</div>
+        </section>
+        {% endif %}
+
+        <!-- Comms Plan -->
+        {% if briefing.comms_plan %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-headset"></i> Comms Plan</h2>
+            <div class="briefing-text">{{ briefing.comms_plan }}</div>
+        </section>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if briefing.notes %}
+        <section class="briefing-section">
+            <h2><i class="fa-solid fa-sticky-note"></i> Notes</h2>
+            <div class="briefing-text">{{ briefing.notes }}</div>
+        </section>
+        {% endif %}
+
+        <div class="briefing-footer">
+            <a href="{{ request.url_for('briefing_list') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="{{ static_url('js/coords.js') }}"></script>
+<script>
+    var BRIEFING_DATA = {{ briefing.model_dump(mode='json') | tojson }};
+    var ZONES_DATA = {{ zones_json | safe }};
+    var IS_EDIT_MODE = false;
+</script>
+<script src="{{ static_url('js/briefing.js') }}"></script>
+{% endblock %}

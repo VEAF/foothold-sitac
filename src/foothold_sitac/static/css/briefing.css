@@ -1,0 +1,1057 @@
+/* Briefing Editor Styles */
+
+/* ============ Page Layout ============ */
+
+.briefing-page {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-dark-1);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.briefing-layout {
+    display: flex;
+    height: 100vh;
+}
+
+.briefing-map-panel {
+    flex: 1;
+    position: relative;
+    min-width: 300px;
+}
+
+#briefing-map {
+    height: 100%;
+    width: 100%;
+}
+
+.map-instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    z-index: 1000;
+}
+
+.map-instructions span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.briefing-editor-panel {
+    width: 480px;
+    background: var(--bg-dark-2);
+    overflow-y: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============ Container Styles ============ */
+
+.briefing-container {
+    padding: 40px 20px;
+}
+
+.briefing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.briefing-header h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 28px;
+}
+
+.briefing-header h1 i {
+    margin-right: 10px;
+    color: var(--color-primary);
+}
+
+/* ============ Filter Bar ============ */
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.filter-chip {
+    padding: 6px 14px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.filter-chip:hover {
+    border-color: rgba(66, 99, 235, 0.5);
+    color: var(--text-primary);
+}
+
+.filter-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+/* ============ Briefing List ============ */
+
+.briefing-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.briefing-card {
+    display: block;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.briefing-card:hover {
+    border-color: rgba(66, 99, 235, 0.5);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-primary);
+}
+
+.briefing-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.briefing-card-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.server-badge {
+    padding: 4px 10px;
+    background: rgba(66, 99, 235, 0.2);
+    border: 1px solid rgba(66, 99, 235, 0.3);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--color-primary-light);
+}
+
+.briefing-card-meta {
+    display: flex;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.briefing-card-meta i {
+    margin-right: 4px;
+}
+
+/* ============ Title Bar ============ */
+
+.briefing-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bg-dark-3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.title-input:focus {
+    outline: none;
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.title-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.save-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.save-indicator.saved {
+    color: var(--color-success);
+}
+
+.save-indicator.saving {
+    color: var(--color-warning);
+}
+
+.save-indicator.error {
+    color: var(--color-danger);
+}
+
+.briefing-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: var(--bg-dark-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.meta-input {
+    flex: 1;
+    padding: 6px 10px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.meta-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ============ Sections ============ */
+
+.briefing-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header h2 i {
+    color: var(--color-primary);
+}
+
+.collapsible .section-header {
+    cursor: pointer;
+}
+
+.collapsible .section-toggle {
+    transition: transform 0.2s;
+}
+
+.collapsible.collapsed .section-toggle {
+    transform: rotate(-90deg);
+}
+
+.collapsible.collapsed .section-content {
+    display: none;
+}
+
+.section-content textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.section-content textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.empty-section {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    background: var(--bg-dark-5);
+    border-radius: 6px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* ============ Buttons ============ */
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-secondary {
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-dark-6);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-danger {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: var(--color-danger);
+}
+
+.btn-danger:hover {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(66, 99, 235, 0.15);
+    border: 1px solid rgba(66, 99, 235, 0.3);
+    border-radius: 6px;
+    color: var(--color-primary-light);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add:hover {
+    background: rgba(66, 99, 235, 0.25);
+    border-color: rgba(66, 99, 235, 0.5);
+}
+
+.btn-remove {
+    padding: 4px 8px;
+    background: rgba(231, 76, 60, 0.15);
+    border: none;
+    border-radius: 4px;
+    color: var(--color-danger);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-remove:hover {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+.btn-remove-small {
+    padding: 2px 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.btn-remove-small:hover {
+    color: var(--color-danger);
+}
+
+.btn-add-flight {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-flight:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary-light);
+}
+
+/* ============ Homeplate ============ */
+
+.homeplate-card {
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.homeplate-card.editable .homeplate-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.homeplate-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.homeplate-name-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 2px 0;
+}
+
+.homeplate-name-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-primary);
+}
+
+.homeplate-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 4px 0;
+}
+
+.homeplate-info i {
+    width: 16px;
+    color: var(--text-muted);
+    margin-right: 6px;
+}
+
+.homeplate-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.field-row label {
+    min-width: 80px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.field-row input {
+    flex: 1;
+    padding: 6px 10px;
+    background: var(--bg-dark-4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.field-row input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ============ Objectives ============ */
+
+.objective-card {
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.objective-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.objective-priority {
+    background: var(--color-warning);
+    color: white;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.objective-priority-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.objective-priority-control label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.priority-input {
+    width: 32px;
+    padding: 2px 4px;
+    background: var(--bg-dark-4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: var(--color-warning);
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+}
+
+.objective-zone {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mission-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.mission-badges-editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.mission-type-toggle {
+    cursor: pointer;
+}
+
+.mission-type-toggle input {
+    display: none;
+}
+
+.mission-type-toggle input:not(:checked) + .mission-type-badge {
+    opacity: 0.3;
+}
+
+.mission-type-toggle:hover .mission-type-badge {
+    opacity: 1;
+}
+
+.mission-type-badge {
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: opacity 0.2s;
+}
+
+.mission-type-badge.small {
+    padding: 2px 6px;
+    font-size: 9px;
+}
+
+.mission-type-badge.CAP { background: #3b82f6; color: white; }
+.mission-type-badge.SEAD { background: #f59e0b; color: white; }
+.mission-type-badge.DEAD { background: #ef4444; color: white; }
+.mission-type-badge.CAS { background: #22c55e; color: white; }
+.mission-type-badge.Strike { background: #a855f7; color: white; }
+.mission-type-badge.Sweep { background: #06b6d4; color: white; }
+.mission-type-badge.Escort { background: #64748b; color: white; }
+.mission-type-badge.Recce { background: #84cc16; color: white; }
+
+.objective-notes {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.objective-notes-row,
+.package-notes-row {
+    margin-top: 8px;
+}
+
+.notes-input {
+    width: 100%;
+    padding: 6px 10px;
+    background: var(--bg-dark-4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-style: italic;
+    box-sizing: border-box;
+}
+
+.notes-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ============ Packages ============ */
+
+.package-card {
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.package-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.package-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.package-name-input {
+    flex: 1;
+    min-width: 100px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 2px 0;
+}
+
+.package-name-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-primary);
+}
+
+.package-target {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.package-target-select,
+.package-mission-select {
+    padding: 4px 8px;
+    background: var(--bg-dark-4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.package-notes {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ============ Flights Table ============ */
+
+.flights-container {
+    background: var(--bg-dark-4);
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.flights-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.flights-table th,
+.flights-table td {
+    padding: 6px 4px;
+    text-align: left;
+}
+
+.flights-table th {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.flights-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.flights-table tr:last-child td {
+    border-bottom: none;
+}
+
+.flight-input {
+    width: 100%;
+    padding: 4px 6px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    color: var(--text-primary);
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.flight-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.callsign-input { min-width: 80px; }
+.aircraft-input { min-width: 60px; }
+.num-input { width: 36px; text-align: center; }
+.mission-select { min-width: 60px; }
+.time-input { width: 50px; text-align: center; }
+
+/* ============ View Mode ============ */
+
+.briefing-timing {
+    display: flex;
+    gap: 16px;
+    padding: 10px 20px;
+    background: var(--bg-dark-4);
+    color: var(--text-muted);
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.briefing-timing i {
+    margin-right: 6px;
+}
+
+.briefing-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+}
+
+.objectives-list,
+.packages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ============ Share Modal ============ */
+
+.share-links {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.share-link-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.share-link-group label i {
+    margin-right: 6px;
+}
+
+.share-link-row {
+    display: flex;
+    gap: 0;
+}
+
+.share-link-row input {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px 0 0 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.btn-copy {
+    padding: 10px 14px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 0 6px 6px 0;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-copy:hover {
+    background: var(--color-primary-light);
+}
+
+.share-warning {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--color-warning);
+}
+
+.share-warning i {
+    margin-right: 4px;
+}
+
+/* ============ Zone Selector Modal ============ */
+
+.zone-selector-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zone-selector-item {
+    padding: 10px 14px;
+    background: var(--bg-dark-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.zone-selector-item:hover:not(.added) {
+    border-color: var(--color-primary);
+    background: rgba(66, 99, 235, 0.1);
+}
+
+.zone-selector-item.added {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.zone-selector-item.red {
+    border-left: 3px solid var(--color-red);
+}
+
+.zone-selector-item.blue {
+    border-left: 3px solid var(--color-blue);
+}
+
+.zone-selector-item.neutral {
+    border-left: 3px solid var(--color-neutral);
+}
+
+.zone-added {
+    color: var(--color-success);
+}
+
+/* ============ Form Styles ============ */
+
+.briefing-form {
+    max-width: 500px;
+    background: var(--bg-dark-5);
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-dark-4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+/* ============ Footer ============ */
+
+.briefing-footer {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+}
+
+.back-link {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* ============ Empty State ============ */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* ============ Map Markers ============ */
+
+.homeplate-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.zone-label-tooltip {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    color: white !important;
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+}
+
+.homeplate-label-tooltip {
+    background: var(--color-primary) !important;
+    border: none !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* ============ Modal Additions ============ */
+
+.modal-overlay.visible {
+    display: flex;
+}
+
+.zone-modal {
+    max-width: 500px;
+    width: 90%;
+}
+
+.zone-modal h3 {
+    margin: 0 0 20px 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.zone-modal h3 i {
+    color: var(--color-primary);
+}
+
+/* ============ Responsive ============ */
+
+@media (max-width: 900px) {
+    .briefing-layout {
+        flex-direction: column;
+    }
+
+    .briefing-map-panel {
+        height: 40vh;
+        min-height: 250px;
+    }
+
+    .briefing-editor-panel {
+        width: 100%;
+        height: 60vh;
+    }
+}

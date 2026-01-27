@@ -1,0 +1,48 @@
+<div class="package-card" id="package-{{ package.id }}" data-id="{{ package.id }}">
+    <div class="package-header">
+        <input type="text" value="{{ package.name }}" class="package-name-input"
+               onchange="updatePackageName('{{ package.id }}', this.value)">
+        <select onchange="updatePackageTarget('{{ package.id }}', this.value)" class="package-target-select">
+            <option value="">No target</option>
+            {% for obj in briefing.objectives %}
+            <option value="{{ obj.zone_name }}" {% if package.target_zone == obj.zone_name %}selected{% endif %}>{{ obj.zone_name }}</option>
+            {% endfor %}
+        </select>
+        <select onchange="updatePackageMission('{{ package.id }}', this.value)" class="package-mission-select">
+            <option value="">Mission type</option>
+            {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
+            <option value="{{ mt }}" {% if package.mission_type and package.mission_type.value == mt %}selected{% endif %}>{{ mt }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="removePackage('{{ package.id }}')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+    </div>
+
+    <div class="flights-container">
+        <table class="flights-table">
+            <thead>
+                <tr>
+                    <th>Callsign</th>
+                    <th>Aircraft</th>
+                    <th>#</th>
+                    <th>Mission</th>
+                    <th>PUSH</th>
+                    <th>TOT</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="flights-{{ package.id }}">
+                {% for flight in package.flights %}
+                {% include "briefing/partials/flight_row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <button onclick="addFlight('{{ package.id }}')" class="btn-add-flight"><i class="fa-solid fa-plus"></i> Add Flight</button>
+    </div>
+
+    <div class="package-notes-row">
+        <input type="text" value="{{ package.notes or '' }}"
+               placeholder="Package notes..."
+               onchange="updatePackageNotes('{{ package.id }}', this.value)"
+               class="notes-input">
+    </div>
+</div>
