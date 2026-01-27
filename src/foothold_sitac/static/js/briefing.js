@@ -3,6 +3,8 @@
 // Global state
 var briefingMap = null;
 var zonesLayer = null;
+var labelsLayer = null;
+var connectionsLayer = null;
 var objectiveMarkers = {};
 var homeplateMarkers = {};
 var saveTimeout = null;
@@ -97,6 +99,129 @@ function restoreLayoutPreference() {
 
 // ============ Map Functions ============
 
+// Get short name for zone (first 5 chars)
+function getShortName(name) {
+    if (!name || name.length <= 5) return name || '';
+    return name.substring(0, 5) + '.';
+}
+
+// Get first line of text (for flavor_text)
+function getFirstLine(text) {
+    if (!text) return '';
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line) return line;
+    }
+    return '';
+}
+
+// Get zone color based on side
+function getZoneColor(zone) {
+    return zone.side === 1 ? '#e53935' : zone.side === 2 ? '#1e88e5' : '#9e9e9e';
+}
+
+// Create label content based on zoom level (matching sitac map.js exactly)
+function createBriefingLabelContent(zone, name, zoom) {
+    var color = getZoneColor(zone);
+    var units = zone.total_units || 0;
+    var truckIcon = units > 0
+        ? '<i class="fa-solid fa-truck" style="color: ' + color + ';"></i>'
+        : '';
+
+    if (zoom <= 8) {
+        // very low zoom: truck only (like sitac)
+        return truckIcon;
+    } else if (zoom <= 9) {
+        // low zoom: flavor_text only (if available) + truck
+        var label = getFirstLine(zone.flavor_text);
+        if (truckIcon) {
+            label += label ? '<br>' + truckIcon : truckIcon;
+        }
+        return label;
+    } else if (zoom <= 10) {
+        // medium zoom: short name + flavor_text + truck
+        var label = getShortName(name);
+        var flavorLine = getFirstLine(zone.flavor_text);
+        if (flavorLine) {
+            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
+        }
+        if (truckIcon) {
+            label += '<br>' + truckIcon;
+        }
+        return label;
+    } else {
+        // high zoom: full name + flavor_text + truck with count
+        var label = name || '';
+        var flavorLine = getFirstLine(zone.flavor_text);
+        if (flavorLine) {
+            label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
+        }
+        if (units > 0) {
+            label += '<br>' + truckIcon + ' x' + units;
+        }
+        return label;
+    }
+}
+
+// Update zone labels based on current zoom level
+function updateBriefingLabels() {
+    if (!labelsLayer || !briefingMap) return;
+
+    var zoom = briefingMap.getZoom();
+    labelsLayer.clearLayers();
+
+    for (var name in ZONES_DATA) {
+        var zone = ZONES_DATA[name];
+        if (zone.hidden) continue;
+
+        var content = createBriefingLabelContent(zone, name, zoom);
+        var marker = L.marker([zone.position.latitude, zone.position.longitude], {
+            icon: L.divIcon({
+                className: 'briefing-zone-label',
+                html: content,
+                iconSize: [100, 40],
+                iconAnchor: [50, 20]
+            })
+        });
+
+        // Store zone name for click handler
+        marker.zoneName = name;
+
+        if (IS_EDIT_MODE) {
+            marker.on('click', function(e) {
+                addObjectiveFromZone(e.target.zoneName);
+            });
+        }
+
+        marker.addTo(labelsLayer);
+    }
+}
+
+// Update connection lines (using sitac connections data, same as map.js)
+function updateBriefingConnections() {
+    if (!connectionsLayer) return;
+    connectionsLayer.clearLayers();
+
+    // Use CONNECTIONS_DATA from sitac (same as sitac map)
+    var connections = (typeof CONNECTIONS_DATA !== 'undefined') ? CONNECTIONS_DATA : [];
+
+    connections.forEach(function(conn) {
+        var latlngs = [
+            [conn.from_lat, conn.from_lon],
+            [conn.to_lat, conn.to_lon]
+        ];
+
+        var line = L.polyline(latlngs, {
+            color: conn.color,
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '8, 12'
+        });
+        line.addTo(connectionsLayer);
+    });
+}
+
 function initBriefingMap() {
     // Calculate center from zones or use default
     var center = [41, 35];
@@ -116,7 +241,9 @@ function initBriefingMap() {
         }
     }
 
-    briefingMap = L.map('briefing-map').setView(center, 7);
+    briefingMap = L.map('briefing-map', {
+        preferCanvas: true  // Use Canvas renderer for better screenshot capture
+    }).setView(center, 7);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         minZoom: 5,
@@ -124,38 +251,41 @@ function initBriefingMap() {
         attribution: 'Tiles &copy; Esri'
     }).addTo(briefingMap);
 
+    // Initialize layer groups
+    connectionsLayer = L.layerGroup().addTo(briefingMap);
     zonesLayer = L.layerGroup().addTo(briefingMap);
+    labelsLayer = L.layerGroup().addTo(briefingMap);
 
-    // Draw zones
+    // Draw zone circles (matching sitac - using L.circle with radius based on level)
     for (var name in ZONES_DATA) {
         var zone = ZONES_DATA[name];
         if (zone.hidden) continue;
 
-        var color = zone.side === 1 ? '#e53935' : zone.side === 2 ? '#1e88e5' : '#9e9e9e';
-        var marker = L.circleMarker([zone.position.latitude, zone.position.longitude], {
-            radius: 10,
+        var color = getZoneColor(zone);
+        var level = zone.level || 1;
+        var radius = Math.min(20000, Math.max(2000, 2000 * level));
+
+        var circle = L.circle([zone.position.latitude, zone.position.longitude], {
             color: color,
             fillColor: color,
-            fillOpacity: 0.4,
-            weight: 2
+            fillOpacity: 0.3,
+            radius: radius
         });
 
-        // Zone label
-        marker.bindTooltip(name, {
-            permanent: true,
-            direction: 'top',
-            className: 'zone-label-tooltip'
-        });
+        // Store zone name for click handler
+        circle.zoneName = name;
 
         if (IS_EDIT_MODE) {
-            marker.zoneName = name;
-            marker.on('click', function(e) {
+            circle.on('click', function(e) {
                 addObjectiveFromZone(e.target.zoneName);
             });
         }
 
-        marker.addTo(zonesLayer);
+        circle.addTo(zonesLayer);
     }
+
+    // Draw labels (zoom-dependent)
+    updateBriefingLabels();
 
     // Draw existing objectives with highlight
     if (BRIEFING_DATA.objectives) {
@@ -170,6 +300,14 @@ function initBriefingMap() {
             drawHomeplateMarker(hp);
         });
     }
+
+    // Draw connection lines
+    updateBriefingConnections();
+
+    // Update labels on zoom change
+    briefingMap.on('zoomend', function() {
+        updateBriefingLabels();
+    });
 
     // Right-click to add homeplate in edit mode
     if (IS_EDIT_MODE) {
@@ -312,12 +450,47 @@ function showSaveError() {
 
 var editingHomeplateId = null;
 
+function populateHomeplateZoneSelector() {
+    var select = document.getElementById('homeplate-zone-select');
+    if (!select) return;
+
+    var html = '<option value="">-- Or enter manually below --</option>';
+    var blueZones = Object.keys(ZONES_DATA).filter(function(name) {
+        return ZONES_DATA[name].side === 2 && !ZONES_DATA[name].hidden;
+    }).sort();
+
+    blueZones.forEach(function(name) {
+        var zone = ZONES_DATA[name];
+        var flavorLine = getFirstLine(zone.flavor_text);
+        var displayName = flavorLine ? flavorLine + ' - ' + name : name;
+        html += '<option value="' + name + '">' + displayName + '</option>';
+    });
+
+    select.innerHTML = html;
+}
+
+function fillHomeplateFromZone(zoneName) {
+    if (!zoneName) return;
+    var zone = ZONES_DATA[zoneName];
+    if (!zone) return;
+
+    // Use flavor_text as name if available, otherwise use zone name
+    var flavorLine = getFirstLine(zone.flavor_text);
+    var name = flavorLine || zoneName;
+    document.getElementById('new-homeplate-name').value = name;
+    document.getElementById('new-homeplate-lat').value = zone.position.latitude.toFixed(6);
+    document.getElementById('new-homeplate-lon').value = zone.position.longitude.toFixed(6);
+}
+
 function openHomeplateModal(homeplateId) {
     editingHomeplateId = homeplateId || null;
     var modal = document.getElementById('homeplate-modal');
     var title = document.getElementById('homeplate-modal-title');
     var submitBtn = document.getElementById('homeplate-submit-btn');
     var idField = document.getElementById('edit-homeplate-id');
+
+    // Populate the zone selector dropdown
+    populateHomeplateZoneSelector();
 
     if (homeplateId) {
         // Edit mode
@@ -352,6 +525,8 @@ function openHomeplateModalWithCoords(lat, lon) {
     document.getElementById('new-homeplate-lon').value = lon.toFixed(6);
     document.getElementById('homeplate-modal-title').textContent = 'Add Airbase';
     document.getElementById('homeplate-submit-btn').textContent = 'Add Airbase';
+    // Populate and reset zone selector
+    populateHomeplateZoneSelector();
     document.getElementById('homeplate-modal').classList.add('visible');
 }
 
@@ -391,6 +566,7 @@ function submitHomeplate(event) {
                 BRIEFING_DATA.homeplates[idx] = hp;
             }
             drawHomeplateMarker(hp);
+            updateBriefingConnections();
             renderHomeplatesContainer();
             populateHomeplateSelects();
             closeHomeplateModal();
@@ -401,6 +577,7 @@ function submitHomeplate(event) {
         apiCall('POST', '/homeplates', data).then(function(hp) {
             BRIEFING_DATA.homeplates.push(hp);
             drawHomeplateMarker(hp);
+            updateBriefingConnections();
             renderHomeplatesContainer();
             populateHomeplateSelects();
             closeHomeplateModal();
@@ -452,6 +629,7 @@ function removeHomeplate(homeplateId) {
     apiCall('DELETE', '/homeplates/' + homeplateId).then(function() {
         BRIEFING_DATA.homeplates = BRIEFING_DATA.homeplates.filter(function(h) { return h.id !== homeplateId; });
         removeHomeplateMarker(homeplateId);
+        updateBriefingConnections();
         renderHomeplatesContainer();
         populateHomeplateSelects();
         showSaved();
@@ -537,6 +715,7 @@ function addObjectiveFromZone(zoneName) {
         BRIEFING_DATA.objectives.push(obj);
         appendObjectiveCard(obj);
         highlightObjectiveOnMap(zoneName, obj.id);
+        updateBriefingConnections();
         hideEmptySection('objectives');
         showSaved();
     });
@@ -578,6 +757,7 @@ function removeObjective(objectiveId) {
         document.getElementById('objective-' + objectiveId).remove();
         removeObjectiveFromMap(objectiveId);
         BRIEFING_DATA.objectives = BRIEFING_DATA.objectives.filter(function(o) { return o.id !== objectiveId; });
+        updateBriefingConnections();
         if (BRIEFING_DATA.objectives.length === 0) {
             showEmptySection('objectives');
         }
@@ -831,5 +1011,110 @@ function deleteBriefing() {
 
     apiCall('DELETE', '').then(function() {
         window.location.href = '/foothold/briefing';
+    });
+}
+
+// ============ Export Functions ============
+
+function showExportWarning() {
+    document.getElementById('export-warning-modal').classList.add('visible');
+}
+
+function closeExportWarningModal() {
+    document.getElementById('export-warning-modal').classList.remove('visible');
+}
+
+function proceedWithExport() {
+    closeExportWarningModal();
+    exportToPptx();
+}
+
+function captureMapImage() {
+    return new Promise(function(resolve) {
+        var mapContainer = document.getElementById('briefing-map');
+        if (!mapContainer || !briefingMap) {
+            resolve(null);
+            return;
+        }
+
+        // Check if html2canvas is available
+        if (typeof html2canvas === 'undefined') {
+            console.warn('html2canvas not available, skipping map capture');
+            resolve(null);
+            return;
+        }
+
+        // Force Leaflet to render all layers to canvas before capture
+        // This helps with SVG element positioning
+        briefingMap.invalidateSize();
+
+        // Small delay to ensure rendering is complete
+        setTimeout(function() {
+            html2canvas(mapContainer, {
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                backgroundColor: '#1a1a2e',
+                scale: 1,  // Use 1:1 scale to reduce size
+                imageTimeout: 5000,
+                removeContainer: true
+            }).then(function(canvas) {
+                try {
+                    // Compress as JPEG with quality 0.7 to reduce size
+                    var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    var base64 = dataUrl.split(',')[1];
+                    resolve(base64);
+                } catch (e) {
+                    console.warn('Could not convert canvas to base64:', e);
+                    resolve(null);
+                }
+            }).catch(function(err) {
+                console.warn('Could not capture map image:', err);
+                resolve(null);
+            });
+        }, 200);
+    });
+}
+
+function exportToPptx() {
+    var btn = document.getElementById('export-pptx-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    }
+
+    captureMapImage().then(function(mapImage) {
+        var url = '/api/briefing/' + BRIEFING_ID + '/export/pptx';
+        var options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ map_image: mapImage })
+        };
+
+        return fetch(url, options);
+    }).then(function(response) {
+        if (!response.ok) {
+            throw new Error('Export failed: ' + response.status);
+        }
+        return response.blob();
+    }).then(function(blob) {
+        // Create download link
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        var safeTitle = BRIEFING_DATA.title.replace(/[^a-zA-Z0-9 \-_]/g, '_');
+        a.download = safeTitle + '_briefing.pptx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }).catch(function(err) {
+        console.error('Export error:', err);
+        alert('Failed to export briefing: ' + err.message);
+    }).finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-file-powerpoint"></i> Export Slides';
+        }
     });
 }

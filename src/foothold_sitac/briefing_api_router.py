@@ -5,6 +5,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from foothold_sitac.briefing import (
     Briefing,
@@ -414,3 +416,39 @@ async def get_available_zones(briefing_id: UUID) -> list[str]:
 
     # Return non-hidden zone names
     return sorted([name for name, zone in sitac.zones.items() if not zone.hidden])
+
+
+# === Export ===
+
+
+class ExportRequest(BaseModel):
+    """Request body for PPTX export."""
+
+    map_image: str | None = None  # Base64-encoded PNG image of the map
+
+
+@router.post("/{briefing_id}/export/pptx")
+async def export_briefing_pptx(
+    briefing_id: UUID,
+    data: ExportRequest | None = None,
+) -> StreamingResponse:
+    """Export briefing to PowerPoint format.
+
+    The exported file can be uploaded to Google Drive for editing in Google Slides.
+    """
+    from foothold_sitac.briefing_export import create_briefing_pptx
+
+    briefing = get_briefing_or_404(briefing_id)
+
+    map_image = data.map_image if data else None
+    pptx_buffer = create_briefing_pptx(briefing, map_image)
+
+    # Sanitize filename
+    safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in briefing.title)
+    filename = f"{safe_title}_briefing.pptx"
+
+    return StreamingResponse(
+        pptx_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

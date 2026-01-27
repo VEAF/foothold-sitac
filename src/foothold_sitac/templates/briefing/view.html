@@ -174,6 +174,25 @@
 
         <div class="briefing-footer">
             <a href="{{ request.url_for('briefing_list') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
+            <button id="export-pptx-btn" onclick="showExportWarning()" class="btn btn-primary"><i class="fa-solid fa-file-powerpoint"></i> Export Slides</button>
+        </div>
+    </div>
+</div>
+<!-- Export Warning Modal -->
+<div id="export-warning-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'export-warning-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeExportWarningModal()">&times;</button>
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Before Exporting</h3>
+        <div class="export-warning-content">
+            <p><i class="fa-solid fa-map"></i> <strong>Zoom the map</strong> to the desired view area.</p>
+            <p>The visible map area will be captured in the exported slides.</p>
+            <div class="map-preview-hint">
+                <i class="fa-solid fa-lightbulb"></i> Tip: Center on your objectives and zoom appropriately before proceeding.
+            </div>
+        </div>
+        <div class="form-actions">
+            <button onclick="closeExportWarningModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="proceedWithExport()" class="btn btn-primary"><i class="fa-solid fa-file-powerpoint"></i> Export Now</button>
         </div>
     </div>
 </div>
@@ -181,10 +200,13 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="{{ static_url('js/coords.js') }}"></script>
 <script>
+    var BRIEFING_ID = '{{ briefing.id }}';
     var BRIEFING_DATA = {{ briefing.model_dump(mode='json') | tojson }};
     var ZONES_DATA = {{ zones_json | safe }};
+    var CONNECTIONS_DATA = {{ connections_json | safe }};
     var IS_EDIT_MODE = false;
 </script>
 <script src="{{ static_url('js/briefing.js') }}"></script>

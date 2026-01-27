@@ -36,7 +36,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="mission_date">Mission Date</label>
-                <input type="text" id="mission_date" name="mission_date" placeholder="e.g., 2024-01-15">
+                <input type="date" id="mission_date" name="mission_date">
             </div>
             <div class="form-group">
                 <label for="mission_time">Mission Time</label>
@@ -52,6 +52,18 @@
 </div>
 
 <script>
+// Set default date to today on page load
+document.addEventListener('DOMContentLoaded', function() {
+    var dateInput = document.getElementById('mission_date');
+    if (dateInput && !dateInput.value) {
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = yyyy + '-' + mm + '-' + dd;
+    }
+});
+
 document.getElementById('new-briefing-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 

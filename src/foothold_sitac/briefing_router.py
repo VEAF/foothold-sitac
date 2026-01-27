@@ -21,6 +21,37 @@ def zones_to_json(sitac: Sitac | None) -> str:
     return json.dumps(zones_dict)
 
 
+def connections_to_json(sitac: Sitac | None) -> str:
+    """Convert sitac connections to JSON string for JavaScript with resolved coordinates."""
+    if not sitac:
+        return "[]"
+    connections_list: list[dict[str, Any]] = []
+    for conn in sitac.connections:
+        from_zone = sitac.zones.get(conn.from_zone)
+        to_zone = sitac.zones.get(conn.to_zone)
+        # Only include connection if both zones exist, have positions, and are not hidden
+        if (
+            from_zone
+            and to_zone
+            and from_zone.position
+            and to_zone.position
+            and not from_zone.hidden
+            and not to_zone.hidden
+        ):
+            connections_list.append(
+                {
+                    "from_zone": conn.from_zone,
+                    "to_zone": conn.to_zone,
+                    "from_lat": from_zone.position.latitude,
+                    "from_lon": from_zone.position.longitude,
+                    "to_lat": to_zone.position.latitude,
+                    "to_lon": to_zone.position.longitude,
+                    "color": from_zone.side_color,
+                }
+            )
+    return json.dumps(connections_list)
+
+
 router = APIRouter()
 
 
@@ -65,6 +96,7 @@ async def briefing_view(request: Request, briefing_id: UUID) -> str:
         briefing=briefing,
         sitac=sitac,
         zones_json=zones_to_json(sitac),
+        connections_json=connections_to_json(sitac),
         is_edit_mode=False,
     )
 
@@ -91,6 +123,7 @@ async def briefing_edit(
         briefing=briefing,
         sitac=sitac,
         zones_json=zones_to_json(sitac),
+        connections_json=connections_to_json(sitac),
         edit_token=token,
         is_edit_mode=True,
     )

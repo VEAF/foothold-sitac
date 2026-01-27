@@ -37,7 +37,7 @@
 
         <div class="briefing-meta-bar">
             <span class="server-badge">{{ briefing.server_name }}</span>
-            <input type="text" id="mission-date" value="{{ briefing.mission_date or '' }}" placeholder="Date (e.g., 2024-01-15)" class="meta-input">
+            <input type="date" id="mission-date" value="{{ briefing.mission_date or '' }}" class="meta-input">
             <input type="text" id="mission-time" value="{{ briefing.mission_time or '' }}" placeholder="Time (e.g., 0800L)" class="meta-input">
         </div>
 
@@ -155,6 +155,7 @@
 
         <div class="briefing-footer">
             <a href="{{ request.url_for('briefing_view', briefing_id=briefing.id) }}" class="btn btn-secondary"><i class="fa-solid fa-eye"></i> Preview</a>
+            <button id="export-pptx-btn" onclick="showExportWarning()" class="btn btn-primary"><i class="fa-solid fa-file-powerpoint"></i> Export Slides</button>
             <button onclick="deleteBriefing()" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
         </div>
     </div>
@@ -204,6 +205,12 @@
         <form id="homeplate-form" onsubmit="submitHomeplate(event)">
             <input type="hidden" id="edit-homeplate-id" value="">
             <div class="form-group">
+                <label for="homeplate-zone-select">Select from blue zones</label>
+                <select id="homeplate-zone-select" onchange="fillHomeplateFromZone(this.value)">
+                    <option value="">-- Or enter manually below --</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="new-homeplate-name">Base Name</label>
                 <input type="text" id="new-homeplate-name" required placeholder="e.g., Incirlik">
             </div>
@@ -238,10 +245,29 @@
         </form>
     </div>
 </div>
+<!-- Export Warning Modal -->
+<div id="export-warning-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'export-warning-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeExportWarningModal()">&times;</button>
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Before Exporting</h3>
+        <div class="export-warning-content">
+            <p><i class="fa-solid fa-map"></i> <strong>Zoom the map</strong> to the desired view area.</p>
+            <p>The visible map area will be captured in the exported slides.</p>
+            <div class="map-preview-hint">
+                <i class="fa-solid fa-lightbulb"></i> Tip: Center on your objectives and zoom appropriately before proceeding.
+            </div>
+        </div>
+        <div class="form-actions">
+            <button onclick="closeExportWarningModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="proceedWithExport()" class="btn btn-primary"><i class="fa-solid fa-file-powerpoint"></i> Export Now</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="{{ static_url('js/coords.js') }}"></script>
 <script>
     var BRIEFING_ID = '{{ briefing.id }}';
@@ -249,6 +275,7 @@
     var API_BASE = '/api/briefing/' + BRIEFING_ID;
     var BRIEFING_DATA = {{ briefing.model_dump(mode='json') | tojson }};
     var ZONES_DATA = {{ zones_json | safe }};
+    var CONNECTIONS_DATA = {{ connections_json | safe }};
     var IS_EDIT_MODE = true;
     var MISSION_TYPES = ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'];
 </script>
