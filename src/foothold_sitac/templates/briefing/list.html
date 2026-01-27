@@ -16,9 +16,9 @@
 <div class="container briefing-container">
     <div class="briefing-header">
         <h1><i class="fa-solid fa-file-lines"></i> Briefings</h1>
-        <a href="{{ request.url_for('briefing_new') }}" class="btn btn-primary">
+        <button onclick="openNewBriefingModal()" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> New Briefing
-        </a>
+        </button>
     </div>
 
     {% if servers|length > 0 %}
@@ -54,12 +54,49 @@
     <div class="empty-state">
         <i class="fa-solid fa-file-lines"></i>
         <p>No briefings yet</p>
-        <a href="{{ request.url_for('briefing_new') }}" class="btn btn-primary">Create your first briefing</a>
+        <button onclick="openNewBriefingModal()" class="btn btn-primary">Create your first briefing</button>
     </div>
     {% endif %}
 
     <div class="back-link">
         <a class="btn btn-secondary" href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-arrow-left"></i> Back to servers</a>
+    </div>
+</div>
+
+<!-- New Briefing Modal -->
+<div id="new-briefing-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'new-briefing-modal')">
+    <div class="modal-content zone-modal">
+        <button class="modal-close" onclick="closeNewBriefingModal()">&times;</button>
+        <h3><i class="fa-solid fa-plus"></i> New Briefing</h3>
+        <form id="new-briefing-form" onsubmit="submitNewBriefing(event)">
+            <div class="form-group">
+                <label for="server_name">Server</label>
+                <select id="server_name" name="server_name" required>
+                    <option value="">Select a server...</option>
+                    {% for s in servers %}
+                    <option value="{{ s }}" {% if server_filter == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="title">Briefing Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g., Operation Desert Storm - Day 1" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="mission_date">Mission Date</label>
+                    <input type="date" id="mission_date" name="mission_date">
+                </div>
+                <div class="form-group">
+                    <label for="mission_time">Mission Time</label>
+                    <input type="text" id="mission_time" name="mission_time" placeholder="e.g., 0800L">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeNewBriefingModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Briefing</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -97,6 +134,60 @@ document.addEventListener('DOMContentLoaded', function() {
             editLink.style.display = 'none';
         }
     });
+
+    // Set default date to today
+    var dateInput = document.getElementById('mission_date');
+    if (dateInput && !dateInput.value) {
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = yyyy + '-' + mm + '-' + dd;
+    }
 });
+
+// Modal functions
+function openNewBriefingModal() {
+    document.getElementById('new-briefing-modal').classList.add('visible');
+}
+
+function closeNewBriefingModal() {
+    document.getElementById('new-briefing-modal').classList.remove('visible');
+}
+
+function closeModalOnOverlay(event, modalId) {
+    if (event.target.id === modalId) {
+        document.getElementById(modalId).classList.remove('visible');
+    }
+}
+
+async function submitNewBriefing(event) {
+    event.preventDefault();
+
+    var data = {
+        server_name: document.getElementById('server_name').value,
+        title: document.getElementById('title').value,
+        mission_date: document.getElementById('mission_date').value || null,
+        mission_time: document.getElementById('mission_time').value || null
+    };
+
+    try {
+        var response = await fetch('/api/briefing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create briefing');
+        }
+
+        var result = await response.json();
+        // Redirect to edit page with token
+        window.location.href = result.links.edit_url;
+    } catch (err) {
+        alert('Error creating briefing: ' + err.message);
+    }
+}
 </script>
 {% endblock %}
