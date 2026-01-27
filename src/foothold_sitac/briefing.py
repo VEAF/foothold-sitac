@@ -18,6 +18,8 @@ class MissionType(str, Enum):
     SWEEP = "Sweep"  # Fighter Sweep
     ESCORT = "Escort"  # Escort mission
     RECCE = "Recce"  # Reconnaissance
+    TRANSPORT = "Transport"  # Transport mission
+    CSAR = "CSAR"  # Combat Search and Rescue
 
 
 class Homeplate(BaseModel):

@@ -730,6 +730,8 @@ input[type="date"] {
 .mission-type-badge.Sweep { background: #06b6d4; color: white; }
 .mission-type-badge.Escort { background: #64748b; color: white; }
 .mission-type-badge.Recce { background: #84cc16; color: white; }
+.mission-type-badge.Transport { background: #8b4513; color: white; }
+.mission-type-badge.CSAR { background: #ffd700; color: black; }
 
 .objective-notes {
     font-size: 13px;
@@ -1252,6 +1254,30 @@ input[type="date"] {
 
 .map-preview-hint i {
     margin-right: 8px;
+}
+
+/* ============ Confirm Delete Modal ============ */
+
+.confirm-modal {
+    max-width: 400px;
+    max-height: fit-content;
+    overflow: visible;
+}
+
+.confirm-modal h3 {
+    color: var(--color-danger);
+}
+
+.confirm-modal h3 i {
+    color: var(--color-danger);
+}
+
+.confirm-message {
+    padding: 12px 0 16px 0;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.5;
 }
 
 /* ============ Responsive ============ */

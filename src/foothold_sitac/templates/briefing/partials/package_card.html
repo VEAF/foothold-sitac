@@ -10,8 +10,8 @@
         </select>
         <select onchange="updatePackageMission('{{ package.id }}', this.value)" class="package-mission-select">
             <option value="">Mission type</option>
-            {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
-            <option value="{{ mt }}" {% if package.mission_type and package.mission_type.value == mt %}selected{% endif %}>{{ mt }}</option>
+            {% for mt in MissionType %}
+            <option value="{{ mt.value }}" {% if package.mission_type == mt %}selected{% endif %}>{{ mt.value }}</option>
             {% endfor %}
         </select>
         <button onclick="removePackage('{{ package.id }}')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
+from foothold_sitac.briefing import MissionType
 from foothold_sitac.config import get_config
 
 templates_path = files("foothold_sitac") / "templates"
@@ -36,3 +37,4 @@ def static_url(path: str) -> str:
 env = Environment(loader=FileSystemLoader(str(templates_path)))
 env.globals["config"] = get_config()  # add all variables accessibles in templates
 env.globals["static_url"] = static_url  # cache-busting for static assets
+env.globals["MissionType"] = MissionType  # mission types enum

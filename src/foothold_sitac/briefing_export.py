@@ -33,6 +33,8 @@ MISSION_COLORS: dict[MissionType, Any] = {
     MissionType.SWEEP: _rgb(0x3B, 0xB0, 0xD9),  # Light blue
     MissionType.ESCORT: _rgb(0xF3, 0x9C, 0x12),  # Gold
     MissionType.RECCE: _rgb(0x95, 0xA5, 0xA6),  # Gray
+    MissionType.TRANSPORT: _rgb(0x8B, 0x45, 0x13),  # Brown
+    MissionType.CSAR: _rgb(0xFF, 0xD7, 0x00),  # Yellow/Gold
 }
 
 

@@ -10,12 +10,12 @@
         <button onclick="removeObjective('{{ objective.id }}')" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
     </div>
     <div class="mission-badges-editor">
-        {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
+        {% for mt in MissionType %}
         <label class="mission-type-toggle">
             <input type="checkbox"
-                   {% if mt in objective.mission_requirements|map(attribute='value')|list %}checked{% endif %}
-                   onchange="toggleObjectiveMission('{{ objective.id }}', '{{ mt }}', this.checked)">
-            <span class="mission-type-badge {{ mt }}">{{ mt }}</span>
+                   {% if mt in objective.mission_requirements %}checked{% endif %}
+                   onchange="toggleObjectiveMission('{{ objective.id }}', '{{ mt.value }}', this.checked)">
+            <span class="mission-type-badge {{ mt.value }}">{{ mt.value }}</span>
         </label>
         {% endfor %}
     </div>

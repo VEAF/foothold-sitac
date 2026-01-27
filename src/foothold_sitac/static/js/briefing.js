@@ -474,9 +474,9 @@ function fillHomeplateFromZone(zoneName) {
     var zone = ZONES_DATA[zoneName];
     if (!zone) return;
 
-    // Use flavor_text as name if available, otherwise use zone name
+    // Use flavor_text + zone name format, same as dropdown display
     var flavorLine = getFirstLine(zone.flavor_text);
-    var name = flavorLine || zoneName;
+    var name = flavorLine ? flavorLine + ' - ' + zoneName : zoneName;
     document.getElementById('new-homeplate-name').value = name;
     document.getElementById('new-homeplate-lat').value = zone.position.latitude.toFixed(6);
     document.getElementById('new-homeplate-lon').value = zone.position.longitude.toFixed(6);
@@ -624,15 +624,15 @@ function renderHomeplatesContainer() {
 }
 
 function removeHomeplate(homeplateId) {
-    if (!confirm('Remove this airbase?')) return;
-
-    apiCall('DELETE', '/homeplates/' + homeplateId).then(function() {
-        BRIEFING_DATA.homeplates = BRIEFING_DATA.homeplates.filter(function(h) { return h.id !== homeplateId; });
-        removeHomeplateMarker(homeplateId);
-        updateBriefingConnections();
-        renderHomeplatesContainer();
-        populateHomeplateSelects();
-        showSaved();
+    showConfirmModal('Remove Airbase', 'Remove this airbase from the briefing?', function() {
+        apiCall('DELETE', '/homeplates/' + homeplateId).then(function() {
+            BRIEFING_DATA.homeplates = BRIEFING_DATA.homeplates.filter(function(h) { return h.id !== homeplateId; });
+            removeHomeplateMarker(homeplateId);
+            updateBriefingConnections();
+            renderHomeplatesContainer();
+            populateHomeplateSelects();
+            showSaved();
+        });
     });
 }
 
@@ -751,17 +751,17 @@ function appendObjectiveCard(obj) {
 }
 
 function removeObjective(objectiveId) {
-    if (!confirm('Remove this objective?')) return;
-
-    apiCall('DELETE', '/objectives/' + objectiveId).then(function() {
-        document.getElementById('objective-' + objectiveId).remove();
-        removeObjectiveFromMap(objectiveId);
-        BRIEFING_DATA.objectives = BRIEFING_DATA.objectives.filter(function(o) { return o.id !== objectiveId; });
-        updateBriefingConnections();
-        if (BRIEFING_DATA.objectives.length === 0) {
-            showEmptySection('objectives');
-        }
-        showSaved();
+    showConfirmModal('Remove Objective', 'Remove this objective from the briefing?', function() {
+        apiCall('DELETE', '/objectives/' + objectiveId).then(function() {
+            document.getElementById('objective-' + objectiveId).remove();
+            removeObjectiveFromMap(objectiveId);
+            BRIEFING_DATA.objectives = BRIEFING_DATA.objectives.filter(function(o) { return o.id !== objectiveId; });
+            updateBriefingConnections();
+            if (BRIEFING_DATA.objectives.length === 0) {
+                showEmptySection('objectives');
+            }
+            showSaved();
+        });
     });
 }
 
@@ -845,15 +845,15 @@ function appendPackageCard(pkg) {
 }
 
 function removePackage(packageId) {
-    if (!confirm('Remove this package and all its flights?')) return;
-
-    apiCall('DELETE', '/packages/' + packageId).then(function() {
-        document.getElementById('package-' + packageId).remove();
-        BRIEFING_DATA.packages = BRIEFING_DATA.packages.filter(function(p) { return p.id !== packageId; });
-        if (BRIEFING_DATA.packages.length === 0) {
-            showEmptySection('packages');
-        }
-        showSaved();
+    showConfirmModal('Remove Package', 'Remove this package and all its flights?', function() {
+        apiCall('DELETE', '/packages/' + packageId).then(function() {
+            document.getElementById('package-' + packageId).remove();
+            BRIEFING_DATA.packages = BRIEFING_DATA.packages.filter(function(p) { return p.id !== packageId; });
+            if (BRIEFING_DATA.packages.length === 0) {
+                showEmptySection('packages');
+            }
+            showSaved();
+        });
     });
 }
 
@@ -1003,14 +1003,37 @@ function closeModalOnOverlay(event, modalId) {
     }
 }
 
+// ============ Confirm Modal Functions ============
+
+var confirmModalCallback = null;
+
+function showConfirmModal(title, message, callback) {
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-message').textContent = message;
+    confirmModalCallback = callback;
+    document.getElementById('confirm-delete-modal').classList.add('visible');
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-delete-modal').classList.remove('visible');
+    confirmModalCallback = null;
+}
+
+function executeConfirmAction() {
+    if (confirmModalCallback) {
+        confirmModalCallback();
+    }
+    closeConfirmModal();
+}
+
 function deleteBriefing() {
-    if (!confirm('Are you sure you want to delete this briefing? This cannot be undone.')) return;
+    showConfirmModal('Delete Briefing', 'Are you sure you want to delete this briefing? This cannot be undone.', function() {
+        // Remove edit token from localStorage
+        removeEditToken(BRIEFING_ID);
 
-    // Remove edit token from localStorage
-    removeEditToken(BRIEFING_ID);
-
-    apiCall('DELETE', '').then(function() {
-        window.location.href = '/foothold/briefing';
+        apiCall('DELETE', '').then(function() {
+            window.location.href = '/foothold/briefing';
+        });
     });
 }
 

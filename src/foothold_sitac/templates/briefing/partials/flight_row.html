@@ -8,8 +8,8 @@
     <td>
         <select class="flight-input mission-select"
                 onchange="updateFlight('{{ package.id }}', '{{ flight.id }}', 'mission_type', this.value)">
-            {% for mt in ['CAP', 'SEAD', 'DEAD', 'CAS', 'Strike', 'Sweep', 'Escort', 'Recce'] %}
-            <option value="{{ mt }}" {% if flight.mission_type.value == mt %}selected{% endif %}>{{ mt }}</option>
+            {% for mt in MissionType %}
+            <option value="{{ mt.value }}" {% if flight.mission_type == mt %}selected{% endif %}>{{ mt.value }}</option>
             {% endfor %}
         </select>
     </td>
