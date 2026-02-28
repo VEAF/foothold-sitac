@@ -17,6 +17,12 @@ class Position(BaseModel):
     altitude: int | None = None  # not used anymore
 
 
+class ZoneGroupStatusEntry(BaseModel):
+    name: str
+    kind: str
+    damaged: bool | None = None
+
+
 class Zone(BaseModel):
     upgrades_used: int = Field(alias="upgradesUsed")
     side: int
@@ -31,6 +37,21 @@ class Zone(BaseModel):
     position: Position = Field(alias="lat_long")
     hidden: bool = False
     flavor_text: str | None = Field(alias="flavorText", default=None)
+    group_status: list[ZoneGroupStatusEntry] | None = Field(alias="groupStatus", default=None)
+    group_status_max: int | None = Field(alias="groupStatusMax", default=None)
+
+    @field_validator("group_status", mode="before")
+    @classmethod
+    def convert_group_status_table(cls, v: Any) -> list[Any] | None:
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return list(v.values())
+        if isinstance(v, list):
+            return v
+        if isinstance(v, tuple):
+            return list(v)
+        raise TypeError("groupStatus must be a dict, list, or tuple")
 
     @property
     def side_color(self) -> str:

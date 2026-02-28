@@ -6,6 +6,12 @@ class Server(BaseModel):
     name: str
 
 
+class MapZoneGroupStatusEntry(BaseModel):
+    name: str
+    kind: str
+    damaged: bool | None = None
+
+
 class MapZone(BaseModel):
     name: str
     lat: float
@@ -15,6 +21,8 @@ class MapZone(BaseModel):
     units: int
     level: int
     flavor_text: str | None = None
+    group_status: list[MapZoneGroupStatusEntry] = Field(default_factory=list)
+    group_status_max: int | None = None
 
 
 class MapConnection(BaseModel):
