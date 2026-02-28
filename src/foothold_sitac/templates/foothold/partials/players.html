@@ -1,0 +1,33 @@
+<h2>Player Rankings</h2>
+<table class="modal-table players">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>Points</th>
+            <th>Deaths</th>
+            <th>Zone Captures</th>
+            <th>Zone Upgrades</th>
+            <th>Air</th>
+            <th>Ground Units</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
+        <tr>
+            <td class="n">{{ loop.index }}</td>
+            <td>{{ player }}</td>
+            <td class="n">{{ stats.points | int }}</td>
+            <td class="n">{{ stats.deaths }}</td>
+            <td class="n">{{ stats.zone_capture }}</td>
+            <td class="n">{{ stats.zone_upgrade }}</td>
+            <td class="n">{{ stats.air }}</td>
+            <td class="n">{{ stats.ground_units }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="8" style="text-align: center; color: #5a6270;">No player data available</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

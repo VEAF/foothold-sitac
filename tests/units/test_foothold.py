@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from app.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
+from foothold_sitac.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
 
 
 @pytest.fixture
@@ -21,6 +21,56 @@ def base_zone_data() -> dict[str, Any]:
         "triggers": {"missioncompleted": 0},
         "lat_long": {"latitude": 33.0, "longitude": 36.0, "altitude": 0},
     }
+
+
+def test_zone_unit_groups_empty(base_zone_data: dict[str, Any]) -> None:
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.unit_groups == []
+
+
+def test_zone_unit_groups_single_group(base_zone_data: dict[str, Any]) -> None:
+    base_zone_data["remainingUnits"] = {1: {1: "T-72B3", 2: "T-72B3", 3: "BMP-1"}}
+    zone = Zone.model_validate(base_zone_data)
+    groups = zone.unit_groups
+    assert len(groups) == 1
+    assert groups[0]["group_id"] == 1
+    assert groups[0]["units"] == {"T-72B3": 2, "BMP-1": 1}
+
+
+def test_zone_unit_groups_multiple_groups(base_zone_data: dict[str, Any]) -> None:
+    base_zone_data["remainingUnits"] = {
+        1: {1: "T-72B3", 2: "T-72B3", 3: "BMP-1"},
+        2: {1: "SA-11 Buk CC 9S470M1"},
+    }
+    zone = Zone.model_validate(base_zone_data)
+    groups = zone.unit_groups
+    assert len(groups) == 2
+    assert groups[0]["group_id"] == 1
+    assert groups[0]["units"] == {"T-72B3": 2, "BMP-1": 1}
+    assert groups[1]["group_id"] == 2
+    assert groups[1]["units"] == {"SA-11 Buk CC 9S470M1": 1}
+
+
+def test_load_sitac_with_remaining_units() -> None:
+    lua_path = Path("tests/fixtures/test_forces/Missions/Saves/foothold_forces.lua")
+    sitac = load_sitac(lua_path)
+    aleppo = sitac.zones["Aleppo"]
+    assert aleppo.total_units == 4
+    assert aleppo.upgrades_used == 2
+    assert aleppo.level == 3
+    groups = aleppo.unit_groups
+    assert len(groups) == 2
+    assert groups[0]["units"]["T-72B3"] == 2
+    assert groups[0]["units"]["BMP-1"] == 1
+    assert groups[1]["units"]["SA-11 Buk CC 9S470M1"] == 1
+
+
+def test_load_sitac_with_empty_remaining_units() -> None:
+    lua_path = Path("tests/fixtures/test_forces/Missions/Saves/foothold_forces.lua")
+    sitac = load_sitac(lua_path)
+    empty_zone = sitac.zones["EmptyZone"]
+    assert empty_zone.total_units == 0
+    assert empty_zone.unit_groups == []
 
 
 def test_zone_hidden_true(base_zone_data: dict[str, Any]) -> None:
@@ -91,11 +141,11 @@ def test_sitac_campaign_progress_mixed() -> None:
 
 
 def test_sitac_campaign_progress_with_neutral() -> None:
-    """Les zones neutres comptent comme non-rouges"""
+    """Inactive neutral zones are excluded from progress calculation"""
     lua_path = Path("tests/fixtures/test_progress/foothold_with_neutral.lua")
     sitac = load_sitac(lua_path)
-    # 1 rouge, 1 bleu, 1 neutre = (3-1)/3 = 66.67%
-    assert sitac.campaign_progress == pytest.approx(66.67, rel=0.01)
+    # 1 red, 1 blue (inactive neutral excluded) = 1/(1+1) = 50%
+    assert sitac.campaign_progress == 50.0
 
 
 def test_sitac_campaign_progress_excludes_hidden() -> None:
@@ -103,7 +153,15 @@ def test_sitac_campaign_progress_excludes_hidden() -> None:
     lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
     sitac = load_sitac(lua_path)
     # Zones visibles: VisibleZone1 (rouge), VisibleZone2 (bleu)
-    # = (2-1)/2 = 50%
+    # = 1/(1+1) = 50%
+    assert sitac.campaign_progress == 50.0
+
+
+def test_sitac_campaign_progress_with_active_neutral() -> None:
+    """Active neutral zones are ignored in progress calculation"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_with_active_neutral.lua")
+    sitac = load_sitac(lua_path)
+    # 1 red, 1 blue, 2 neutral (active but ignored) = 1/(1+1) = 50%
     assert sitac.campaign_progress == 50.0
 
 
@@ -281,7 +339,7 @@ def test_player_model_unknown_coalition() -> None:
 
 def test_load_sitac_with_players() -> None:
     """Test loading sitac with players"""
-    lua_path = Path("var/test4/Missions/Saves/FootHold_Germany_Modern_V0.1.lua")
+    lua_path = Path("tests/fixtures/test_players/Missions/Saves/foothold_players.lua")
     sitac = load_sitac(lua_path)
 
     assert len(sitac.players) == 1
@@ -381,3 +439,24 @@ def test_load_sitac_without_ejected_pilots() -> None:
 
     # Should default to empty list
     assert sitac.ejected_pilots == []
+
+
+# Accounts tests
+
+
+def test_load_sitac_with_accounts() -> None:
+    """Test loading sitac with coalition accounts/credits"""
+    lua_path = Path("tests/fixtures/test_accounts/Missions/Saves/foothold_accounts.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.accounts.red == 736
+    assert sitac.accounts.blue == 33218
+
+
+def test_load_sitac_without_accounts() -> None:
+    """Test loading sitac without accounts section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_mixed.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.accounts.red == 0
+    assert sitac.accounts.blue == 0

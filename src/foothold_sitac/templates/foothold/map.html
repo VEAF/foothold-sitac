@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Map{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/navbar.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/map.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/modals.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-brand-dropdown">
+        <span class="navbar-brand" onclick="toggleServerDropdown()">
+            <i class="fa-solid fa-server"></i><span class="navbar-brand-label"> {{ server }}</span> <i class="fa-solid fa-chevron-down navbar-brand-chevron"></i>
+        </span>
+        <div class="navbar-dropdown" id="server-dropdown">
+            <span class="navbar-dropdown-header"><i class="fa-solid fa-server"></i> {{ server }}</span>
+            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Back to server list</a>
+            <div class="navbar-dropdown-separator"></div>
+            <a href="https://github.com/VEAF/foothold-sitac" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+        </div>
+    </div>
+    <div class="navbar-links">
+        <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> Ranking</span><span class="navbar-tooltip">View player statistics and rankings</span></a>
+        <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
+        <span class="navbar-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
+        <span class="navbar-item" id="credits-info"><i class="fa-solid fa-coins"></i><span class="navbar-link-label"> Credits</span><span class="navbar-badge navbar-badge-blue" id="credits-blue">{{ "%.0f"|format(sitac.accounts.blue) }}</span><span class="navbar-badge navbar-badge-red" id="credits-red">{{ "%.0f"|format(sitac.accounts.red) }}</span><span class="navbar-tooltip">Coalition credits (Blue / Red)</span></span>
+        <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
+        <span class="navbar-item ruler-toggle" id="ruler-toggle" onclick="toggleRulerMode()" style="cursor: pointer;"><i class="fa-solid fa-ruler"></i><span class="navbar-link-label"> Ruler</span><span class="navbar-tooltip">Measure distance between two points</span></span>
+        <span class="navbar-item" onclick="openMarkpointModal()" style="cursor: pointer;"><i class="fa-solid fa-location-dot"></i><span class="navbar-link-label"> Markpoint</span><span class="navbar-tooltip">Add a marker at coordinates</span></span>
+        <span class="navbar-item" onclick="openSettingsModal()" style="cursor: pointer;"><i class="fa-solid fa-gear"></i><span class="navbar-link-label"> Settings</span><span class="navbar-tooltip">Display settings</span></span>
+    </div>
+</nav>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Freshness widget -->
+<div id="freshness-widget" class="fresh">
+    <div class="progress-ring-container">
+        <svg class="progress-ring" width="24" height="24">
+            <circle class="progress-ring-bg" cx="12" cy="12" r="10" />
+            <circle class="progress-ring-fill" cx="12" cy="12" r="10" />
+        </svg>
+    </div>
+    <span id="countdown">{{ config.web.refresh_interval }}s</span>
+    <span class="tooltip" id="freshness-tooltip">Refresh in {{ config.web.refresh_interval }}s</span>
+</div>
+
+<!-- Ruler measurement widget -->
+<div id="ruler-widget" class="ruler-widget hidden">
+    <div class="ruler-header">
+        <i class="fa-solid fa-ruler"></i>
+        <span>Measure</span>
+        <button class="ruler-clear" onclick="clearRuler()" title="Clear measurement">&times;</button>
+    </div>
+    <div class="ruler-body">
+        <div class="ruler-row">
+            <span class="ruler-label">Distance</span>
+            <span class="ruler-value" id="ruler-distance">--</span>
+        </div>
+        <div class="ruler-row">
+            <span class="ruler-label">Bearing</span>
+            <span class="ruler-value" id="ruler-bearing">--</span>
+        </div>
+        <div class="ruler-row">
+            <span class="ruler-label">Flight time</span>
+            <span class="ruler-value" id="ruler-time">--</span>
+        </div>
+    </div>
+    <div class="ruler-points">
+        <div class="ruler-point">
+            <span class="ruler-point-marker">A</span>
+            <span class="ruler-point-coords" id="ruler-point-1">Click to set</span>
+        </div>
+        <div class="ruler-point">
+            <span class="ruler-point-marker">B</span>
+            <span class="ruler-point-coords" id="ruler-point-2">Click to set</span>
+        </div>
+    </div>
+</div>
+
+<!-- Cursor coordinates widget -->
+<div id="cursor-coords-widget">
+    <span id="cursor-coords"></span>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modal-body">
+            <div class="modal-loading">Loading...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<<<<<<< HEAD:templates/foothold/map.html
+<script src="/static/js/coords.js"></script>
+<script src="/static/js/modals.js"></script>
+<script src="/static/js/map.js?v={{ sitac.updated_at.strftime('%Y%m%d%H%M%S') }}"></script>
+=======
+<script src="{{ static_url('js/coords.js') }}"></script>
+<script src="{{ static_url('js/modals.js') }}"></script>
+<script src="{{ static_url('js/map.js') }}"></script>
+>>>>>>> 30b585546ff6bd18e859386b4ef82393cebe4273:src/foothold_sitac/templates/foothold/map.html
+<script>
+    // Set modal endpoints
+    modalEndpoints = {
+        players: '{{ request.url_for("foothold_players_modal", server=server) }}',
+        zones: '{{ request.url_for("foothold_zones_modal", server=server) }}',
+        missions: '{{ request.url_for("foothold_missions_modal", server=server) }}',
+        ejected: '{{ request.url_for("foothold_ejected_modal", server=server) }}'
+    };
+
+    // Set map configuration
+    map_center = JSON.parse('{{ center }}');
+    map_options = JSON.parse('{{ config.map.model_dump() | tojson }}');
+    mapDataEndpoint = '{{ request.url_for("foothold_get_map_data", server=server) }}';
+    REFRESH_INTERVAL = {{ config.web.refresh_interval }};
+
+    // Initialize map and start refresh timer
+    initMap();
+    startRefreshTimer();
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+<h2>Active Missions</h2>
+
+{% if missions %}
+<table class="modal-table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mission in missions %}
+        <tr>
+            <td>{{ mission.title }}</td>
+            <td>{{ mission.description }}</td>
+            <td>
+                {% if mission.is_escort_mission %}
+                <span class="type-badge escort"><i class="fa-solid fa-truck-fast"></i>&nbsp;Escort</span>
+                {% else %}
+                <span class="type-badge attack"><i class="fa-solid fa-crosshairs"></i>&nbsp;Attack</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if mission.is_running %}
+                <span class="status-badge running"><i class="fa-solid fa-play"></i>&nbsp;Running</span>
+                {% else %}
+                <span class="status-badge stopped"><i class="fa-solid fa-pause"></i>&nbsp;Stopped</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">No active missions</div>
+{% endif %}

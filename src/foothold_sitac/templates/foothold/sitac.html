@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}SITAC{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ static_url('css/sitac.css') }}">
+{% endblock %}
+
+{% block body_class %}sitac-page{% endblock %}
+
+{% block content %}
+<div class="sitac-container">
+    <h1>SITAC - Foothold</h1>
+
+    <!-- Section ZONES -->
+    <h2>Zones</h2>
+    <table class="sitac-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Side</th>
+                <th>Level</th>
+                <th>Upgrades Used</th>
+                <th>Active</th>
+                <th>First Capture by Red</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, zone in sitac.zones.items() | sort %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>
+                    {% if zone.side == 1 %}
+                    <span class="side-badge red">Red</span>
+                    {% elif zone.side == 2 %}
+                    <span class="side-badge blue">Blue</span>
+                    {% else %}
+                    <span class="side-badge grey">Neutral</span>
+                    {% endif %}
+                </td>
+                <td class="n">{{ zone.level }}</td>
+                <td class="n">{{ zone.upgradesUsed }}</td>
+                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+                <td>{{ 'Yes' if zone.firstCaptureByRed else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Section PLAYER STATS -->
+    <h2>Player Stats</h2>
+    <table class="sitac-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Player</th>
+                <th>Points</th>
+                <th>Deaths</th>
+                <th>Zone Captures</th>
+                <th>Zone Upgrades</th>
+                <th>Air</th>
+                <th>Ground Units</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
+            <tr>
+                <td class="n">{{ loop.index }}</td>
+                <td>{{ player }}</td>
+                <td class="n">{{ stats.points | int }}</td>
+                <td class="n">{{ stats.deaths }}</td>
+                <td class="n">{{ stats.zone_capture }}</td>
+                <td class="n">{{ stats.zone_upgrade }}</td>
+                <td class="n">{{ stats.air }}</td>
+                <td class="n">{{ stats.ground_units }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="text-align:center;">
+        <a href="{{ request.url_for('foothold_servers') }}" class="sitac-back-btn">Back to servers list</a>
+    </div>
+</div>
+{% endblock %}
