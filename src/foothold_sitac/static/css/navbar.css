@@ -193,6 +193,16 @@
     box-shadow: none;
 }
 
+.navbar-badge-blue {
+    background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+.navbar-badge-red {
+    background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+}
+
 /* Navbar item (non-link) */
 .navbar-item {
     display: inline-flex;

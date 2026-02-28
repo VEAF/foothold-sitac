@@ -54,3 +54,5 @@ class MapData(BaseModel):
     progress: float
     missions_count: int
     ejected_pilots_count: int = 0
+    red_credits: float = 0
+    blue_credits: float = 0

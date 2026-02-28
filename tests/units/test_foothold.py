@@ -389,3 +389,24 @@ def test_load_sitac_without_ejected_pilots() -> None:
 
     # Should default to empty list
     assert sitac.ejected_pilots == []
+
+
+# Accounts tests
+
+
+def test_load_sitac_with_accounts() -> None:
+    """Test loading sitac with coalition accounts/credits"""
+    lua_path = Path("tests/fixtures/test_accounts/Missions/Saves/foothold_accounts.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.accounts.red == 736
+    assert sitac.accounts.blue == 33218
+
+
+def test_load_sitac_without_accounts() -> None:
+    """Test loading sitac without accounts section (tolerance)"""
+    lua_path = Path("tests/fixtures/test_progress/foothold_mixed.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.accounts.red == 0
+    assert sitac.accounts.blue == 0
