@@ -17,6 +17,12 @@ class Position(BaseModel):
     altitude: int | None = None  # not used anymore
 
 
+class ZoneGroupStatusEntry(BaseModel):
+    name: str
+    kind: str
+    damaged: bool | None = None
+
+
 class Zone(BaseModel):
     upgrades_used: int = Field(alias="upgradesUsed")
     side: int
@@ -31,6 +37,16 @@ class Zone(BaseModel):
     position: Position = Field(alias="lat_long")
     hidden: bool = False
     flavor_text: str | None = Field(alias="flavorText", default=None)
+    group_status: list[ZoneGroupStatusEntry] | None = Field(alias="groupStatus", default=None)
+
+    @field_validator("group_status", mode="before")
+    @classmethod
+    def convert_group_status_table(cls, v: Any) -> list[Any] | None:
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return list(v.values())
+        return list(v) if not isinstance(v, list) else v
 
     @property
     def side_color(self) -> str:

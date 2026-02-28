@@ -191,6 +191,29 @@ def test_zone_flavor_text_default(base_zone_data: dict[str, Any]) -> None:
     assert zone.flavor_text is None
 
 
+def test_zone_group_status_parses_lua_table(base_zone_data: dict[str, Any]) -> None:
+    """Test Zone model with groupStatus as Lua-style table"""
+    base_zone_data["groupStatus"] = {
+        1: {"name": "Red SAM SA-2", "kind": "group"},
+        2: {"name": "Enemy Armour Group 2", "kind": "group", "damaged": True},
+        3: {"name": "Ammo Depot", "kind": "static"},
+    }
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.group_status is not None
+    assert len(zone.group_status) == 3
+    assert zone.group_status[0].name == "Red SAM SA-2"
+    assert zone.group_status[0].kind == "group"
+    assert zone.group_status[0].damaged is None
+    assert zone.group_status[1].damaged is True
+    assert zone.group_status[2].kind == "static"
+
+
+def test_zone_group_status_default_none(base_zone_data: dict[str, Any]) -> None:
+    """Test Zone model without groupStatus (default to None)"""
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.group_status is None
+
+
 def test_load_sitac_with_flavor_text() -> None:
     """Test loading sitac with flavorText"""
     lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")

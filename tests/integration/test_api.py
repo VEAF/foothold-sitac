@@ -58,6 +58,16 @@ def test_map_data_excludes_hidden_zones(client: TestClient) -> None:
     assert len(zones) == 2
 
 
+def test_map_data_group_status_default_empty(client: TestClient) -> None:
+    response = client.get("/api/foothold/test_missions/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    for zone in data["zones"]:
+        assert "group_status" in zone
+        assert isinstance(zone["group_status"], list)
+
+
 def test_sitac_includes_hidden_zones(client: TestClient) -> None:
     response = client.get("/api/foothold/test_hidden/sitac")
     assert response.status_code == 200

@@ -3,7 +3,15 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from foothold_sitac.dependencies import get_active_sitac
 from foothold_sitac.foothold import Sitac, list_servers
-from foothold_sitac.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server
+from foothold_sitac.schemas import (
+    MapConnection,
+    MapData,
+    MapEjectedPilot,
+    MapPlayer,
+    MapZone,
+    MapZoneGroupStatusEntry,
+    Server,
+)
 
 router = APIRouter()
 
@@ -33,6 +41,16 @@ async def foothold_get_map_data(
                 "units": zone.total_units,
                 "level": zone.level,
                 "flavor_text": zone.flavor_text,
+                "group_status": [
+                    MapZoneGroupStatusEntry.model_validate(
+                        {
+                            "name": entry.name,
+                            "kind": entry.kind,
+                            **({"damaged": True} if entry.damaged else {}),
+                        }
+                    )
+                    for entry in (zone.group_status or [])
+                ],
             }
         )
         for zone_name, zone in sitac.zones.items()

@@ -122,6 +122,36 @@ function openZoneModal(zone) {
     var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : 'Decimal');
     var formattedLat = formatCoord(zone.lat, true);
     var formattedLon = formatCoord(zone.lon, false);
+    var groups = Array.isArray(zone.group_status) ? zone.group_status : [];
+    var groupsHtml = '';
+
+    if (groups.length > 0) {
+        groupsHtml =
+            '<div style="margin-top: 14px;">' +
+                '<div style="padding-bottom: 6px; color: #8892a0;">Groups</div>' +
+                '<div style="max-height: 180px; overflow-y: auto;">' +
+                    groups.map(function(entry) {
+                        var kind = entry && entry.kind ? String(entry.kind) : 'group';
+                        var name = entry && entry.name ? String(entry.name) : 'Unknown';
+                        var damaged = entry && entry.damaged === true
+                            ? ' <span style="color: #ffb4b4;">(Damaged)</span>'
+                            : '';
+                        return (
+                            '<div style="padding: 2px 0; color: #e8eaed;">' +
+                                name + damaged +
+                                ' <span style="color: #8892a0; font-size: 11px;">[' + kind + ']</span>' +
+                            '</div>'
+                        );
+                    }).join('') +
+                '</div>' +
+            '</div>';
+    } else {
+        groupsHtml =
+            '<div style="margin-top: 14px;">' +
+                '<div style="padding-bottom: 6px; color: #8892a0;">Groups</div>' +
+                '<div style="color: #8892a0;">No active groups</div>' +
+            '</div>';
+    }
 
     body.innerHTML =
         '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Unknown zone') + '</h3>' +
@@ -142,7 +172,8 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; color: #8892a0;">' + formatLabel + '</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + formattedLat + '<br>' + formattedLon + '</td>' +
             '</tr>' +
-        '</table>';
+        '</table>' +
+        groupsHtml;
     overlay.classList.add('visible', 'zone-modal');
 }
 
