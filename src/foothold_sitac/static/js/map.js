@@ -123,6 +123,9 @@ function openZoneModal(zone) {
     var formattedLat = formatCoord(zone.lat, true);
     var formattedLon = formatCoord(zone.lon, false);
     var groups = Array.isArray(zone.group_status) ? zone.group_status : [];
+    var hasMax = typeof zone.group_status_max === 'number' && isFinite(zone.group_status_max);
+    var groupsMax = hasMax ? Math.max(zone.group_status_max, groups.length) : groups.length;
+    var groupsHeaderText = 'Groups (' + groups.length + '/' + groupsMax + ')';
     function makeCell(text, rightAlign) {
         var td = document.createElement('td');
         td.style.padding = '8px 0';
@@ -177,7 +180,7 @@ function openZoneModal(zone) {
     var groupsHeader = document.createElement('div');
     groupsHeader.style.paddingBottom = '6px';
     groupsHeader.style.color = '#8892a0';
-    groupsHeader.textContent = 'Groups';
+    groupsHeader.textContent = groupsHeaderText;
     groupsContainer.appendChild(groupsHeader);
 
     if (groups.length > 0) {

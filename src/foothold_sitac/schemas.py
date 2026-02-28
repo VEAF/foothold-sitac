@@ -22,6 +22,7 @@ class MapZone(BaseModel):
     level: int
     flavor_text: str | None = None
     group_status: list[MapZoneGroupStatusEntry] = Field(default_factory=list)
+    group_status_max: int | None = None
 
 
 class MapConnection(BaseModel):

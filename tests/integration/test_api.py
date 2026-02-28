@@ -66,6 +66,8 @@ def test_map_data_group_status_default_empty(client: TestClient) -> None:
     for zone in data["zones"]:
         assert "group_status" in zone
         assert isinstance(zone["group_status"], list)
+        assert "group_status_max" in zone
+        assert zone["group_status_max"] is None or isinstance(zone["group_status_max"], int)
 
 
 def test_sitac_includes_hidden_zones(client: TestClient) -> None:

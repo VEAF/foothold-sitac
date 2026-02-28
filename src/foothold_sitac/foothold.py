@@ -38,6 +38,7 @@ class Zone(BaseModel):
     hidden: bool = False
     flavor_text: str | None = Field(alias="flavorText", default=None)
     group_status: list[ZoneGroupStatusEntry] | None = Field(alias="groupStatus", default=None)
+    group_status_max: int | None = Field(alias="groupStatusMax", default=None)
 
     @field_validator("group_status", mode="before")
     @classmethod

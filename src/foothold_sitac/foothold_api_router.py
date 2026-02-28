@@ -41,6 +41,7 @@ async def foothold_get_map_data(
                 "units": zone.total_units,
                 "level": zone.level,
                 "flavor_text": zone.flavor_text,
+                "group_status_max": zone.group_status_max,
                 "group_status": [
                     MapZoneGroupStatusEntry.model_validate(
                         {
