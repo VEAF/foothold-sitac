@@ -46,7 +46,11 @@ class Zone(BaseModel):
             return None
         if isinstance(v, dict):
             return list(v.values())
-        return list(v) if not isinstance(v, list) else v
+        if isinstance(v, list):
+            return v
+        if isinstance(v, tuple):
+            return list(v)
+        raise TypeError("groupStatus must be a dict, list, or tuple")
 
     @property
     def side_color(self) -> str:

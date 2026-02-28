@@ -123,57 +123,104 @@ function openZoneModal(zone) {
     var formattedLat = formatCoord(zone.lat, true);
     var formattedLon = formatCoord(zone.lon, false);
     var groups = Array.isArray(zone.group_status) ? zone.group_status : [];
-    var groupsHtml = '';
-
-    if (groups.length > 0) {
-        groupsHtml =
-            '<div style="margin-top: 14px;">' +
-                '<div style="padding-bottom: 6px; color: #8892a0;">Groups</div>' +
-                '<div style="max-height: 180px; overflow-y: auto;">' +
-                    groups.map(function(entry) {
-                        var kind = entry && entry.kind ? String(entry.kind) : 'group';
-                        var name = entry && entry.name ? String(entry.name) : 'Unknown';
-                        var damaged = entry && entry.damaged === true
-                            ? ' <span style="color: #ffb4b4;">(Damaged)</span>'
-                            : '';
-                        return (
-                            '<div style="padding: 2px 0; color: #e8eaed;">' +
-                                name + damaged +
-                                ' <span style="color: #8892a0; font-size: 11px;">[' + kind + ']</span>' +
-                            '</div>'
-                        );
-                    }).join('') +
-                '</div>' +
-            '</div>';
-    } else {
-        groupsHtml =
-            '<div style="margin-top: 14px;">' +
-                '<div style="padding-bottom: 6px; color: #8892a0;">Groups</div>' +
-                '<div style="color: #8892a0;">No active groups</div>' +
-            '</div>';
+    function makeCell(text, rightAlign) {
+        var td = document.createElement('td');
+        td.style.padding = '8px 0';
+        td.style.color = rightAlign ? '#e8eaed' : '#8892a0';
+        if (rightAlign) {
+            td.style.textAlign = 'right';
+        }
+        td.textContent = text;
+        return td;
     }
 
-    body.innerHTML =
-        '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Unknown zone') + '</h3>' +
-        '<table style="width: 100%; border-collapse: collapse;">' +
-            '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Coalition</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.side + '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Detected units</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.lat.toFixed(6) + ', ' + zone.lon.toFixed(6) + '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">' + formatLabel + '</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + formattedLat + '<br>' + formattedLon + '</td>' +
-            '</tr>' +
-        '</table>' +
-        groupsHtml;
+    function addTableRow(table, label, value) {
+        var tr = document.createElement('tr');
+        tr.appendChild(makeCell(label, false));
+        tr.appendChild(makeCell(value, true));
+        table.appendChild(tr);
+    }
+
+    body.textContent = '';
+
+    var title = document.createElement('h3');
+    title.style.marginTop = '0';
+    title.style.color = zone.color || '#e8eaed';
+    title.textContent = zone.name || 'Unknown zone';
+    body.appendChild(title);
+
+    var table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    addTableRow(table, 'Coalition', String(zone.side || 'unknown'));
+    addTableRow(table, 'Detected units', String(zone.units || 0));
+    addTableRow(
+        table,
+        'Lat / Lon',
+        Number(zone.lat).toFixed(6) + ', ' + Number(zone.lon).toFixed(6)
+    );
+
+    var coordRow = document.createElement('tr');
+    coordRow.appendChild(makeCell(formatLabel, false));
+    var coordValue = makeCell('', true);
+    coordValue.textContent = formattedLat;
+    coordValue.appendChild(document.createElement('br'));
+    coordValue.appendChild(document.createTextNode(formattedLon));
+    coordRow.appendChild(coordValue);
+    table.appendChild(coordRow);
+
+    body.appendChild(table);
+
+    var groupsContainer = document.createElement('div');
+    groupsContainer.style.marginTop = '14px';
+
+    var groupsHeader = document.createElement('div');
+    groupsHeader.style.paddingBottom = '6px';
+    groupsHeader.style.color = '#8892a0';
+    groupsHeader.textContent = 'Groups';
+    groupsContainer.appendChild(groupsHeader);
+
+    if (groups.length > 0) {
+        var groupsList = document.createElement('div');
+        groupsList.style.maxHeight = '180px';
+        groupsList.style.overflowY = 'auto';
+
+        groups.forEach(function(entry) {
+            var row = document.createElement('div');
+            row.style.padding = '2px 0';
+            row.style.color = '#e8eaed';
+
+            var name = entry && entry.name ? String(entry.name) : 'Unknown';
+            row.appendChild(document.createTextNode(name));
+
+            if (entry && entry.damaged === true) {
+                row.appendChild(document.createTextNode(' '));
+                var damagedLabel = document.createElement('span');
+                damagedLabel.style.color = '#ffb4b4';
+                damagedLabel.textContent = '(Damaged)';
+                row.appendChild(damagedLabel);
+            }
+
+            row.appendChild(document.createTextNode(' '));
+            var kind = entry && entry.kind ? String(entry.kind) : 'group';
+            var kindLabel = document.createElement('span');
+            kindLabel.style.color = '#8892a0';
+            kindLabel.style.fontSize = '11px';
+            kindLabel.textContent = '[' + kind + ']';
+            row.appendChild(kindLabel);
+
+            groupsList.appendChild(row);
+        });
+
+        groupsContainer.appendChild(groupsList);
+    } else {
+        var emptyState = document.createElement('div');
+        emptyState.style.color = '#8892a0';
+        emptyState.textContent = 'No active groups';
+        groupsContainer.appendChild(emptyState);
+    }
+
+    body.appendChild(groupsContainer);
     overlay.classList.add('visible', 'zone-modal');
 }
 
