@@ -328,7 +328,7 @@ function updateEjections() {
     });
 }
 
-function updateNavbar(progress, missionsCount, ejectedPilotsCount) {
+function updateNavbar(progress, missionsCount, ejectedPilotsCount, blueCredits, redCredits) {
     // Update progress percentage
     var progressElement = document.getElementById('progress-value');
     if (progressElement) {
@@ -360,6 +360,16 @@ function updateNavbar(progress, missionsCount, ejectedPilotsCount) {
             ejectedCount.classList.remove('navbar-badge-orange');
             ejectedCount.classList.add('navbar-badge-gray');
         }
+    }
+
+    // Update coalition credits
+    var creditsBlue = document.getElementById('credits-blue');
+    var creditsRed = document.getElementById('credits-red');
+    if (creditsBlue) {
+        creditsBlue.textContent = Math.round(blueCredits || 0);
+    }
+    if (creditsRed) {
+        creditsRed.textContent = Math.round(redCredits || 0);
     }
 }
 
@@ -406,7 +416,7 @@ function loadData() {
             dataAgeSeconds = data.age_seconds;
             nextRefresh = REFRESH_INTERVAL;
             updateFreshnessWidget();
-            updateNavbar(data.progress, data.missions_count, data.ejected_pilots_count);
+            updateNavbar(data.progress, data.missions_count, data.ejected_pilots_count, data.blue_credits, data.red_credits);
 
             zonesLayer.clearLayers();
             data.zones.forEach(function(p) {

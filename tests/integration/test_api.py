@@ -123,3 +123,24 @@ def test_missions_modal_endpoint(client: TestClient) -> None:
     assert response.status_code == 200
     assert "Attack Hahn (3)" in response.text
     assert "Convoy Escort" in response.text
+
+
+# Accounts/credits tests
+
+
+def test_map_data_includes_credits(client: TestClient) -> None:
+    response = client.get("/api/foothold/test_accounts/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["red_credits"] == 736
+    assert data["blue_credits"] == 33218
+
+
+def test_map_data_credits_default_zero(client: TestClient) -> None:
+    response = client.get("/api/foothold/test_missions/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["red_credits"] == 0
+    assert data["blue_credits"] == 0

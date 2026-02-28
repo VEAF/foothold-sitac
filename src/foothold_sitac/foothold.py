@@ -108,6 +108,11 @@ class PlayerStats(BaseModel):
     helo: int = Field(alias="Helo", default=0)
 
 
+class Accounts(BaseModel):
+    red: float = 0
+    blue: float = 0
+
+
 class Sitac(BaseModel):
     updated_at: datetime
     zones: dict[str, Zone]
@@ -116,6 +121,17 @@ class Sitac(BaseModel):
     connections: list[Connection] = Field(default_factory=list)
     players: list[Player] = Field(default_factory=list)
     ejected_pilots: list[EjectedPilot] = Field(alias="ejectedPilots", default_factory=list)
+    accounts: Accounts = Field(default_factory=Accounts)
+
+    @field_validator("accounts", mode="before")
+    @classmethod
+    def convert_accounts(cls, v: Any) -> dict[str, float]:
+        """Convert Lua accounts table {1: red_credits, 2: blue_credits} to dict."""
+        if v is None:
+            return {"red": 0, "blue": 0}
+        if isinstance(v, dict):
+            return {"red": v.get(1, 0), "blue": v.get(2, 0)}
+        return {"red": 0, "blue": 0}
 
     @field_validator("missions", "connections", "players", "ejected_pilots", mode="before")
     @classmethod

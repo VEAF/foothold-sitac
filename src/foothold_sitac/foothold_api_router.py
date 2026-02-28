@@ -103,4 +103,6 @@ async def foothold_get_map_data(
         progress=sitac.campaign_progress,
         missions_count=len(sitac.missions),
         ejected_pilots_count=len(ejected_pilots),
+        red_credits=sitac.accounts.red,
+        blue_credits=sitac.accounts.blue,
     )
