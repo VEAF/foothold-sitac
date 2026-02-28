@@ -123,7 +123,7 @@ function openZoneModal(zone) {
     var formattedLat = formatCoord(zone.lat, true);
     var formattedLon = formatCoord(zone.lon, false);
 
-    body.innerHTML =
+    var html =
         '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Unknown zone') + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
@@ -135,6 +135,10 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
             '</tr>' +
             '<tr>' +
+                '<td style="padding: 8px 0; color: #8892a0;">Upgrades</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + (zone.upgrades_used || 0) + ' / ' + zone.level + '</td>' +
+            '</tr>' +
+            '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.lat.toFixed(6) + ', ' + zone.lon.toFixed(6) + '</td>' +
             '</tr>' +
@@ -143,6 +147,28 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + formattedLat + '<br>' + formattedLon + '</td>' +
             '</tr>' +
         '</table>';
+
+    // Add unit groups section if available
+    if (zone.unit_groups && zone.unit_groups.length > 0) {
+        html += '<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">';
+        html += '<h4 style="margin: 0 0 8px 0; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Forces</h4>';
+
+        zone.unit_groups.forEach(function(group) {
+            var unitList = [];
+            for (var unitType in group.units) {
+                var count = group.units[unitType];
+                unitList.push(unitType + (count > 1 ? ' x' + count : ''));
+            }
+            html += '<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">';
+            html += '<span style="color: #8892a0; font-size: 12px;">Group ' + group.group_id + '</span><br>';
+            html += '<span style="color: #e8eaed; font-size: 13px;">' + unitList.join(', ') + '</span>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+    }
+
+    body.innerHTML = html;
     overlay.classList.add('visible', 'zone-modal');
 }
 

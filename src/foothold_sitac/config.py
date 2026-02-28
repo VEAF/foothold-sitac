@@ -30,10 +30,15 @@ class MapConfig(BaseModel):
     max_zoom: int = 11
 
 
+class FeaturesConfig(BaseModel):
+    show_zone_forces: bool = True
+
+
 class AppConfig(BaseModel):
     web: Annotated[WebConfig, Field(default_factory=WebConfig)]
     dcs: Annotated[DcsConfig, Field(default_factory=DcsConfig)]
     map: Annotated[MapConfig, Field(default_factory=MapConfig)]
+    features: Annotated[FeaturesConfig, Field(default_factory=FeaturesConfig)]
 
 
 def _expand_env_vars(value: Any) -> Any:
@@ -63,5 +68,7 @@ def load_config(path: str) -> AppConfig:
 def get_config() -> AppConfig:
     config_path = "config/config.yml"
     if not os.path.exists(config_path):
-        return AppConfig(web=WebConfig(), dcs=DcsConfig(), map=MapConfig(alternative_tiles=[]))
+        return AppConfig(
+            web=WebConfig(), dcs=DcsConfig(), map=MapConfig(alternative_tiles=[]), features=FeaturesConfig()
+        )
     return load_config(config_path)

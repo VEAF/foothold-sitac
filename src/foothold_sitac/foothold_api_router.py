@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Annotated, Any
 from fastapi import APIRouter, Depends
+from foothold_sitac.config import get_config
 from foothold_sitac.dependencies import get_active_sitac
 from foothold_sitac.foothold import Sitac, list_servers
-from foothold_sitac.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server
+from foothold_sitac.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server, UnitGroup
 
 router = APIRouter()
 
@@ -22,6 +23,8 @@ async def foothold_get_sitac(sitac: Annotated[Sitac, Depends(get_active_sitac)])
 async def foothold_get_map_data(
     sitac: Annotated[Sitac, Depends(get_active_sitac)],
 ) -> Any:
+    show_forces = get_config().features.show_zone_forces
+
     zones = [
         MapZone.model_validate(
             {
@@ -33,6 +36,10 @@ async def foothold_get_map_data(
                 "units": zone.total_units,
                 "level": zone.level,
                 "flavor_text": zone.flavor_text,
+                "upgrades_used": zone.upgrades_used,
+                "unit_groups": [UnitGroup(group_id=g["group_id"], units=g["units"]) for g in zone.unit_groups]
+                if show_forces
+                else None,
             }
         )
         for zone_name, zone in sitac.zones.items()
@@ -105,4 +112,5 @@ async def foothold_get_map_data(
         ejected_pilots_count=len(ejected_pilots),
         red_credits=sitac.accounts.red,
         blue_credits=sitac.accounts.blue,
+        show_zone_forces=show_forces,
     )

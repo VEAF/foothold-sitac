@@ -21,6 +21,9 @@
 - Dashed lines showing supply connections between zones
 - Zoom-responsive labels (icons at low zoom, full names at high zoom)
 - Click zones for detailed info (name, coalition, coordinates, unit count)
+- Detailed forces composition per group (unit types and counts)
+- Upgrades used vs zone level display
+- Forces display configurable via `features.show_zone_forces` (default: enabled)
 
 ### Players
 

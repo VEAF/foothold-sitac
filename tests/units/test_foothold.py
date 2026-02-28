@@ -23,6 +23,56 @@ def base_zone_data() -> dict[str, Any]:
     }
 
 
+def test_zone_unit_groups_empty(base_zone_data: dict[str, Any]) -> None:
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.unit_groups == []
+
+
+def test_zone_unit_groups_single_group(base_zone_data: dict[str, Any]) -> None:
+    base_zone_data["remainingUnits"] = {1: {1: "T-72B3", 2: "T-72B3", 3: "BMP-1"}}
+    zone = Zone.model_validate(base_zone_data)
+    groups = zone.unit_groups
+    assert len(groups) == 1
+    assert groups[0]["group_id"] == 1
+    assert groups[0]["units"] == {"T-72B3": 2, "BMP-1": 1}
+
+
+def test_zone_unit_groups_multiple_groups(base_zone_data: dict[str, Any]) -> None:
+    base_zone_data["remainingUnits"] = {
+        1: {1: "T-72B3", 2: "T-72B3", 3: "BMP-1"},
+        2: {1: "SA-11 Buk CC 9S470M1"},
+    }
+    zone = Zone.model_validate(base_zone_data)
+    groups = zone.unit_groups
+    assert len(groups) == 2
+    assert groups[0]["group_id"] == 1
+    assert groups[0]["units"] == {"T-72B3": 2, "BMP-1": 1}
+    assert groups[1]["group_id"] == 2
+    assert groups[1]["units"] == {"SA-11 Buk CC 9S470M1": 1}
+
+
+def test_load_sitac_with_remaining_units() -> None:
+    lua_path = Path("tests/fixtures/test_forces/Missions/Saves/foothold_forces.lua")
+    sitac = load_sitac(lua_path)
+    aleppo = sitac.zones["Aleppo"]
+    assert aleppo.total_units == 4
+    assert aleppo.upgrades_used == 2
+    assert aleppo.level == 3
+    groups = aleppo.unit_groups
+    assert len(groups) == 2
+    assert groups[0]["units"]["T-72B3"] == 2
+    assert groups[0]["units"]["BMP-1"] == 1
+    assert groups[1]["units"]["SA-11 Buk CC 9S470M1"] == 1
+
+
+def test_load_sitac_with_empty_remaining_units() -> None:
+    lua_path = Path("tests/fixtures/test_forces/Missions/Saves/foothold_forces.lua")
+    sitac = load_sitac(lua_path)
+    empty_zone = sitac.zones["EmptyZone"]
+    assert empty_zone.total_units == 0
+    assert empty_zone.unit_groups == []
+
+
 def test_zone_hidden_true(base_zone_data: dict[str, Any]) -> None:
     base_zone_data["hidden"] = True
     zone = Zone.model_validate(base_zone_data)
