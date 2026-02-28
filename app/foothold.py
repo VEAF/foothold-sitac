@@ -17,6 +17,12 @@ class Position(BaseModel):
     altitude: int | None = None  # not used anymore
 
 
+class ZoneGroupStatusEntry(BaseModel):
+    name: str
+    kind: str
+    damaged: bool | None = None
+
+
 class Zone(BaseModel):
     upgrades_used: int = Field(alias="upgradesUsed")
     side: int
@@ -31,9 +37,22 @@ class Zone(BaseModel):
     position: Position = Field(alias="lat_long")
     hidden: bool = False
     flavor_text: str | None = Field(alias="flavorText", default=None)
+    group_status: list[ZoneGroupStatusEntry] | None = Field(alias="groupStatus", default=None)
+    group_status_max: int | None = Field(alias="groupStatusMax", default=None)
+
+    @field_validator("group_status", mode="before")
+    @classmethod
+    def convert_group_status_table(cls, v: Any) -> list[Any] | None:
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return list(v.values())
+        return list(v) if not isinstance(v, list) else v
 
     @property
     def side_color(self) -> str:
+        if not self.active:
+            return "darkgray"
         if self.side == 1:
             return "red"
         elif self.side == 2:
@@ -42,6 +61,8 @@ class Zone(BaseModel):
 
     @property
     def side_str(self) -> str:
+        if not self.active:
+            return "disabled"
         if self.side == 1:
             return "red"
         elif self.side == 2:
@@ -130,9 +151,9 @@ class Sitac(BaseModel):
         Progress is calculated as:
         (visible_zones - red_zones) / visible_zones * 100
 
-        Hidden zones (hidden=True) are excluded from the calculation.
+        Hidden zones (hidden=True) and inactive zones (active=False) are excluded.
         """
-        visible_zones = [z for z in self.zones.values() if not z.hidden]
+        visible_zones = [z for z in self.zones.values() if not z.hidden and z.active]
         if not visible_zones:
             return 0.0
         red_zones = sum(1 for z in visible_zones if z.side == 1)
