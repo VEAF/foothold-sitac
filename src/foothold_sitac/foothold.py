@@ -56,6 +56,16 @@ class Zone(BaseModel):
     def total_units(self) -> int:
         return sum([len(group_units) for group_units in self.remaining_units.values()])
 
+    @property
+    def unit_groups(self) -> list[dict[str, Any]]:
+        groups = []
+        for group_id, units_dict in sorted(self.remaining_units.items()):
+            unit_counts: dict[str, int] = {}
+            for unit_name in units_dict.values():
+                unit_counts[unit_name] = unit_counts.get(unit_name, 0) + 1
+            groups.append({"group_id": group_id, "units": unit_counts})
+        return groups
+
 
 class Mission(BaseModel):
     is_escort_mission: bool = Field(alias="isEscortMission")

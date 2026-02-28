@@ -6,6 +6,11 @@ class Server(BaseModel):
     name: str
 
 
+class UnitGroup(BaseModel):
+    group_id: int
+    units: dict[str, int]
+
+
 class MapZone(BaseModel):
     name: str
     lat: float
@@ -15,6 +20,8 @@ class MapZone(BaseModel):
     units: int
     level: int
     flavor_text: str | None = None
+    upgrades_used: int = 0
+    unit_groups: list[UnitGroup] | None = None
 
 
 class MapConnection(BaseModel):
@@ -56,3 +63,4 @@ class MapData(BaseModel):
     ejected_pilots_count: int = 0
     red_credits: float = 0
     blue_credits: float = 0
+    show_zone_forces: bool = True

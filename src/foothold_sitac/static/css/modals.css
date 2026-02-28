@@ -83,7 +83,9 @@
 /* Zone modal (compact) */
 .modal-overlay.zone-modal .modal-content {
     height: auto;
-    max-width: 400px;
+    max-height: 80vh;
+    max-width: 450px;
+    overflow-y: auto;
 }
 
 /* Modal table styles (shared by partials) */

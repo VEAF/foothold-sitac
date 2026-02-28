@@ -252,3 +252,17 @@ def test_map_config_full() -> None:
     assert cfg.map.max_zoom == 14
     assert len(cfg.map.alternative_tiles) == 1
     assert cfg.map.alternative_tiles[0].name == "Satellite"
+
+
+# FeaturesConfig tests
+
+
+def test_features_config_defaults() -> None:
+    cfg = load_config_str({})
+    assert cfg.features.show_zone_forces is True
+
+
+def test_features_config_disabled() -> None:
+    raw: dict[str, Any] = {"features": {"show_zone_forces": False}}
+    cfg = load_config_str(raw)
+    assert cfg.features.show_zone_forces is False

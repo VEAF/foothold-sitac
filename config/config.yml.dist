@@ -40,3 +40,7 @@ map:
 
     # maximum zoom level
     # max_zoom: 11
+
+# features:
+#   # show unit groups detail when clicking a zone (default: true)
+#   show_zone_forces: true
