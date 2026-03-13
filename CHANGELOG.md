@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-13
+
 ### Added
 
 - Add success board page showing the best player in each stat category with award cards ([#115](https://github.com/VEAF/foothold-sitac/issues/115))
