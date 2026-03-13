@@ -151,7 +151,7 @@
     </div>
 
     <div style="text-align:center;">
-        <a href="/foothold/map/{{ server }}" class="player-back-btn">Back to map</a>
+        <a href="{{ request.url_for('foothold_map', server=server) }}" class="player-back-btn">Back to map</a>
     </div>
 </div>
 {% endblock %}

@@ -66,9 +66,9 @@ async def foothold_map(request: Request, server: str, sitac: Annotated[Sitac, De
 
 
 @router.get("/map/{server}/players", response_class=HTMLResponse)
-async def foothold_players_modal(server: str, sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
+async def foothold_players_modal(request: Request, server: str, sitac: Annotated[Sitac, Depends(get_active_sitac)]) -> str:
     template = env.get_template("foothold/partials/players.html")
-    return template.render({"sitac": sitac, "server": server})
+    return template.render({"request": request, "sitac": sitac, "server": server})
 
 
 @router.get("/map/{server}/zones", response_class=HTMLResponse)

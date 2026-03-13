@@ -26,7 +26,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.points_spent | int }}</td>
             <td class="n">{{ stats.deaths }}</td>
@@ -56,7 +56,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.air', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.air }}</td>
             <td class="n">{{ stats.helo }}</td>
@@ -84,7 +84,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.SAM', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.SAM }}</td>
         </tr>
@@ -111,7 +111,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.ground_units', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.ground_units }}</td>
             <td class="n">{{ stats.infantry }}</td>
@@ -139,7 +139,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.structure', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.structure }}</td>
             <td class="n">{{ stats.bomb_runway }}</td>
@@ -167,7 +167,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.flight_time', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.flight_time | int }}</td>
             <td class="n">{{ stats.warehouse_delivery }}</td>
@@ -195,7 +195,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.pilot_rescue', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.flight_time | int }}</td>
             <td class="n">{{ stats.pilot_rescue }}</td>
@@ -220,7 +220,7 @@
         {% for player, stats in sitac.player_stats.items() | sort(attribute='1.recon_mission', reverse=True) %}
         <tr>
             <td class="n col-rank">{{ loop.index }}</td>
-            <td><a href="/foothold/player/{{ server }}/{{ player | urlencode }}">{{ player }}</a></td>
+            <td><a href="{{ request.url_for('foothold_player', server=server, player_name=player) }}">{{ player }}</a></td>
             <td class="n">{{ stats.points | int }}</td>
             <td class="n">{{ stats.recon_mission }}</td>
         </tr>
