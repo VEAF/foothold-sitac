@@ -71,6 +71,7 @@
 #modal-body {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Loading state */
@@ -131,6 +132,77 @@
 
 .modal-table td {
     color: var(--text-secondary);
+}
+
+/* Players table - compact padding for 11 columns */
+.modal-table.players th,
+.modal-table.players td {
+    padding: 10px 8px;
+}
+
+/* Icon headers - centered with tooltip */
+.modal-table th.col-icon {
+    text-align: center;
+    cursor: help;
+    position: relative;
+}
+
+.modal-table th.col-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1d23;
+    color: #e2e8f0;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.modal-table th.col-icon:hover::after,
+.modal-table th.col-icon.tooltip-active::after {
+    opacity: 1;
+}
+
+/* Value cell tooltips */
+.modal-table td[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+.modal-table td[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1d23;
+    color: #e2e8f0;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.modal-table td[data-tooltip]:hover::after,
+.modal-table td[data-tooltip].tooltip-active::after {
+    opacity: 1;
 }
 
 /* Player rankings - podium colors (only for players table) */

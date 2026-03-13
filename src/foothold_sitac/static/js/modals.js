@@ -25,6 +25,11 @@ function openModal(type) {
                 newScript.textContent = oldScript.textContent;
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
+
+            // Initialize tooltips on dynamically loaded content
+            if (typeof initTooltips === 'function') {
+                initTooltips(body);
+            }
         })
         .catch(function(error) {
             body.innerHTML = '<div class="modal-loading">Error loading data</div>';
