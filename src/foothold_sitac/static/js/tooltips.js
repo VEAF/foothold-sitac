@@ -2,7 +2,7 @@
 
 document.addEventListener('click', function(e) {
     var target = e.target.closest('[data-tooltip]');
-    if (target) {
+    if (target && !target.hasAttribute('data-sort-key')) {
         var wasActive = target.classList.contains('tooltip-active');
         // Close all tooltips first
         document.querySelectorAll('.tooltip-active').forEach(function(el) {
