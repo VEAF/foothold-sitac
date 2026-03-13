@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- Add all missing player metrics and reorganize ranking table into category tabs: General, Air to Air, SEAD, CAS, Strike, Logistic, CSAR, Recon ([#113](https://github.com/VEAF/foothold-sitac/issues/113))
 - Add column sorting to ranking table and reorder columns to place ratios next to their related values ([#108](https://github.com/VEAF/foothold-sitac/issues/108))
 - Add ratio columns (Pts/Death, Air K/D, Ground K/D) and icon headers with tooltips to ranking board ([#107](https://github.com/VEAF/foothold-sitac/issues/107))
 - Display remaining units on objectives ([#103](https://github.com/VEAF/foothold-sitac/issues/103))

@@ -116,6 +116,14 @@ class PlayerStats(BaseModel):
     infantry: int = Field(alias="Infantry", default=0)
     ground_units: int = Field(alias="Ground Units", default=0)
     helo: int = Field(alias="Helo", default=0)
+    structure: int = Field(alias="Structure", default=0)
+    CAP_mission: int = Field(alias="CAP mission", default=0)
+    recon_mission: int = Field(alias="Recon mission", default=0)
+    pilot_rescue: int = Field(alias="Pilot Rescue", default=0)
+    flight_time: float = Field(alias="Flight time", default=0)
+    warehouse_delivery: int = Field(alias="Warehouse delivery", default=0)
+    bomb_runway: int = Field(alias="Bomb runway", default=0)
+    intercept_cargo_plane: int = Field(alias="Intercept cargo plane", default=0)
 
 
 class Accounts(BaseModel):

@@ -7,7 +7,7 @@
 }
 
 .sitac-container {
-    max-width: 900px;
+    max-width: 960px;
     margin: auto;
     background: white;
     border-radius: 12px;
@@ -151,4 +151,52 @@
 
 .side-badge.grey {
     background: #868e96;
+}
+
+/* Tabs for sitac page (light theme) */
+.sitac-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0;
+    flex-wrap: wrap;
+}
+
+.sitac-tabs .tab-btn {
+    padding: 8px 14px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #868e96;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.sitac-tabs .tab-btn:hover {
+    color: #495057;
+}
+
+.sitac-tabs .tab-btn.active {
+    color: #274bde;
+    border-bottom-color: #274bde;
+}
+
+.sitac-container .tab-content {
+    display: none;
+}
+
+.sitac-container .tab-content.active {
+    display: block;
+}
+
+/* Fixed rank column width */
+.col-rank {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center !important;
 }
