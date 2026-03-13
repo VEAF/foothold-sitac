@@ -1,36 +1,24 @@
-/* Tooltips JS - Click support for mobile devices */
+/* Tooltips JS - Click support for mobile devices (single delegated listener) */
 
-function initTooltips(container) {
-    var root = container || document;
-    var selector = '[data-tooltip]';
-
-    root.querySelectorAll(selector).forEach(function(el) {
-        el.addEventListener('click', function(e) {
-            var wasActive = el.classList.contains('tooltip-active');
-            // Close all tooltips first
-            root.querySelectorAll('.tooltip-active').forEach(function(other) {
-                other.classList.remove('tooltip-active');
-            });
-            // Toggle clicked tooltip
-            if (!wasActive) {
-                el.classList.add('tooltip-active');
-            }
+document.addEventListener('click', function(e) {
+    var target = e.target.closest('[data-tooltip]');
+    if (target) {
+        var wasActive = target.classList.contains('tooltip-active');
+        // Close all tooltips first
+        document.querySelectorAll('.tooltip-active').forEach(function(el) {
+            el.classList.remove('tooltip-active');
         });
-    });
-
-    // Close tooltips when clicking elsewhere
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest(selector)) {
-            root.querySelectorAll('.tooltip-active').forEach(function(el) {
-                el.classList.remove('tooltip-active');
-            });
+        // Toggle clicked tooltip
+        if (!wasActive) {
+            target.classList.add('tooltip-active');
         }
-    });
-}
+    } else {
+        // Clicked outside any tooltip element — close all
+        document.querySelectorAll('.tooltip-active').forEach(function(el) {
+            el.classList.remove('tooltip-active');
+        });
+    }
+});
 
-// Auto-init for standalone pages
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { initTooltips(); });
-} else {
-    initTooltips();
-}
+// Keep initTooltips as a no-op for backward compatibility with modals.js
+function initTooltips() {}
