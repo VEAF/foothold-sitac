@@ -140,6 +140,33 @@
     padding: 10px 8px;
 }
 
+/* Sortable column headers */
+th[data-sort-key] {
+    cursor: pointer;
+    user-select: none;
+}
+
+th[data-sort-key]:hover {
+    background: rgba(66, 99, 235, 0.25);
+}
+
+th[data-sort-key]::before {
+    font-size: 10px;
+    margin-right: 4px;
+    opacity: 0.4;
+    content: '\2195';
+}
+
+th[data-sort-key].sort-asc::before {
+    content: '\2191';
+    opacity: 1;
+}
+
+th[data-sort-key].sort-desc::before {
+    content: '\2193';
+    opacity: 1;
+}
+
 /* Icon headers - centered with tooltip */
 .modal-table th.col-icon {
     text-align: center;
