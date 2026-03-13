@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Success Board{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ static_url('css/success.css') }}">
+{% endblock %}
+
+{% block body_class %}success-page{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-header">
+        <i class="fa-solid fa-trophy success-trophy"></i>
+        <h1>Success Board</h1>
+        <div class="success-server">{{ server }}</div>
+    </div>
+
+    {% if awards %}
+    <div class="awards-grid">
+        {% for award in awards %}
+        <div class="award-card">
+            <div class="award-icon"><i class="fa-solid {{ award.icon }}"></i></div>
+            <div class="award-title">{{ award.title }}</div>
+            <div class="award-description">{{ award.description }}</div>
+            <div class="award-player">
+                <a href="{{ request.url_for('foothold_player', server=server, player_name=award.player_name) }}">{{ award.player_name }}</a>
+            </div>
+            <div class="award-value">{{ award.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-awards">No player stats available yet.</p>
+    {% endif %}
+
+    <div style="text-align:center;">
+        <a href="{{ request.url_for('foothold_map', server=server) }}" class="success-back-btn">Back to map</a>
+    </div>
+</div>
+{% endblock %}
