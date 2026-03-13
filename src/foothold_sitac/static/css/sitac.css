@@ -192,3 +192,11 @@
 .sitac-container .tab-content.active {
     display: block;
 }
+
+/* Fixed rank column width */
+.col-rank {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center !important;
+}

@@ -134,10 +134,18 @@
     color: var(--text-secondary);
 }
 
-/* Players table - compact padding for 11 columns */
+/* Players table - compact padding */
 .modal-table.players th,
 .modal-table.players td {
     padding: 10px 8px;
+}
+
+/* Fixed rank column width */
+.modal-table .col-rank {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center !important;
 }
 
 /* Sortable column headers */
