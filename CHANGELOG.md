@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 
 - Avoid publish with wrong tag format ([#96](https://github.com/VEAF/foothold-sitac/pull/96))
+- Navbar responsive design
 
 ## [0.2.0] - 2026-02-28
 
