@@ -4,6 +4,9 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ static_url('css/sitac.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock %}
 
 {% block body_class %}sitac-page{% endblock %}
@@ -54,12 +57,15 @@
             <tr>
                 <th>#</th>
                 <th>Player</th>
-                <th>Points</th>
-                <th>Deaths</th>
-                <th>Zone Captures</th>
-                <th>Zone Upgrades</th>
-                <th>Air</th>
-                <th>Ground Units</th>
+                <th class="col-icon" data-tooltip="Points"><i class="fa-solid fa-star"></i></th>
+                <th class="col-icon" data-tooltip="Deaths"><i class="fa-solid fa-skull"></i></th>
+                <th class="col-icon" data-tooltip="Points per Death"><i class="fa-solid fa-chart-line"></i></th>
+                <th class="col-icon" data-tooltip="Zone Captures"><i class="fa-solid fa-flag"></i></th>
+                <th class="col-icon" data-tooltip="Zone Upgrades"><i class="fa-solid fa-arrow-up"></i></th>
+                <th class="col-icon" data-tooltip="Air Kills (A/A)"><i class="fa-solid fa-jet-fighter"></i></th>
+                <th class="col-icon" data-tooltip="Ground Kills (A/G)"><i class="fa-solid fa-crosshairs"></i></th>
+                <th class="col-icon" data-tooltip="Air Kill/Death Ratio"><i class="fa-solid fa-plane-slash"></i></th>
+                <th class="col-icon" data-tooltip="Ground Kill/Death Ratio"><i class="fa-solid fa-explosion"></i></th>
             </tr>
         </thead>
         <tbody>
@@ -67,12 +73,15 @@
             <tr>
                 <td class="n">{{ loop.index }}</td>
                 <td>{{ player }}</td>
-                <td class="n">{{ stats.points | int }}</td>
-                <td class="n">{{ stats.deaths }}</td>
-                <td class="n">{{ stats.zone_capture }}</td>
-                <td class="n">{{ stats.zone_upgrade }}</td>
-                <td class="n">{{ stats.air }}</td>
-                <td class="n">{{ stats.ground_units }}</td>
+                <td class="n" data-tooltip="Points">{{ stats.points | int }}</td>
+                <td class="n" data-tooltip="Deaths">{{ stats.deaths }}</td>
+                <td class="n" data-tooltip="Points per Death">{{ (stats.points / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
+                <td class="n" data-tooltip="Zone Captures">{{ stats.zone_capture }}</td>
+                <td class="n" data-tooltip="Zone Upgrades">{{ stats.zone_upgrade }}</td>
+                <td class="n" data-tooltip="Air Kills (A/A)">{{ stats.air }}</td>
+                <td class="n" data-tooltip="Ground Kills (A/G)">{{ stats.ground_units }}</td>
+                <td class="n" data-tooltip="Air Kill/Death Ratio">{{ (stats.air / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
+                <td class="n" data-tooltip="Ground Kill/Death Ratio">{{ ((stats.ground_units + stats.infantry) / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -82,4 +91,8 @@
         <a href="{{ request.url_for('foothold_servers') }}" class="sitac-back-btn">Back to servers list</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ static_url('js/tooltips.js') }}"></script>
 {% endblock %}
