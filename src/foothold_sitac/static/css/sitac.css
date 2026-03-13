@@ -193,6 +193,17 @@
     display: block;
 }
 
+/* Player name links */
+.sitac-table td a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.sitac-table td a:hover {
+    color: #e67700;
+    text-decoration: none;
+}
+
 /* Fixed rank column width */
 .col-rank {
     width: 40px;
