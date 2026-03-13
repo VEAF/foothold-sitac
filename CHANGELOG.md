@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
-- Add column sorting to ranking table ([#108](https://github.com/VEAF/foothold-sitac/issues/108))
+- Add column sorting to ranking table and reorder columns to place ratios next to their related values ([#108](https://github.com/VEAF/foothold-sitac/issues/108))
 - Add ratio columns (Pts/Death, Air K/D, Ground K/D) and icon headers with tooltips to ranking board ([#107](https://github.com/VEAF/foothold-sitac/issues/107))
 - Display remaining units on objectives ([#103](https://github.com/VEAF/foothold-sitac/issues/103))
 - Display coalition credits ([#102](https://github.com/VEAF/foothold-sitac/pull/102))
