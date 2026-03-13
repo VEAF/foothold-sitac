@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player_name }}{% endblock %}
+
+{% block styles %}
+<meta property="og:title" content="{{ player_name }} - Foothold Stats">
+<meta property="og:description" content="Rank #{{ rank }}/{{ total_players }} | {{ stats.points | int }} pts | {{ stats.air }} air kills | {{ stats.ground_units }} ground kills | {{ stats.deaths }} deaths">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="{{ request.url }}">
+<link rel="stylesheet" href="{{ static_url('css/player.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block body_class %}player-page{% endblock %}
+
+{% block content %}
+<div class="player-container">
+    <div class="player-header">
+        <div class="player-rank{% if rank == 1 %} rank-1{% elif rank == 2 %} rank-2{% elif rank == 3 %} rank-3{% endif %}">#{{ rank }}</div>
+        <h1 class="player-name">{{ player_name }}</h1>
+        <div class="player-server">{{ server }}</div>
+    </div>
+
+    <div class="player-overview">
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.points | int }}</span>
+            <span class="stat-label">Points</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.deaths }}</span>
+            <span class="stat-label">Deaths</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ (stats.points / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
+            <span class="stat-label">Points / Death</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.flight_time | int }}</span>
+            <span class="stat-label">Flight Time (min)</span>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h2><i class="fa-solid fa-jet-fighter"></i> Air Combat</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <i class="fa-solid fa-jet-fighter"></i>
+                <span class="stat-item-label">Air Kills</span>
+                <span class="stat-item-value">{{ stats.air }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-helicopter"></i>
+                <span class="stat-item-label">Helo Kills</span>
+                <span class="stat-item-value">{{ stats.helo }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-plane-circle-xmark"></i>
+                <span class="stat-item-label">Intercept Cargo</span>
+                <span class="stat-item-value">{{ stats.intercept_cargo_plane }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span class="stat-item-label">CAP Missions</span>
+                <span class="stat-item-value">{{ stats.CAP_mission }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-percent"></i>
+                <span class="stat-item-label">Air K/D</span>
+                <span class="stat-item-value">{{ (stats.air / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h2><i class="fa-solid fa-crosshairs"></i> Ground Combat</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <i class="fa-solid fa-crosshairs"></i>
+                <span class="stat-item-label">Ground Units</span>
+                <span class="stat-item-value">{{ stats.ground_units }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-person-rifle"></i>
+                <span class="stat-item-label">Infantry</span>
+                <span class="stat-item-value">{{ stats.infantry }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-explosion"></i>
+                <span class="stat-item-label">SAM Kills</span>
+                <span class="stat-item-value">{{ stats.SAM }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-building"></i>
+                <span class="stat-item-label">Structures</span>
+                <span class="stat-item-value">{{ stats.structure }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-bullseye"></i>
+                <span class="stat-item-label">CAS Missions</span>
+                <span class="stat-item-value">{{ stats.CAS_mission }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-road"></i>
+                <span class="stat-item-label">Bomb Runway</span>
+                <span class="stat-item-value">{{ stats.bomb_runway }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-percent"></i>
+                <span class="stat-item-label">Ground K/D</span>
+                <span class="stat-item-value">{{ ((stats.ground_units + stats.infantry) / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h2><i class="fa-solid fa-truck"></i> Logistics & Support</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <i class="fa-solid fa-flag"></i>
+                <span class="stat-item-label">Zone Captures</span>
+                <span class="stat-item-value">{{ stats.zone_capture }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-arrow-up"></i>
+                <span class="stat-item-label">Zone Upgrades</span>
+                <span class="stat-item-value">{{ stats.zone_upgrade }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-warehouse"></i>
+                <span class="stat-item-label">Warehouse Deliveries</span>
+                <span class="stat-item-value">{{ stats.warehouse_delivery }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-coins"></i>
+                <span class="stat-item-label">Points Spent</span>
+                <span class="stat-item-value">{{ stats.points_spent }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-parachute-box"></i>
+                <span class="stat-item-label">Pilot Rescues</span>
+                <span class="stat-item-value">{{ stats.pilot_rescue }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-binoculars"></i>
+                <span class="stat-item-label">Recon Missions</span>
+                <span class="stat-item-value">{{ stats.recon_mission }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align:center;">
+        <a href="/foothold/map/{{ server }}" class="player-back-btn">Back to map</a>
+    </div>
+</div>
+{% endblock %}

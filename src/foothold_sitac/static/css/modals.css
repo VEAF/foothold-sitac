@@ -240,6 +240,17 @@ th[data-sort-key].sort-desc::before {
     opacity: 1;
 }
 
+/* Player name links */
+.modal-table td a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.modal-table td a:hover {
+    color: #fbbf24;
+    text-decoration: none;
+}
+
 /* Player rankings - podium colors (only for players table) */
 .modal-table.players tbody tr:first-child td {
     color: #fbbf24;

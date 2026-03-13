@@ -177,3 +177,39 @@ def test_map_data_includes_upgrades_used(client: TestClient) -> None:
     aleppo = next(z for z in data["zones"] if z["name"] == "Aleppo")
     assert aleppo["upgrades_used"] == 2
     assert aleppo["level"] == 3
+
+
+# Player view tests
+
+
+def test_player_view_returns_200(client: TestClient) -> None:
+    response = client.get("/foothold/player/test_player_stats/Viper")
+    assert response.status_code == 200
+
+
+def test_player_view_unknown_player_returns_404(client: TestClient) -> None:
+    response = client.get("/foothold/player/test_player_stats/UnknownPlayer")
+    assert response.status_code == 404
+
+
+def test_player_view_contains_og_tags(client: TestClient) -> None:
+    response = client.get("/foothold/player/test_player_stats/Viper")
+    assert response.status_code == 200
+    assert "og:title" in response.text
+    assert "og:description" in response.text
+    assert "Viper - Foothold Stats" in response.text
+
+
+def test_player_view_contains_stats(client: TestClient) -> None:
+    response = client.get("/foothold/player/test_player_stats/Viper")
+    assert response.status_code == 200
+    assert "Viper" in response.text
+    assert "1500" in response.text  # points
+    assert "12" in response.text  # air kills
+
+
+def test_player_view_contains_rank(client: TestClient) -> None:
+    response = client.get("/foothold/player/test_player_stats/Viper")
+    assert response.status_code == 200
+    # Viper has 1500 points, Eagle has 2000, so Viper is rank #2
+    assert "#2" in response.text
