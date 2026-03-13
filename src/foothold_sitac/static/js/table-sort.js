@@ -1,6 +1,8 @@
 /* Table Sort JS - Client-side column sorting for ranking tables */
 
 function initTableSort(table) {
+    if (table.dataset.sortInitialized) return;
+    table.dataset.sortInitialized = 'true';
     var headers = table.querySelectorAll('th[data-sort-key]');
     headers.forEach(function(th) {
         th.addEventListener('click', function() {
