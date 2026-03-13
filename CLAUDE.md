@@ -68,3 +68,4 @@ The app auto-discovers Foothold servers by scanning `dcs.saved_games` for direct
 ## Documentation
 
 - **docs/features.md**: Complete list of user-facing features (map, ruler, modals, API endpoints)
+- **docs/lua-file-format.md**: Lua persistence file format documentation (Foothold 3.2.2) with YAML example
