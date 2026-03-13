@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- Add success board page showing the best player in each stat category with award cards ([#115](https://github.com/VEAF/foothold-sitac/issues/115))
 - Add dedicated player stats page with detailed metrics, rank display, and OpenGraph meta tags ([#110](https://github.com/VEAF/foothold-sitac/issues/110))
 - Add all missing player metrics and reorganize ranking table into category tabs: General, Air to Air, SEAD, CAS, Strike, Logistic, CSAR, Recon ([#113](https://github.com/VEAF/foothold-sitac/issues/113))
 - Add column sorting to ranking table and reorder columns to place ratios next to their related values ([#108](https://github.com/VEAF/foothold-sitac/issues/108))

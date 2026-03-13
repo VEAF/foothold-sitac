@@ -213,3 +213,37 @@ def test_player_view_contains_rank(client: TestClient) -> None:
     assert response.status_code == 200
     # Viper has 1500 points, Eagle has 2000, so Viper is rank #2
     assert "#2" in response.text
+
+
+# Success board tests
+
+
+def test_success_board_returns_200(client: TestClient) -> None:
+    response = client.get("/foothold/success/test_player_stats")
+    assert response.status_code == 200
+
+
+def test_success_board_contains_categories(client: TestClient) -> None:
+    response = client.get("/foothold/success/test_player_stats")
+    assert response.status_code == 200
+    assert "Success Board" in response.text
+    assert "Top Scorer" in response.text
+    assert "Ace Pilot" in response.text
+    assert "Survivor" in response.text
+
+
+def test_success_board_shows_best_players(client: TestClient) -> None:
+    response = client.get("/foothold/success/test_player_stats")
+    assert response.status_code == 200
+    # Eagle has most points (2000) and most air kills (20)
+    assert "Eagle" in response.text
+    # Viper has most ground units (15)
+    assert "Viper" in response.text
+
+
+def test_success_board_skips_zero_categories(client: TestClient) -> None:
+    response = client.get("/foothold/success/test_player_stats")
+    assert response.status_code == 200
+    # All players have at least some stats, so most categories should appear
+    # but Bomb runway: only Viper has 1, Falcon and Eagle have 0 → Viper wins
+    assert "Runway Striker" in response.text

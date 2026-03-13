@@ -11,11 +11,23 @@ function toggleServerDropdown() {
     dropdown.classList.toggle('open');
 }
 
-// Close dropdown when clicking outside
+// Burger menu toggle
+function toggleBurgerMenu() {
+    var container = document.querySelector('.navbar-burger-dropdown');
+    if (container) {
+        container.classList.toggle('open');
+    }
+}
+
+// Close dropdowns when clicking outside
 document.addEventListener('click', function(e) {
     var dropdown = document.querySelector('.navbar-brand-dropdown');
     if (dropdown && !dropdown.contains(e.target)) {
         dropdown.classList.remove('open');
+    }
+    var burger = document.querySelector('.navbar-burger-dropdown');
+    if (burger && !burger.contains(e.target)) {
+        burger.classList.remove('open');
     }
 });
 
