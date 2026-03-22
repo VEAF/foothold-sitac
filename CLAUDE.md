@@ -65,6 +65,17 @@ Key config sections:
 
 The app auto-discovers Foothold servers by scanning `dcs.saved_games` for directories containing a `foothold.status` file in their `Missions/Saves/` subfolder.
 
+### CTLD FARPs and DCS Coordinate Conversion
+
+CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`) using DCS internal coordinates (x=north, z=east in meters), not lat/lon. Converting these to lat/lon requires a Transverse Mercator inverse projection with theater-specific parameters.
+
+The conversion logic is in `src/foothold_sitac/dcs_coordinates.py`. Projection parameters (central meridian, false northing) were reverse-engineered from grid data at https://github.com/Kilcekru/dcs-coordinates by finding the lat/lon of DCS origin (0,0) for each theater. Accuracy: ~300m, sufficient for tactical map display.
+
+**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — if a mission has zones outside the expected bounds, detection will fail.
+
+Currently supported theaters: persianGulf, normandy, syria, sinai, southAtlantic, caucasus (estimated).
+Missing theaters: afghanistan, iraq, theChannel, germany, kola, marianasIslands — parameters need to be extracted from DCS grid data.
+
 ## Documentation
 
 - **docs/features.md**: Complete list of user-facing features (map, ruler, modals, API endpoints)

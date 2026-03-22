@@ -3,13 +3,16 @@ from typing import Any
 
 import pytest
 
+from foothold_sitac.dcs_coordinates import dcs_to_latlon, detect_theater
 from foothold_sitac.foothold import (
     Connection,
     EjectedPilot,
+    Farp,
     Mission,
     Player,
     WeatherInfo,
     Zone,
+    load_farps,
     load_sitac,
     parse_coordinates_from_text,
 )
@@ -579,3 +582,88 @@ def test_parse_coordinates_full_example() -> None:
     assert pos is not None
     assert abs(pos.latitude - 44.4539) < 0.001
     assert abs(pos.longitude - 39.7372) < 0.001
+
+
+# DCS coordinate conversion tests
+
+
+def test_dcs_to_latlon_persiangulf() -> None:
+    """Test DCS coordinate conversion for PersianGulf theater"""
+    lat, lon = dcs_to_latlon(57367.292969, -54940.789062, "persianGulf")
+    # Should produce coordinates in the Persian Gulf region
+    assert 22.0 <= lat <= 31.0
+    assert 51.5 <= lon <= 58.8
+
+
+def test_dcs_to_latlon_unknown_theater() -> None:
+    """Test DCS coordinate conversion raises for unknown theater"""
+    with pytest.raises(ValueError, match="Unsupported DCS theater"):
+        dcs_to_latlon(0.0, 0.0, "unknown_theater")
+
+
+# Theater detection tests
+
+
+def test_detect_theater_persiangulf() -> None:
+    """Test theater detection for PersianGulf zone coordinates"""
+    theater = detect_theater(25.28, 55.86)
+    assert theater == "persianGulf"
+
+
+def test_detect_theater_no_match() -> None:
+    """Test theater detection returns None for unknown coordinates"""
+    assert detect_theater(0.0, 0.0) is None
+
+
+# FARP CSV loading tests
+
+
+def test_load_farps_parses_csv() -> None:
+    """Test loading FARPs from CSV file"""
+    mission_path = Path("tests/fixtures/test_farps/Missions/Saves/foothold_persiangulf.lua")
+    farps = load_farps(mission_path, "persianGulf")
+    assert len(farps) == 2
+    assert farps[0].name == "CTLD FARP London"
+    assert 22.0 <= farps[0].latitude <= 30.0
+    assert 48.0 <= farps[0].longitude <= 62.0
+    assert farps[1].name == "CTLD FARP Paris"
+
+
+def test_load_farps_missing_csv_returns_empty() -> None:
+    """Test loading FARPs when CSV doesn't exist returns empty list"""
+    mission_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
+    farps = load_farps(mission_path, "persianGulf")
+    assert farps == []
+
+
+def test_load_farps_empty_csv_returns_empty(tmp_path: Path) -> None:
+    """Test loading FARPs from CSV with only header returns empty list"""
+    csv_file = tmp_path / "test_mission_CTLD_FARPS.csv"
+    csv_file.write_text("FARP COORDINATES\n")
+    mission_path = tmp_path / "test_mission.lua"
+    farps = load_farps(mission_path, "persianGulf")
+    assert farps == []
+
+
+def test_farp_model_validation() -> None:
+    """Test Farp model validation"""
+    farp = Farp(name="FARP London", latitude=26.5, longitude=56.0)
+    assert farp.name == "FARP London"
+    assert farp.latitude == 26.5
+    assert farp.longitude == 56.0
+
+
+def test_load_sitac_with_farps() -> None:
+    """Test that load_sitac loads FARPs from CSV when present"""
+    lua_path = Path("tests/fixtures/test_farps/Missions/Saves/foothold_persiangulf.lua")
+    sitac = load_sitac(lua_path)
+    assert len(sitac.farps) == 2
+    assert sitac.farps[0].name == "CTLD FARP London"
+    assert sitac.farps[1].name == "CTLD FARP Paris"
+
+
+def test_load_sitac_without_farps() -> None:
+    """Test that load_sitac returns empty farps when no CSV"""
+    lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
+    sitac = load_sitac(lua_path)
+    assert sitac.farps == []
