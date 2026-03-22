@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Annotated, Any
 from fastapi import APIRouter, Depends
+from foothold_sitac.cache import get_checked_at, get_status_mtime
 from foothold_sitac.config import get_config
 from foothold_sitac.dependencies import get_active_sitac
 from foothold_sitac.foothold import Sitac, list_servers, parse_coordinates_from_text
@@ -31,6 +32,7 @@ async def foothold_get_sitac(sitac: Annotated[Sitac, Depends(get_active_sitac)])
 
 @router.get("/{server}/map.json", response_model=MapData)
 async def foothold_get_map_data(
+    server: str,
     sitac: Annotated[Sitac, Depends(get_active_sitac)],
 ) -> Any:
     show_forces = get_config().features.show_zone_forces
@@ -82,7 +84,10 @@ async def foothold_get_map_data(
                 )
             )
 
-    age_seconds = (datetime.now() - sitac.updated_at).total_seconds()
+    status_mtime = get_status_mtime(server)
+    reference_time = status_mtime if status_mtime else sitac.updated_at
+    age_seconds = (datetime.now() - reference_time).total_seconds()
+    is_fresh = get_checked_at(server) is not None and age_seconds < 130
 
     # Build players list
     players = [
@@ -131,6 +136,7 @@ async def foothold_get_map_data(
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
+        is_fresh=is_fresh,
         zones=zones,
         connections=connections,
         players=players,

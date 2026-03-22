@@ -23,6 +23,7 @@
     align-items: center;
     gap: 6px;
     box-shadow: var(--shadow-sm);
+    cursor: pointer;
 }
 
 #freshness-widget.fresh {

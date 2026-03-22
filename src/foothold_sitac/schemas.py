@@ -68,6 +68,7 @@ class MapFarp(BaseModel):
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
+    is_fresh: bool = True
     zones: list[MapZone]
     connections: list[MapConnection]
     players: list[MapPlayer] = Field(default_factory=list)
