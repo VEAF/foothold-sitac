@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-22
+
 ### Added
 
 - Add server-side cache based on `foothold.status` file mtime to avoid re-parsing Lua files on every request ([#130](https://github.com/VEAF/foothold-sitac/issues/130))
