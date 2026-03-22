@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
-- Fix zone upgrade display showing wrong value (`upgradesUsed` always 0), now displays zone level instead ([#120](https://github.com/VEAF/foothold-sitac/issues/120))
+- Fix zone upgrade display showing the wrong value (`upgradesUsed` always 0), now displays zone level instead ([#120](https://github.com/VEAF/foothold-sitac/issues/120))
 
 
 ## [0.3.0] - 2026-03-13

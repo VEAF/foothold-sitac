@@ -148,7 +148,7 @@ function openZoneModal(zone) {
             '</tr>' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Level</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.level + '</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + (zone.level != null ? zone.level : '-') + '</td>' +
             '</tr>' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
