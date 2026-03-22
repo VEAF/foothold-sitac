@@ -83,7 +83,7 @@
                 <td class="n">{{ stats.points | int }}</td>
                 <td class="n">{{ stats.points_spent | int }}</td>
                 <td class="n">{{ stats.deaths }}</td>
-                <td class="n" data-sort-value="{{ (stats.points / (stats.deaths + 1)) | round(1) }}">{{ (stats.points / (stats.deaths + 1)) | round(1) }}</td>
+                <td class="n" data-sort-value="{{ (stats.points / stats.lives) | round(1) }}">{{ (stats.points / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -113,7 +113,7 @@
                 <td class="n">{{ stats.helo }}</td>
                 <td class="n">{{ stats.intercept_cargo_plane }}</td>
                 <td class="n">{{ stats.CAP_mission }}</td>
-                <td class="n" data-sort-value="{{ (stats.air / (stats.deaths + 1)) | round(1) }}">{{ (stats.air / (stats.deaths + 1)) | round(1) }}</td>
+                <td class="n" data-sort-value="{{ (stats.air / stats.lives) | round(1) }}">{{ (stats.air / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -163,7 +163,7 @@
                 <td class="n">{{ stats.ground_units }}</td>
                 <td class="n">{{ stats.infantry }}</td>
                 <td class="n">{{ stats.CAS_mission }}</td>
-                <td class="n" data-sort-value="{{ ((stats.ground_units + stats.infantry) / (stats.deaths + 1)) | round(1) }}">{{ ((stats.ground_units + stats.infantry) / (stats.deaths + 1)) | round(1) }}</td>
+                <td class="n" data-sort-value="{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}">{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>

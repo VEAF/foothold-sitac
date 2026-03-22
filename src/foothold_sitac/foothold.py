@@ -125,6 +125,10 @@ class PlayerStats(BaseModel):
     bomb_runway: int = Field(alias="Bomb runway", default=0)
     intercept_cargo_plane: int = Field(alias="Intercept cargo plane", default=0)
 
+    @property
+    def lives(self) -> int:
+        return self.deaths + 1
+
 
 class Accounts(BaseModel):
     red: float = 0
