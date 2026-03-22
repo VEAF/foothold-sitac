@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Add `WeatherInfo` model to parse weather data from Lua persistence files with float support for `wind_direction` ([#122](https://github.com/VEAF/foothold-sitac/issues/122))
 
+### Changed
+
+- Use "per life" ratios instead of "per death" (Points/Life, Air K/L, Ground K/L) so ratios are always calculable, even with 0 deaths ([#119](https://github.com/VEAF/foothold-sitac/issues/119))
+
 ### Fixed
 
 - Fix zone upgrade display showing the wrong value (`upgradesUsed` always 0), now displays zone level instead ([#120](https://github.com/VEAF/foothold-sitac/issues/120))
