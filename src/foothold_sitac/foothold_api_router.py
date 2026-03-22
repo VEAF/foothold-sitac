@@ -3,8 +3,17 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from foothold_sitac.config import get_config
 from foothold_sitac.dependencies import get_active_sitac
-from foothold_sitac.foothold import Sitac, list_servers
-from foothold_sitac.schemas import MapConnection, MapData, MapEjectedPilot, MapPlayer, MapZone, Server, UnitGroup
+from foothold_sitac.foothold import Sitac, list_servers, parse_coordinates_from_text
+from foothold_sitac.schemas import (
+    MapConnection,
+    MapData,
+    MapEjectedPilot,
+    MapMission,
+    MapPlayer,
+    MapZone,
+    Server,
+    UnitGroup,
+)
 
 router = APIRouter()
 
@@ -100,6 +109,21 @@ async def foothold_get_map_data(
         # if pilot.player_name != "Unknown" # don't hide Unknown pilots, real pilots have this name
     ]
 
+    # Build missions with coordinates
+    missions_with_coords = []
+    for mission in sitac.missions:
+        pos = parse_coordinates_from_text(mission.description)
+        if pos:
+            missions_with_coords.append(
+                MapMission(
+                    title=mission.title,
+                    lat=pos.latitude,
+                    lon=pos.longitude,
+                    is_running=mission.is_running,
+                    is_escort_mission=mission.is_escort_mission,
+                )
+            )
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
@@ -107,6 +131,7 @@ async def foothold_get_map_data(
         connections=connections,
         players=players,
         ejected_pilots=ejected_pilots,
+        missions=missions_with_coords,
         progress=sitac.campaign_progress,
         missions_count=len(sitac.missions),
         ejected_pilots_count=len(ejected_pilots),

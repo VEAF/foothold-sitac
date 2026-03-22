@@ -38,6 +38,7 @@ var playersLayer = null;
 var labelsLayer = null;
 var ejectionsLayer = null;
 var markpointsLayer = null;
+var missionsLayer = null;
 
 // Data arrays
 var zonesData = [];
@@ -45,6 +46,7 @@ var connectionsData = [];
 var playersData = [];
 var ejectionsData = [];
 var markpointsData = [];
+var missionsData = [];
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -95,6 +97,7 @@ function initMap() {
     labelsLayer = L.layerGroup().addTo(map);
     ejectionsLayer = L.layerGroup().addTo(map);
     markpointsLayer = L.layerGroup().addTo(map);
+    missionsLayer = L.layerGroup().addTo(map);
     rulerLayer = L.layerGroup().addTo(map);
 
     // Load markpoints from localStorage
@@ -106,6 +109,7 @@ function initMap() {
         updatePlayers();
         updateEjections();
         updateMarkpoints();
+        updateMissions();
     });
 
     // Cursor position display
@@ -366,6 +370,42 @@ function updateEjections() {
     });
 }
 
+// Mission markers
+function updateMissions() {
+    missionsLayer.clearLayers();
+    var zoom = map.getZoom();
+
+    missionsData.forEach(function(mission) {
+        var icon = '<i class="fa-solid fa-crosshairs"></i>';
+        var content = zoom >= 10
+            ? icon + '<br><span style="font-size: 9px;">' + mission.title + '</span>'
+            : icon;
+
+        var marker = L.marker([mission.lat, mission.lon], {
+            icon: L.divIcon({
+                className: 'mission-label',
+                html: content,
+                iconSize: [100, 40],
+                iconAnchor: [50, 20]
+            })
+        });
+
+        marker.bindTooltip(mission.title, {
+            direction: 'top',
+            offset: [0, -10]
+        });
+
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(mission.lat, mission.lon, mission.title);
+                L.DomEvent.stopPropagation(e);
+            }
+        });
+
+        marker.addTo(missionsLayer);
+    });
+}
+
 function updateNavbar(progress, missionsCount, ejectedPilotsCount, blueCredits, redCredits) {
     // Update progress percentage
     var progressElement = document.getElementById('progress-value');
@@ -479,9 +519,11 @@ function loadData() {
             connectionsData = data.connections || [];
             playersData = data.players || [];
             ejectionsData = data.ejected_pilots || [];
+            missionsData = data.missions || [];
             updateConnections();
             updatePlayers();
             updateEjections();
+            updateMissions();
             updateLabels();
         })
         .catch(function(error) {

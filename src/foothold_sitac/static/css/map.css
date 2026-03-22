@@ -391,6 +391,24 @@
     font-size: 20px;
 }
 
+/* Mission markers */
+.mission-label {
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 16px;
+    color: #fbbf24;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+    text-align: center;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.mission-label .fa-crosshairs {
+    font-size: 20px;
+}
+
 /* Markpoint modal input */
 .markpoint-preview {
     margin-top: 8px;
