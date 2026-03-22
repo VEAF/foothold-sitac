@@ -8,6 +8,7 @@ from foothold_sitac.schemas import (
     MapConnection,
     MapData,
     MapEjectedPilot,
+    MapFarp,
     MapMission,
     MapPlayer,
     MapZone,
@@ -124,6 +125,9 @@ async def foothold_get_map_data(
                 )
             )
 
+    # Build FARPs list
+    farps = [MapFarp(name=farp.name, lat=farp.latitude, lon=farp.longitude) for farp in sitac.farps]
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
@@ -132,6 +136,7 @@ async def foothold_get_map_data(
         players=players,
         ejected_pilots=ejected_pilots,
         missions=missions_with_coords,
+        farps=farps,
         progress=sitac.campaign_progress,
         missions_count=len(sitac.missions),
         ejected_pilots_count=len(ejected_pilots),

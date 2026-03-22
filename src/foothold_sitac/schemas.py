@@ -59,6 +59,12 @@ class MapMission(BaseModel):
     is_escort_mission: bool
 
 
+class MapFarp(BaseModel):
+    name: str
+    lat: float
+    lon: float
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
@@ -67,6 +73,7 @@ class MapData(BaseModel):
     players: list[MapPlayer] = Field(default_factory=list)
     ejected_pilots: list[MapEjectedPilot] = Field(default_factory=list)
     missions: list[MapMission] = Field(default_factory=list)
+    farps: list[MapFarp] = Field(default_factory=list)
     progress: float
     missions_count: int
     ejected_pilots_count: int = 0

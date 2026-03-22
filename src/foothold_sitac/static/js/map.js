@@ -39,6 +39,7 @@ var labelsLayer = null;
 var ejectionsLayer = null;
 var markpointsLayer = null;
 var missionsLayer = null;
+var farpsLayer = null;
 
 // Data arrays
 var zonesData = [];
@@ -47,6 +48,7 @@ var playersData = [];
 var ejectionsData = [];
 var markpointsData = [];
 var missionsData = [];
+var farpsData = [];
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -98,6 +100,7 @@ function initMap() {
     ejectionsLayer = L.layerGroup().addTo(map);
     markpointsLayer = L.layerGroup().addTo(map);
     missionsLayer = L.layerGroup().addTo(map);
+    farpsLayer = L.layerGroup().addTo(map);
     rulerLayer = L.layerGroup().addTo(map);
 
     // Load markpoints from localStorage
@@ -110,6 +113,7 @@ function initMap() {
         updateEjections();
         updateMarkpoints();
         updateMissions();
+        updateFarps();
     });
 
     // Cursor position display
@@ -406,6 +410,71 @@ function updateMissions() {
     });
 }
 
+// FARP modal
+function openFarpModal(farp) {
+    var overlay = document.getElementById('modal-overlay');
+    var body = document.getElementById('modal-body');
+
+    var format = getCoordFormat();
+    var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : 'Decimal');
+    var formattedLat = formatCoord(farp.lat, true);
+    var formattedLon = formatCoord(farp.lon, false);
+
+    var html =
+        '<h3 style="margin-top: 0; color: #60a5fa;"><i class="fa-solid fa-helicopter"></i> ' + farp.name + '</h3>' +
+        '<table style="width: 100%; border-collapse: collapse;">' +
+            '<tr>' +
+                '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + farp.lat.toFixed(6) + ', ' + farp.lon.toFixed(6) + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td style="padding: 8px 0; color: #8892a0;">' + formatLabel + '</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + formattedLat + '<br>' + formattedLon + '</td>' +
+            '</tr>' +
+        '</table>';
+
+    body.innerHTML = html;
+    overlay.classList.add('visible', 'zone-modal');
+}
+
+// FARP markers
+function updateFarps() {
+    farpsLayer.clearLayers();
+    var zoom = map.getZoom();
+
+    farpsData.forEach(function(farp) {
+        var icon = '<i class="fa-solid fa-helicopter"></i>';
+        var content = zoom >= 10
+            ? icon + '<br><span style="font-size: 9px;">' + farp.name + '</span>'
+            : icon;
+
+        var marker = L.marker([farp.lat, farp.lon], {
+            icon: L.divIcon({
+                className: 'farp-label',
+                html: content,
+                iconSize: [100, 40],
+                iconAnchor: [50, 20]
+            })
+        });
+
+        marker.bindTooltip(farp.name, {
+            direction: 'top',
+            offset: [0, -10]
+        });
+
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(farp.lat, farp.lon, farp.name);
+                L.DomEvent.stopPropagation(e);
+            } else {
+                openFarpModal(farp);
+            }
+        });
+
+        marker.addTo(farpsLayer);
+    });
+}
+
 function updateNavbar(progress, missionsCount, ejectedPilotsCount, blueCredits, redCredits) {
     // Update progress percentage
     var progressElement = document.getElementById('progress-value');
@@ -520,10 +589,12 @@ function loadData() {
             playersData = data.players || [];
             ejectionsData = data.ejected_pilots || [];
             missionsData = data.missions || [];
+            farpsData = data.farps || [];
             updateConnections();
             updatePlayers();
             updateEjections();
             updateMissions();
+            updateFarps();
             updateLabels();
         })
         .catch(function(error) {

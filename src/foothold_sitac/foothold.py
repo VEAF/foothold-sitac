@@ -1,5 +1,7 @@
+import csv
 import re
 from datetime import datetime
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
@@ -146,6 +148,12 @@ class WeatherInfo(BaseModel):
     fog_visibility: float = Field(alias="fogVisibility", default=0)
 
 
+class Farp(BaseModel):
+    name: str
+    latitude: float
+    longitude: float
+
+
 class Sitac(BaseModel):
     updated_at: datetime
     zones: dict[str, Zone]
@@ -156,6 +164,7 @@ class Sitac(BaseModel):
     ejected_pilots: list[EjectedPilot] = Field(alias="ejectedPilots", default_factory=list)
     accounts: Accounts = Field(default_factory=Accounts)
     weather_info: WeatherInfo | None = Field(alias="weatherInfo", default=None)
+    farps: list[Farp] = Field(default_factory=list)
 
     @field_validator("accounts", mode="before")
     @classmethod
@@ -245,6 +254,59 @@ def parse_coordinates_from_text(text: str) -> Position | None:
     return _parse_dms(text) or _parse_ddm(text) or _parse_decimal(text)
 
 
+def _detect_theater_from_sitac(sitac: "Sitac") -> str | None:
+    """Detect DCS theater from zone coordinates."""
+    from foothold_sitac.dcs_coordinates import detect_theater
+
+    if not sitac.zones:
+        return None
+
+    lats = [z.position.latitude for z in sitac.zones.values() if z.position]
+    lons = [z.position.longitude for z in sitac.zones.values() if z.position]
+    if not lats or not lons:
+        return None
+
+    return detect_theater(sum(lats) / len(lats), sum(lons) / len(lons))
+
+
+def load_farps(mission_path: Path, theater: str) -> list[Farp]:
+    """Load CTLD FARP positions from CSV file alongside the mission Lua file.
+
+    CSV format:
+        FARP COORDINATES
+        1;CTLD FARP London;57367.292969;-54940.789062;
+    """
+    from foothold_sitac.dcs_coordinates import dcs_to_latlon
+
+    csv_path = mission_path.parent / f"{mission_path.stem}_CTLD_FARPS.csv"
+    if not csv_path.is_file():
+        return []
+
+    farps: list[Farp] = []
+    with open(csv_path, encoding="utf-8") as f:
+        content = f.read()
+
+    lines = content.strip().split("\n")
+    if len(lines) <= 1:
+        return []
+
+    # Skip header line, parse data lines
+    reader = csv.reader(StringIO("\n".join(lines[1:])), delimiter=";")
+    for row in reader:
+        if len(row) < 4:
+            continue
+        name = row[1].strip()
+        try:
+            dcs_x = float(row[2])
+            dcs_z = float(row[3])
+        except ValueError:
+            continue
+        lat, lon = dcs_to_latlon(dcs_x, dcs_z, theater)
+        farps.append(Farp(name=name, latitude=lat, longitude=lon))
+
+    return farps
+
+
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:
     if lua_table is None:
         return None
@@ -275,10 +337,16 @@ def load_sitac(file: Path) -> Sitac:
             if zone_name in zone_persistance_dict["zones"]:  # type: ignore[index]
                 zone_persistance_dict["zones"][zone_name].update(details)  # type: ignore[index]
 
-    return Sitac(
+    sitac = Sitac(
         **zone_persistance_dict,  # type: ignore[arg-type]
         updated_at=datetime.fromtimestamp(file.stat().st_mtime),
     )
+
+    theater = _detect_theater_from_sitac(sitac)
+    if theater:
+        sitac.farps = load_farps(file, theater)
+
+    return sitac
 
 
 def detect_foothold_mission_path(server_name: str) -> Path | None:

@@ -276,3 +276,29 @@ def test_map_data_excludes_missions_without_coords(client: TestClient) -> None:
     data = response.json()
     assert data["missions"] == []
     assert data["missions_count"] == 2
+
+
+# FARP tests
+
+
+def test_map_data_includes_farps(client: TestClient) -> None:
+    """Test that FARPs from CSV are included in map data"""
+    response = client.get("/api/foothold/test_farps/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "farps" in data
+    assert len(data["farps"]) == 2
+    assert data["farps"][0]["name"] == "CTLD FARP London"
+    assert 22.0 <= data["farps"][0]["lat"] <= 30.0
+    assert 48.0 <= data["farps"][0]["lon"] <= 62.0
+    assert data["farps"][1]["name"] == "CTLD FARP Paris"
+
+
+def test_map_data_no_farps_returns_empty(client: TestClient) -> None:
+    """Test that map data returns empty farps list when no CSV"""
+    response = client.get("/api/foothold/test_missions/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["farps"] == []
