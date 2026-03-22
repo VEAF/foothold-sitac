@@ -131,6 +131,16 @@ class Accounts(BaseModel):
     blue: float = 0
 
 
+class WeatherInfo(BaseModel):
+    wind_direction: float = Field(alias="windDirection", default=0)
+    wind_speed: float = Field(alias="windSpeed", default=0)
+    temperature: float = Field(alias="temperature", default=0)
+    pressure: float = Field(alias="pressure", default=0)
+    cloud_base: float = Field(alias="cloudBase", default=0)
+    cloud_density: int = Field(alias="cloudDensity", default=0)
+    fog_visibility: float = Field(alias="fogVisibility", default=0)
+
+
 class Sitac(BaseModel):
     updated_at: datetime
     zones: dict[str, Zone]
@@ -140,6 +150,7 @@ class Sitac(BaseModel):
     players: list[Player] = Field(default_factory=list)
     ejected_pilots: list[EjectedPilot] = Field(alias="ejectedPilots", default_factory=list)
     accounts: Accounts = Field(default_factory=Accounts)
+    weather_info: WeatherInfo | None = Field(alias="weatherInfo", default=None)
 
     @field_validator("accounts", mode="before")
     @classmethod

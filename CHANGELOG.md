@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Add `WeatherInfo` model to parse weather data from Lua persistence files with float support for `wind_direction` ([#122](https://github.com/VEAF/foothold-sitac/issues/122))
+
 ### Fixed
 
 - Fix zone upgrade display showing the wrong value (`upgradesUsed` always 0), now displays zone level instead ([#120](https://github.com/VEAF/foothold-sitac/issues/120))

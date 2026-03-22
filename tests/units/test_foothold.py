@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from foothold_sitac.foothold import Connection, EjectedPilot, Mission, Player, Zone, load_sitac
+from foothold_sitac.foothold import Connection, EjectedPilot, Mission, Player, WeatherInfo, Zone, load_sitac
 
 
 @pytest.fixture
@@ -460,3 +460,63 @@ def test_load_sitac_without_accounts() -> None:
 
     assert sitac.accounts.red == 0
     assert sitac.accounts.blue == 0
+
+
+# WeatherInfo tests
+
+
+def test_weather_info_model_validation() -> None:
+    """Test WeatherInfo accepts float wind_direction (issue #122)"""
+    weather_data = {
+        "windDirection": 240.99997522634,
+        "windSpeed": 5.5,
+        "temperature": 20.3,
+        "pressure": 760.0,
+        "cloudBase": 3000.0,
+        "cloudDensity": 5,
+        "fogVisibility": 10000.0,
+    }
+    weather = WeatherInfo.model_validate(weather_data)
+    assert weather.wind_direction == 240.99997522634
+    assert weather.wind_speed == 5.5
+    assert weather.temperature == 20.3
+    assert weather.pressure == 760.0
+    assert weather.cloud_base == 3000.0
+    assert weather.cloud_density == 5
+    assert weather.fog_visibility == 10000.0
+
+
+def test_weather_info_model_defaults() -> None:
+    """Test WeatherInfo defaults when no data provided"""
+    weather = WeatherInfo.model_validate({})
+    assert weather.wind_direction == 0
+    assert weather.wind_speed == 0
+    assert weather.temperature == 0
+    assert weather.pressure == 0
+
+
+def test_weather_info_accepts_integers() -> None:
+    """Test WeatherInfo accepts integer values for float fields"""
+    weather_data = {"windDirection": 240, "windSpeed": 5}
+    weather = WeatherInfo.model_validate(weather_data)
+    assert weather.wind_direction == 240.0
+    assert weather.wind_speed == 5.0
+
+
+def test_load_sitac_with_weather_info() -> None:
+    """Test loading sitac with weatherInfo from Lua"""
+    lua_path = Path("tests/fixtures/test_weather/Missions/Saves/foothold_weather.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.weather_info is not None
+    assert sitac.weather_info.wind_direction == 240.99997522634
+    assert sitac.weather_info.wind_speed == 5.5
+    assert sitac.weather_info.temperature == 20.3
+
+
+def test_load_sitac_without_weather_info() -> None:
+    """Test loading sitac without weatherInfo section (backward compatibility)"""
+    lua_path = Path("tests/fixtures/test_hidden/Missions/Saves/foothold_hidden_test.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sitac.weather_info is None
