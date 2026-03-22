@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - Add `WeatherInfo` model to parse weather data from Lua persistence files with float support for `wind_direction` ([#122](https://github.com/VEAF/foothold-sitac/issues/122))
+- Display missions with coordinates as target markers on the map ([#121](https://github.com/VEAF/foothold-sitac/issues/121))
 
 ### Changed
 

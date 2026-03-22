@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -195,6 +196,53 @@ class Sitac(BaseModel):
         if total_contested == 0:
             return 0.0
         return blue_zones / total_contested * 100
+
+
+def _parse_dms(text: str) -> Position | None:
+    regex = r"([NS])\s*(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[\"\"″]?\s*([EW])\s*(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[\"\"″]?"
+    match = re.search(regex, text, re.IGNORECASE)
+    if not match:
+        return None
+    lat = float(match.group(2)) + float(match.group(3)) / 60 + float(match.group(4)) / 3600
+    if match.group(1).upper() == "S":
+        lat = -lat
+    lon = float(match.group(6)) + float(match.group(7)) / 60 + float(match.group(8)) / 3600
+    if match.group(5).upper() == "W":
+        lon = -lon
+    return Position(latitude=lat, longitude=lon)
+
+
+def _parse_ddm(text: str) -> Position | None:
+    regex = r"([NS])\s*(\d+)[°]\s*(\d+\.\d+)[''′]\s*([EW])\s*(\d+)[°]\s*(\d+\.\d+)[''′]"
+    match = re.search(regex, text, re.IGNORECASE)
+    if not match:
+        return None
+    lat = float(match.group(2)) + float(match.group(3)) / 60
+    if match.group(1).upper() == "S":
+        lat = -lat
+    lon = float(match.group(5)) + float(match.group(6)) / 60
+    if match.group(4).upper() == "W":
+        lon = -lon
+    return Position(latitude=lat, longitude=lon)
+
+
+def _parse_decimal(text: str) -> Position | None:
+    regex = r"(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)"
+    match = re.search(regex, text)
+    if not match:
+        return None
+    lat, lon = float(match.group(1)), float(match.group(2))
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        return None
+    return Position(latitude=lat, longitude=lon)
+
+
+def parse_coordinates_from_text(text: str) -> Position | None:
+    """Extract the first valid lat/lon coordinates from a text string.
+
+    Supports DMS, DDM, and decimal formats. Returns None if no coordinates found.
+    """
+    return _parse_dms(text) or _parse_ddm(text) or _parse_decimal(text)
 
 
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:

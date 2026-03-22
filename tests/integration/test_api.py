@@ -247,3 +247,32 @@ def test_success_board_skips_zero_categories(client: TestClient) -> None:
     # All players have at least some stats, so most categories should appear
     # but Bomb runway: only Viper has 1, Falcon and Eagle have 0 → Viper wins
     assert "Runway Striker" in response.text
+
+
+# Mission markers tests
+
+
+def test_map_data_includes_mission_markers(client: TestClient) -> None:
+    """Test that missions with coordinates are included in map data"""
+    response = client.get("/api/foothold/test_mission_coords/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "missions" in data
+    assert len(data["missions"]) == 1
+    mission = data["missions"][0]
+    assert mission["title"] == "Strike Building"
+    assert mission["is_running"] is True
+    assert mission["is_escort_mission"] is False
+    assert abs(mission["lat"] - 44.4539) < 0.01
+    assert abs(mission["lon"] - 39.7372) < 0.01
+
+
+def test_map_data_excludes_missions_without_coords(client: TestClient) -> None:
+    """Test that missions without coordinates are not in map missions list"""
+    response = client.get("/api/foothold/test_missions/map.json")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["missions"] == []
+    assert data["missions_count"] == 2

@@ -51,6 +51,14 @@ class MapEjectedPilot(BaseModel):
     lost_credits: float
 
 
+class MapMission(BaseModel):
+    title: str
+    lat: float
+    lon: float
+    is_running: bool
+    is_escort_mission: bool
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
@@ -58,6 +66,7 @@ class MapData(BaseModel):
     connections: list[MapConnection]
     players: list[MapPlayer] = Field(default_factory=list)
     ejected_pilots: list[MapEjectedPilot] = Field(default_factory=list)
+    missions: list[MapMission] = Field(default_factory=list)
     progress: float
     missions_count: int
     ejected_pilots_count: int = 0

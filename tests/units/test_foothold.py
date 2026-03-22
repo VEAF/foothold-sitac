@@ -3,7 +3,16 @@ from typing import Any
 
 import pytest
 
-from foothold_sitac.foothold import Connection, EjectedPilot, Mission, Player, WeatherInfo, Zone, load_sitac
+from foothold_sitac.foothold import (
+    Connection,
+    EjectedPilot,
+    Mission,
+    Player,
+    WeatherInfo,
+    Zone,
+    load_sitac,
+    parse_coordinates_from_text,
+)
 
 
 @pytest.fixture
@@ -520,3 +529,53 @@ def test_load_sitac_without_weather_info() -> None:
     sitac = load_sitac(lua_path)
 
     assert sitac.weather_info is None
+
+
+# Coordinate parsing tests
+
+
+def test_parse_coordinates_dms() -> None:
+    """Test DMS coordinate parsing"""
+    text = "Strike at: N 44°27'14\" E 39°44'14\""
+    pos = parse_coordinates_from_text(text)
+    assert pos is not None
+    assert abs(pos.latitude - 44.4539) < 0.001
+    assert abs(pos.longitude - 39.7372) < 0.001
+
+
+def test_parse_coordinates_ddm() -> None:
+    """Test DDM coordinate parsing"""
+    text = "Target at: N 44°27.248' E 39°44.234'"
+    pos = parse_coordinates_from_text(text)
+    assert pos is not None
+    assert abs(pos.latitude - 44.4541) < 0.001
+    assert abs(pos.longitude - 39.7372) < 0.001
+
+
+def test_parse_coordinates_decimal() -> None:
+    """Test decimal coordinate parsing"""
+    text = "Target at coordinates: 44.4539, 39.7372"
+    pos = parse_coordinates_from_text(text)
+    assert pos is not None
+    assert abs(pos.latitude - 44.4539) < 0.001
+    assert abs(pos.longitude - 39.7372) < 0.001
+
+
+def test_parse_coordinates_none() -> None:
+    """Test text without coordinates returns None"""
+    pos = parse_coordinates_from_text("Destroy enemy forces at Hahn")
+    assert pos is None
+
+
+def test_parse_coordinates_full_example() -> None:
+    """Test the full example from issue #121 (MGRS + DMS + DDM)"""
+    text = (
+        "Strike a high-value building at these coordinates:  "
+        "MGRS: 37 T EK 58654 22580 Lat long: N 44°27'14\" E 39°44'14\" "
+        "Lat long Decimal Minutes: N 44°27.248' E 39°44.234'  "
+        "Elevation: 677 feet  reward = 1000"
+    )
+    pos = parse_coordinates_from_text(text)
+    assert pos is not None
+    assert abs(pos.latitude - 44.4539) < 0.001
+    assert abs(pos.longitude - 39.7372) < 0.001
