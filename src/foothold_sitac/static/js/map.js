@@ -147,8 +147,8 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Upgrades</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + (zone.upgrades_used || 0) + ' / ' + zone.level + '</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">Level</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + (zone.level != null ? zone.level : '-') + '</td>' +
             '</tr>' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +

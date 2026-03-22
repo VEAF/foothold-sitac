@@ -1,3 +1,28 @@
+{% macro zones_table(zones, empty_label) %}
+    {% if zones %}
+    <table class="modal-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, zone in zones %}
+            <tr>
+                <td>{{ name }}</td>
+                <td class="n">{{ zone.level }}</td>
+                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">{{ empty_label }}</div>
+    {% endif %}
+{% endmacro %}
+
 {% set blue_zones = [] %}
 {% set neutral_zones = [] %}
 {% set red_zones = [] %}
@@ -41,84 +66,15 @@
 
     <div class="tab-content-wrapper">
         <div id="tab-blue" class="tab-content active">
-    {% if blue_zones %}
-    <table class="modal-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Level</th>
-                <th>Upgrades Used</th>
-                <th>Active</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for name, zone in blue_zones %}
-            <tr>
-                <td>{{ name }}</td>
-                <td class="n">{{ zone.level }}</td>
-                <td class="n">{{ zone.upgradesUsed }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">No blue zones</div>
-    {% endif %}
-</div>
+            {{ zones_table(blue_zones, "No blue zones") }}
+        </div>
 
-<div id="tab-neutral" class="tab-content">
-    {% if neutral_zones %}
-    <table class="modal-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Level</th>
-                <th>Upgrades Used</th>
-                <th>Active</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for name, zone in neutral_zones %}
-            <tr>
-                <td>{{ name }}</td>
-                <td class="n">{{ zone.level }}</td>
-                <td class="n">{{ zone.upgradesUsed }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">No neutral zones</div>
-    {% endif %}
-</div>
+        <div id="tab-neutral" class="tab-content">
+            {{ zones_table(neutral_zones, "No neutral zones") }}
+        </div>
 
-<div id="tab-red" class="tab-content">
-    {% if red_zones %}
-    <table class="modal-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Level</th>
-                <th>Upgrades Used</th>
-                <th>Active</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for name, zone in red_zones %}
-            <tr>
-                <td>{{ name }}</td>
-                <td class="n">{{ zone.level }}</td>
-                <td class="n">{{ zone.upgradesUsed }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">No red zones</div>
-    {% endif %}
+        <div id="tab-red" class="tab-content">
+            {{ zones_table(red_zones, "No red zones") }}
         </div>
     </div>
 </div>
