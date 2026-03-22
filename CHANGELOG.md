@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- Add server-side cache based on `foothold.status` file mtime to avoid re-parsing Lua files on every request ([#130](https://github.com/VEAF/foothold-sitac/issues/130))
+- Click on the freshness widget to force an immediate data refresh ([#130](https://github.com/VEAF/foothold-sitac/issues/130))
 - Add `WeatherInfo` model to parse weather data from Lua persistence files with float support for `wind_direction` ([#122](https://github.com/VEAF/foothold-sitac/issues/122))
 - Display missions with coordinates as target markers on the map ([#121](https://github.com/VEAF/foothold-sitac/issues/121))
 - Display CTLD FARPs on the map with coordinate modal on click ([#125](https://github.com/VEAF/foothold-sitac/issues/125))

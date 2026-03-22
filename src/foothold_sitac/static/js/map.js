@@ -55,6 +55,7 @@ var REFRESH_INTERVAL = 60;
 var nextRefresh = REFRESH_INTERVAL;
 var dataAgeSeconds = 0;
 var isConnected = true;
+var isDataFresh = true;
 
 // Ruler state
 var rulerMode = false;
@@ -540,7 +541,7 @@ function updateFreshnessWidget() {
         widget.classList.add('disconnected');
         countdown.textContent = 'Offline';
         tooltip.textContent = 'Connection to server lost';
-    } else if (dataAgeSeconds < 90) {
+    } else if (isDataFresh) {
         widget.classList.add('fresh');
         countdown.textContent = nextRefresh + 's';
         tooltip.textContent = 'Data up to date (' + Math.round(dataAgeSeconds) + 's) • Refresh in ' + nextRefresh + 's';
@@ -561,6 +562,7 @@ function loadData() {
         .then(function(data) {
             isConnected = true;
             dataAgeSeconds = data.age_seconds;
+            isDataFresh = data.is_fresh;
             nextRefresh = REFRESH_INTERVAL;
             updateFreshnessWidget();
             updateNavbar(data.progress, data.missions_count, data.ejected_pilots_count, data.blue_credits, data.red_credits);
@@ -602,6 +604,11 @@ function loadData() {
             isConnected = false;
             updateFreshnessWidget();
         });
+}
+
+// Force immediate data refresh (called on freshness widget click)
+function forceRefresh() {
+    loadData();
 }
 
 // Start countdown timer and data refresh

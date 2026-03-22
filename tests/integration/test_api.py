@@ -3,6 +3,7 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 
+from foothold_sitac.cache import clear_cache
 from foothold_sitac.config import get_config
 from foothold_sitac.main import app
 
@@ -10,7 +11,9 @@ from foothold_sitac.main import app
 @pytest.fixture
 def client() -> Generator[TestClient, None, None]:
     get_config.cache_clear()
+    clear_cache()
     yield TestClient(app)
+    clear_cache()
 
 
 @pytest.fixture(autouse=True)
