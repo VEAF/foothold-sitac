@@ -33,8 +33,8 @@
             <span class="stat-label">Deaths</span>
         </div>
         <div class="stat-card">
-            <span class="stat-value">{{ (stats.points / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
-            <span class="stat-label">Points / Death</span>
+            <span class="stat-value">{{ (stats.points / stats.lives) | round(1) }}</span>
+            <span class="stat-label">Points / Life</span>
         </div>
         <div class="stat-card">
             <span class="stat-value">{{ stats.flight_time | int }}</span>
@@ -67,8 +67,8 @@
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-percent"></i>
-                <span class="stat-item-label">Air K/D</span>
-                <span class="stat-item-value">{{ (stats.air / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
+                <span class="stat-item-label">Air K/L</span>
+                <span class="stat-item-value">{{ (stats.air / stats.lives) | round(1) }}</span>
             </div>
         </div>
     </div>
@@ -108,8 +108,8 @@
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-percent"></i>
-                <span class="stat-item-label">Ground K/D</span>
-                <span class="stat-item-value">{{ ((stats.ground_units + stats.infantry) / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</span>
+                <span class="stat-item-label">Ground K/L</span>
+                <span class="stat-item-value">{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}</span>
             </div>
         </div>
     </div>

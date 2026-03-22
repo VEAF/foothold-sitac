@@ -73,7 +73,7 @@
             <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
             <th class="col-icon" data-tooltip="Points Spent" data-sort-key="points_spent"><i class="fa-solid fa-coins"></i></th>
             <th class="col-icon" data-tooltip="Deaths" data-sort-key="deaths"><i class="fa-solid fa-skull"></i></th>
-            <th class="col-icon" data-tooltip="Points per Death" data-sort-key="points_per_death"><i class="fa-solid fa-chart-line"></i></th>
+            <th class="col-icon" data-tooltip="Points per Life" data-sort-key="points_per_life"><i class="fa-solid fa-chart-line"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
@@ -83,7 +83,7 @@
                 <td class="n">{{ stats.points | int }}</td>
                 <td class="n">{{ stats.points_spent | int }}</td>
                 <td class="n">{{ stats.deaths }}</td>
-                <td class="n" data-sort-value="{{ (stats.points / stats.deaths) | round(1) if stats.deaths > 0 else '' }}">{{ (stats.points / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
+                <td class="n" data-sort-value="{{ (stats.points / stats.lives) | round(1) }}">{{ (stats.points / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -101,7 +101,7 @@
             <th class="col-icon" data-tooltip="Helicopter Kills" data-sort-key="helo"><i class="fa-solid fa-helicopter"></i></th>
             <th class="col-icon" data-tooltip="Intercept Cargo Plane" data-sort-key="intercept"><i class="fa-solid fa-plane-circle-xmark"></i></th>
             <th class="col-icon" data-tooltip="CAP Missions" data-sort-key="cap"><i class="fa-solid fa-shield-halved"></i></th>
-            <th class="col-icon" data-tooltip="Air K/D Ratio" data-sort-key="air_kd"><i class="fa-solid fa-percent"></i></th>
+            <th class="col-icon" data-tooltip="Air K/L Ratio" data-sort-key="air_kl"><i class="fa-solid fa-percent"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.air', reverse=True) %}
@@ -113,7 +113,7 @@
                 <td class="n">{{ stats.helo }}</td>
                 <td class="n">{{ stats.intercept_cargo_plane }}</td>
                 <td class="n">{{ stats.CAP_mission }}</td>
-                <td class="n" data-sort-value="{{ (stats.air / stats.deaths) | round(1) if stats.deaths > 0 else '' }}">{{ (stats.air / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
+                <td class="n" data-sort-value="{{ (stats.air / stats.lives) | round(1) }}">{{ (stats.air / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -152,7 +152,7 @@
             <th class="col-icon" data-tooltip="Ground Unit Kills" data-sort-key="ground_units"><i class="fa-solid fa-crosshairs"></i></th>
             <th class="col-icon" data-tooltip="Infantry Kills" data-sort-key="infantry"><i class="fa-solid fa-person-rifle"></i></th>
             <th class="col-icon" data-tooltip="CAS Missions" data-sort-key="cas_mission"><i class="fa-solid fa-bullseye"></i></th>
-            <th class="col-icon" data-tooltip="Ground K/D Ratio" data-sort-key="ground_kd"><i class="fa-solid fa-percent"></i></th>
+            <th class="col-icon" data-tooltip="Ground K/L Ratio" data-sort-key="ground_kl"><i class="fa-solid fa-percent"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.ground_units', reverse=True) %}
@@ -163,7 +163,7 @@
                 <td class="n">{{ stats.ground_units }}</td>
                 <td class="n">{{ stats.infantry }}</td>
                 <td class="n">{{ stats.CAS_mission }}</td>
-                <td class="n" data-sort-value="{{ ((stats.ground_units + stats.infantry) / stats.deaths) | round(1) if stats.deaths > 0 else '' }}">{{ ((stats.ground_units + stats.infantry) / stats.deaths) | round(1) if stats.deaths > 0 else '-' }}</td>
+                <td class="n" data-sort-value="{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}">{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}</td>
             </tr>
             {% endfor %}
         </tbody>
