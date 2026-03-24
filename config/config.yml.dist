@@ -19,6 +19,7 @@ web:
 
 dcs:
     saved_games: "C:\\Users\\veaf\\Saved Games" # !! update your setup
+    # install_path: "C:\\Program Files\\Eagle Dynamics\\DCS World"  # for unit display name extraction
 
 map:
 
