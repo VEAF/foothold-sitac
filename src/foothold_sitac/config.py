@@ -15,6 +15,7 @@ class WebConfig(BaseModel):
 
 class DcsConfig(BaseModel):
     saved_games: str = "var"  # "DCS Saved Games Path"
+    install_path: str | None = None  # DCS World installation path (for unit name extraction)
 
 
 class TileLayerConfig(BaseModel):

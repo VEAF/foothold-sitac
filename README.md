@@ -58,6 +58,29 @@ git pull origin main
 poetry install --only main
 ```
 
+## Unit display names (optional)
+
+To display human-readable unit names (on hover) instead of raw DCS type codes, set `dcs.install_path` in `config/config.yml` to your DCS World installation directory:
+
+```yaml
+dcs:
+    install_path: "C:\\Program Files\\Eagle Dynamics\\DCS World"
+```
+
+Then extract the unit names:
+
+```shell
+poetry run foothold-sitac extract-unit-names
+```
+
+This generates `var/unit_display_names.json` (not versioned). If `dcs.install_path` is configured, the extraction also runs automatically at server startup.
+
+You can also specify the path directly:
+
+```shell
+poetry run foothold-sitac extract-unit-names --dcs-path "C:\Program Files\Eagle Dynamics\DCS World"
+```
+
 ## Run tests
 
 ```shell

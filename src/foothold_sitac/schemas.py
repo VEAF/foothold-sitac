@@ -81,3 +81,4 @@ class MapData(BaseModel):
     red_credits: float = 0
     blue_credits: float = 0
     show_zone_forces: bool = True
+    unit_display_names: dict[str, str] = Field(default_factory=dict)

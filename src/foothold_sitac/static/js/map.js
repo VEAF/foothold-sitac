@@ -49,6 +49,7 @@ var ejectionsData = [];
 var markpointsData = [];
 var missionsData = [];
 var farpsData = [];
+var unitDisplayNames = {};
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -178,7 +179,9 @@ function openZoneModal(zone) {
             var unitList = [];
             for (var unitType in group.units) {
                 var count = group.units[unitType];
-                unitList.push(unitType + (count > 1 ? ' x' + count : ''));
+                var displayName = unitDisplayNames[unitType];
+                var titleAttr = displayName ? ' title="' + displayName + '"' : '';
+                unitList.push('<span' + titleAttr + '>' + unitType + (count > 1 ? ' x' + count : '') + '</span>');
             }
             html += '<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">';
             html += '<span style="color: #8892a0; font-size: 12px;">Group ' + group.group_id + '</span><br>';
@@ -592,6 +595,7 @@ function loadData() {
             ejectionsData = data.ejected_pilots || [];
             missionsData = data.missions || [];
             farpsData = data.farps || [];
+            unitDisplayNames = data.unit_display_names || {};
             updateConnections();
             updatePlayers();
             updateEjections();
