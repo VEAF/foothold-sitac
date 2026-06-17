@@ -667,3 +667,88 @@ def test_load_sitac_without_farps() -> None:
     lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
     sitac = load_sitac(lua_path)
     assert sitac.farps == []
+
+
+# Dual-format FARP CSV tests (issue #132): prefer embedded lat/lon, fall back to
+# theater-based x/z conversion only for legacy CSVs.
+
+LEGACY_FARPS_LUA = Path("tests/fixtures/test_farps/Missions/Saves/foothold_persiangulf.lua")
+LATLON_FARPS_LUA = Path("tests/fixtures/test_farps_latlon/Missions/Saves/foothold_iraq.lua")
+
+
+def test_load_farps_legacy_without_theater_returns_empty() -> None:
+    """Legacy x/z CSV cannot be converted without a theater -> empty list (fallback guard)."""
+    assert load_farps(LEGACY_FARPS_LUA, None) == []
+
+
+def test_load_farps_legacy_default_theater_is_none() -> None:
+    """Omitting the theater argument defaults to None, so a legacy CSV is not converted."""
+    assert load_farps(LEGACY_FARPS_LUA) == []
+
+
+def test_load_farps_new_format_prefers_latlon() -> None:
+    """New CSV format reads lat/lon directly, with no theater and no projection."""
+    farps = load_farps(LATLON_FARPS_LUA)
+    assert len(farps) == 2
+    assert farps[0].name == "CTLD FARP Baghdad"
+    assert farps[0].latitude == 33.312805
+    assert farps[0].longitude == 44.361488
+    assert farps[1].name == "CTLD FARP Paris"
+    assert farps[1].latitude == 35.417973
+    assert farps[1].longitude == 44.208750
+
+
+def test_load_farps_new_format_ignores_theater_when_present() -> None:
+    """A passed theater is ignored when the CSV already carries lat/lon columns."""
+    assert load_farps(LATLON_FARPS_LUA, "persianGulf") == load_farps(LATLON_FARPS_LUA)
+
+
+def test_load_farps_new_format_skips_empty_or_invalid_latlon(tmp_path: Path) -> None:
+    """Rows with empty or non-numeric lat/lon are skipped; valid rows are kept."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(
+        "seq;name;x;y;zell;latitude;longitude;\n"
+        "1;Valid;100.0;0.0;;33.0;44.0;\n"
+        "2;EmptyCoords;100.0;0.0;;;;\n"
+        "3;BadCoords;100.0;0.0;;abc;44.0;\n"
+    )
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "Valid"
+
+
+def test_load_farps_new_format_header_case_insensitive(tmp_path: Path) -> None:
+    """An upper-case column header is still detected as the new lat/lon format."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text("SEQ;NAME;X;Y;ZELL;LATITUDE;LONGITUDE;\n1;CTLD FARP Mosul;100.0;0.0;;36.34;43.13;\n")
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "CTLD FARP Mosul"
+    assert farps[0].latitude == 36.34
+
+
+def test_load_farps_new_format_handles_bom(tmp_path: Path) -> None:
+    """A UTF-8 BOM must not break new-format detection (file is opened as utf-8-sig).
+
+    The BOM is glued to the first header token; without utf-8-sig the ``latitude``
+    token would read as ``\\ufefflatitude`` and the file would be misread as legacy.
+    """
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text("﻿latitude;longitude;name;\n33.5;44.5;CTLD FARP Erbil;\n", encoding="utf-8")
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "CTLD FARP Erbil"
+    assert farps[0].latitude == 33.5
+
+
+def test_load_sitac_loads_farps_when_theater_undetected() -> None:
+    """Core fix (#132): FARPs load from CSV lat/lon even when the theater is undetected."""
+    sitac = load_sitac(LATLON_FARPS_LUA)
+    # Sanity check: the Iraq fixture's zone center matches no supported theater bbox.
+    lats = [z.position.latitude for z in sitac.zones.values()]
+    lons = [z.position.longitude for z in sitac.zones.values()]
+    assert detect_theater(sum(lats) / len(lats), sum(lons) / len(lons)) is None
+    # ...yet the FARPs still load, thanks to the lat/lon columns in the CSV.
+    assert len(sitac.farps) == 2
+    assert sitac.farps[0].name == "CTLD FARP Baghdad"
+    assert sitac.farps[1].name == "CTLD FARP Paris"

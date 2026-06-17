@@ -67,14 +67,16 @@ The app auto-discovers Foothold servers by scanning `dcs.saved_games` for direct
 
 ### CTLD FARPs and DCS Coordinate Conversion
 
-CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`) using DCS internal coordinates (x=north, z=east in meters), not lat/lon. Converting these to lat/lon requires a Transverse Mercator inverse projection with theater-specific parameters.
+CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`). `load_farps()` in `foothold.py` supports two CSV layouts and inspects the first line to choose one:
 
-The conversion logic is in `src/foothold_sitac/dcs_coordinates.py`. Projection parameters (central meridian, false northing) were reverse-engineered from grid data at https://github.com/Kilcekru/dcs-coordinates by finding the lat/lon of DCS origin (0,0) for each theater. Accuracy: ~300m, sufficient for tactical map display.
+- **New format (preferred)**: a column header containing `latitude`/`longitude` (e.g. `seq;name;x;y;zell;latitude;longitude;`). Coordinates are read straight from those columns — **no theater and no projection are needed**, so FARPs load even on theaters we cannot auto-detect.
+- **Legacy format (fallback)**: a `FARP COORDINATES` title line followed by positional `seq;name;x;z` rows in DCS internal coordinates (x=north, z=east in meters). These are converted to lat/lon via a Transverse Mercator inverse projection, which requires a detected theater. When the theater is unknown, legacy rows cannot be converted and are skipped.
 
-**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — if a mission has zones outside the expected bounds, detection will fail.
+The conversion logic (fallback path only) is in `src/foothold_sitac/dcs_coordinates.py`. Projection parameters (central meridian, false northing) were reverse-engineered from grid data at https://github.com/Kilcekru/dcs-coordinates by finding the lat/lon of DCS origin (0,0) for each theater. Accuracy: ~300m, sufficient for tactical map display.
 
-Currently supported theaters: persianGulf, normandy, syria, sinai, southAtlantic, caucasus (estimated).
-Missing theaters: afghanistan, iraq, theChannel, germany, kola, marianasIslands — parameters need to be extracted from DCS grid data.
+**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — if a mission has zones outside the expected bounds, detection fails. With the new CSV format this only affects the legacy fallback (new-format FARPs no longer depend on it).
+
+Theaters supported by the legacy fallback: persianGulf, normandy, syria, sinai, southAtlantic, caucasus (estimated). Others (afghanistan, iraq, theChannel, germany, kola, marianasIslands) are not in the table, so legacy CSVs on those maps are unsupported — but new-format CSVs work everywhere.
 
 ## Documentation
 
