@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Legacy CTLD coordinate conversion now supports the Iraq and Kola theaters ([#139](https://github.com/VEAF/foothold-sitac/issues/139))
+
 ## [0.5.0] - 2026-06-19
 
 ### Added
