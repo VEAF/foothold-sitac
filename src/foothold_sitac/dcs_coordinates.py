@@ -16,8 +16,9 @@ lack latitude/longitude columns; current CSVs carry lat/lon directly.
 
 Theater auto-detection is a hack: we check if the center of zone coordinates
 falls within a theater's known lat/lon bounding box. Some maps overlap
-geographically (e.g. Sinai/Syria, Normandy/TheChannel, Marianas/MarianasWWII);
-those resolve by dict order, which is acceptable for a tactical-display fallback.
+geographically (e.g. Sinai/Syria, Iraq/Syria, Iraq/PersianGulf, Normandy/TheChannel,
+Marianas/MarianasWWII); those resolve by dict order, which is acceptable for a
+tactical-display fallback.
 """
 
 import math
@@ -155,6 +156,24 @@ THEATERS: dict[str, TheaterParams] = {
         lat_max=22.0,
         lon_min=143.0,
         lon_max=149.0,
+    ),
+    "iraq": TheaterParams(
+        lon_0=45.0,
+        x_0=72290.0000013377,
+        y_0=-3680056.999997638,
+        lat_min=29.0,
+        lat_max=38.0,
+        lon_min=38.0,
+        lon_max=50.0,
+    ),
+    "kola": TheaterParams(
+        lon_0=21.0,
+        x_0=-62701.99999924752,
+        y_0=-7543625.000001493,
+        lat_min=63.0,
+        lat_max=71.5,
+        lon_min=10.0,
+        lon_max=42.0,
     ),
 }
 

@@ -74,9 +74,9 @@ CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`
 
 The conversion logic (fallback path only) is in `src/foothold_sitac/dcs_coordinates.py`. Each DCS map is a standard Transverse Mercator (`+proj=tmerc +lat_0=0 +k_0=0.9996`) and only three constants change per map (`lon_0`, `x_0`=false easting, `y_0`=false northing). These are **vendored verbatim** into the `THEATERS` table from the authoritative dataset at https://github.com/VEAF/dcs-maps (`exports/maps.yaml`), giving a near-exact conversion. To add or refresh a map: copy its `lon_0`/`x_0`/`y_0` from `maps.yaml` into `THEATERS` and add a detection bounding box.
 
-**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — geographically overlapping maps (e.g. Sinai/Syria, Normandy/TheChannel, Marianas/MarianasWWII) resolve by dict order. With the new CSV format this only affects the legacy fallback (new-format FARPs no longer depend on it).
+**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — geographically overlapping maps (e.g. Sinai/Syria, Iraq/Syria, Iraq/PersianGulf, Normandy/TheChannel, Marianas/MarianasWWII) resolve by dict order. With the new CSV format this only affects the legacy fallback (new-format FARPs no longer depend on it).
 
-Theaters supported by the legacy fallback (12): persianGulf, caucasus, syria, sinai, southAtlantic (Falklands), normandy, afghanistan, germanyCW, nevada, theChannel, marianaIslands, marianaIslandsWWII. **iraq** and **kola** are not yet in VEAF/dcs-maps, so legacy CSVs on those two maps remain unsupported until added upstream — but new-format CSVs (with lat/lon columns) work everywhere regardless.
+Theaters supported by the legacy fallback (14): persianGulf, caucasus, syria, sinai, southAtlantic (Falklands), normandy, afghanistan, germanyCW, nevada, theChannel, marianaIslands, marianaIslandsWWII, iraq, kola. New-format CSVs (with lat/lon columns) work everywhere regardless of theater.
 
 ## Documentation
 

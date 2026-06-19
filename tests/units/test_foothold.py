@@ -650,6 +650,8 @@ def test_dcs_to_latlon_persiangulf_origin_anchor() -> None:
         (36.20, -115.10, "nevada"),  # Las Vegas
         (51.00, 1.50, "theChannel"),  # Dover/Calais
         (13.40, 144.80, "marianaIslands"),  # Guam
+        (33.31, 44.36, "iraq"),  # Baghdad
+        (68.97, 33.08, "kola"),  # Murmansk
     ],
 )
 def test_detect_theater_representative_points(lat: float, lon: float, expected: str) -> None:
@@ -716,6 +718,7 @@ def test_load_sitac_without_farps() -> None:
 
 LEGACY_FARPS_LUA = Path("tests/fixtures/test_farps/Missions/Saves/foothold_persiangulf.lua")
 LATLON_FARPS_LUA = Path("tests/fixtures/test_farps_latlon/Missions/Saves/foothold_iraq.lua")
+UNMAPPED_FARPS_LUA = Path("tests/fixtures/test_farps_unmapped/Missions/Saves/foothold_unmapped.lua")
 
 
 def test_load_farps_legacy_without_theater_returns_empty() -> None:
@@ -784,13 +787,16 @@ def test_load_farps_new_format_handles_bom(tmp_path: Path) -> None:
 
 
 def test_load_sitac_loads_farps_when_theater_undetected() -> None:
-    """Core fix (#132): FARPs load from CSV lat/lon even when the theater is undetected."""
-    sitac = load_sitac(LATLON_FARPS_LUA)
-    # Sanity check: the Iraq fixture's zone center matches no supported theater bbox.
+    """Core fix (#132): FARPs load from CSV lat/lon even when the theater is undetected.
+
+    Uses a fixture in unmapped ocean so the test stays valid as new theaters are added.
+    """
+    sitac = load_sitac(UNMAPPED_FARPS_LUA)
+    # Sanity check: the fixture's zone center matches no supported theater bbox.
     lats = [z.position.latitude for z in sitac.zones.values()]
     lons = [z.position.longitude for z in sitac.zones.values()]
     assert detect_theater(sum(lats) / len(lats), sum(lons) / len(lons)) is None
     # ...yet the FARPs still load, thanks to the lat/lon columns in the CSV.
     assert len(sitac.farps) == 2
-    assert sitac.farps[0].name == "CTLD FARP Baghdad"
-    assert sitac.farps[1].name == "CTLD FARP Paris"
+    assert sitac.farps[0].name == "CTLD FARP Alpha"
+    assert sitac.farps[1].name == "CTLD FARP Bravo"
