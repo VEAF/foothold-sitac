@@ -1,14 +1,23 @@
 """DCS World coordinate conversion using Transverse Mercator projection.
 
 Converts DCS internal coordinates (x=north, z=east in meters) to lat/lon.
-Each DCS theater uses a Transverse Mercator projection with specific parameters
-(central meridian, false northing, scale factor=1.0).
+Each DCS theater uses a standard Transverse Mercator projection:
 
-Parameters were reverse-engineered from DCS grid data (github.com/Kilcekru/dcs-coordinates).
-Accuracy: ~300m, sufficient for tactical map display.
+    +proj=tmerc +lat_0=0 +k_0=0.9996 +lon_0=<central meridian>
+    +x_0=<false easting> +y_0=<false northing> +ellps=WGS84
+
+Only three constants change per map (``lon_0``, ``x_0``, ``y_0``). They are
+vendored verbatim from the authoritative VEAF/dcs-maps dataset:
+https://github.com/VEAF/dcs-maps/blob/main/exports/maps.yaml
+(cross-checked there against github.com/JonathanTurnock/dcs-projections).
+
+This conversion is the *fallback* path used only for legacy CTLD FARP CSVs that
+lack latitude/longitude columns; current CSVs carry lat/lon directly.
 
 Theater auto-detection is a hack: we check if the center of zone coordinates
-falls within a theater's known lat/lon bounding box.
+falls within a theater's known lat/lon bounding box. Some maps overlap
+geographically (e.g. Sinai/Syria, Normandy/TheChannel, Marianas/MarianasWWII);
+those resolve by dict order, which is acceptable for a tactical-display fallback.
 """
 
 import math
@@ -20,91 +29,160 @@ _F = 1.0 / 298.257223563
 _E2 = 2 * _F - _F * _F
 _E_PRIME2 = _E2 / (1 - _E2)
 
+# All DCS theaters share the same scale factor (UTM) and lat_0=0 (so M0=0).
+_K0 = 0.9996
+
 
 @dataclass(frozen=True)
 class TheaterParams:
-    central_meridian: float
-    false_northing: float
+    lon_0: float  # central meridian (degrees)
+    x_0: float  # false easting (meters)
+    y_0: float  # false northing (meters)
     lat_min: float
     lat_max: float
     lon_min: float
     lon_max: float
+    k_0: float = _K0
 
 
-# Parameters extracted from DCS grid data origin points (DCS 0,0 -> lat/lon).
-# false_northing = meridional arc to the origin latitude.
-# false_easting = 0 for all theaters (z=0 maps to the central meridian).
-# scale_factor = 1.0 (DCS does not use UTM's 0.9996 scale factor).
+# Projection params vendored from VEAF/dcs-maps exports/maps.yaml.
+# Bounding boxes are best-effort geographic extents for theater auto-detection.
 THEATERS: dict[str, TheaterParams] = {
     "persianGulf": TheaterParams(
-        central_meridian=56.241935354469,
-        false_northing=2895870.30,
-        lat_min=22.7,
-        lat_max=31.1,
-        lon_min=51.5,
-        lon_max=58.8,
+        lon_0=57.0,
+        x_0=75755.99999870236,
+        y_0=-2894933.000000028,
+        lat_min=22.5,
+        lat_max=31.5,
+        lon_min=47.0,
+        lon_max=60.0,
     ),
-    "normandy": TheaterParams(
-        central_meridian=-0.30034887075907,
-        false_northing=5483503.30,
-        lat_min=48.2,
-        lat_max=51.8,
-        lon_min=-3.1,
-        lon_max=3.4,
+    "caucasus": TheaterParams(
+        lon_0=33.0,
+        x_0=-99516.99999766012,
+        y_0=-4998115.000001914,
+        lat_min=38.5,
+        lat_max=48.0,
+        lon_min=33.0,
+        lon_max=48.0,
     ),
     "syria": TheaterParams(
-        central_meridian=35.900560445898,
-        false_northing=3877024.53,
-        lat_min=31.8,
-        lat_max=37.9,
-        lon_min=31.2,
-        lon_max=40.9,
+        lon_0=39.0,
+        x_0=282801.00000019063,
+        y_0=-3879866.000000911,
+        lat_min=32.0,
+        lat_max=38.0,
+        lon_min=32.0,
+        lon_max=43.0,
     ),
     "sinai": TheaterParams(
-        central_meridian=31.244759702481,
-        false_northing=3325345.02,
-        lat_min=27.8,
-        lat_max=33.0,
-        lon_min=29.6,
-        lon_max=36.2,
+        lon_0=33.0,
+        x_0=169221.99999983577,
+        y_0=-3325312.9999987846,
+        lat_min=27.0,
+        lat_max=32.0,
+        lon_min=30.0,
+        lon_max=36.5,
     ),
     "southAtlantic": TheaterParams(
-        central_meridian=-59.173518498838,
-        false_northing=-5815521.99,
+        lon_0=-57.0,
+        x_0=147639.99999997593,
+        y_0=5815417.000000032,
         lat_min=-57.0,
-        lat_max=-48.1,
-        lon_min=-76.8,
-        lon_max=-56.1,
+        lat_max=-49.0,
+        lon_min=-77.0,
+        lon_max=-52.0,
     ),
-    # Caucasus: DCS origin (0,0) is outside the mapped area, parameters are estimated.
-    # Accuracy may be lower than other theaters.
-    "caucasus": TheaterParams(
-        central_meridian=33.0,
-        false_northing=4998115.0,
-        lat_min=40.4,
-        lat_max=46.0,
-        lon_min=36.0,
-        lon_max=47.0,
+    "normandy": TheaterParams(
+        lon_0=-3.0,
+        x_0=-195525.99999845505,
+        y_0=-5484812.999999176,
+        lat_min=48.0,
+        lat_max=50.5,
+        lon_min=-4.0,
+        lon_max=1.5,
+    ),
+    "afghanistan": TheaterParams(
+        lon_0=63.0,
+        x_0=-300150.00000261003,
+        y_0=-3759657.000001035,
+        lat_min=29.0,
+        lat_max=39.0,
+        lon_min=60.0,
+        lon_max=75.0,
+    ),
+    "germanyCW": TheaterParams(
+        lon_0=21.0,
+        x_0=35427.62000060154,
+        y_0=-6061633.12800163,
+        lat_min=47.0,
+        lat_max=55.0,
+        lon_min=5.0,
+        lon_max=16.0,
+    ),
+    "nevada": TheaterParams(
+        lon_0=-117.0,
+        x_0=-193996.80999964548,
+        y_0=-4410028.063999966,
+        lat_min=34.5,
+        lat_max=39.5,
+        lon_min=-119.0,
+        lon_max=-112.0,
+    ),
+    "theChannel": TheaterParams(
+        lon_0=3.0,
+        x_0=99376.00000000288,
+        y_0=-5636889.00000001,
+        lat_min=50.0,
+        lat_max=52.0,
+        lon_min=0.0,
+        lon_max=4.0,
+    ),
+    "marianaIslands": TheaterParams(
+        lon_0=147.0,
+        x_0=238418.00000022806,
+        y_0=-1491839.9999989243,
+        lat_min=12.0,
+        lat_max=22.0,
+        lon_min=143.0,
+        lon_max=149.0,
+    ),
+    "marianaIslandsWWII": TheaterParams(
+        lon_0=147.0,
+        x_0=238418.00000022806,
+        y_0=-1491839.9999989243,
+        lat_min=12.0,
+        lat_max=22.0,
+        lon_min=143.0,
+        lon_max=149.0,
     ),
 }
+
+
+def _meridional_arc(lat_rad: float) -> float:
+    """WGS84 meridional arc length (meters) from the equator to ``lat_rad``."""
+    return _A * (
+        (1 - _E2 / 4 - 3 * _E2**2 / 64 - 5 * _E2**3 / 256) * lat_rad
+        - (3 * _E2 / 8 + 3 * _E2**2 / 32 + 45 * _E2**3 / 1024) * math.sin(2 * lat_rad)
+        + (15 * _E2**2 / 256 + 45 * _E2**3 / 1024) * math.sin(4 * lat_rad)
+        - (35 * _E2**3 / 3072) * math.sin(6 * lat_rad)
+    )
 
 
 def dcs_to_latlon(x: float, z: float, theater: str) -> tuple[float, float]:
     """Convert DCS coordinates (x=north, z=east) to (latitude, longitude).
 
-    Uses inverse Transverse Mercator projection with WGS84 ellipsoid.
-    Raises ValueError if the theater is not supported.
+    Uses the inverse Transverse Mercator projection (WGS84, lat_0=0) with the
+    theater's vendored parameters. Raises ValueError if the theater is unknown.
     """
     params = THEATERS.get(theater)
     if not params:
         available = ", ".join(sorted(THEATERS.keys()))
         raise ValueError(f"Unsupported DCS theater '{theater}'. Available: {available}")
 
-    northing = x + params.false_northing
-    easting = z  # false_easting = 0
-
-    # Footpoint latitude from meridional arc
-    mu = northing / (_A * (1 - _E2 / 4 - 3 * _E2**2 / 64 - 5 * _E2**3 / 256))
+    # Meridional arc (lat_0=0 -> M0=0), then footpoint latitude.
+    m = (x - params.y_0) / params.k_0
+    mu = m / (_A * (1 - _E2 / 4 - 3 * _E2**2 / 64 - 5 * _E2**3 / 256))
     e1 = (1 - math.sqrt(1 - _E2)) / (1 + math.sqrt(1 - _E2))
     phi1 = (
         mu
@@ -121,7 +199,7 @@ def dcs_to_latlon(x: float, z: float, theater: str) -> tuple[float, float]:
     t1 = tan_phi1**2
     c1 = _E_PRIME2 * cos_phi1**2
     r1 = _A * (1 - _E2) / (1 - _E2 * sin_phi1**2) ** 1.5
-    d = easting / n1
+    d = (z - params.x_0) / (n1 * params.k_0)
 
     lat = phi1 - (n1 * tan_phi1 / r1) * (
         d**2 / 2
@@ -133,7 +211,45 @@ def dcs_to_latlon(x: float, z: float, theater: str) -> tuple[float, float]:
         d - (1 + 2 * t1 + c1) * d**3 / 6 + (5 - 2 * c1 + 28 * t1 - 3 * c1**2 + 8 * _E_PRIME2 + 24 * t1**2) * d**5 / 120
     ) / cos_phi1
 
-    return (math.degrees(lat), params.central_meridian + math.degrees(lon))
+    return (math.degrees(lat), params.lon_0 + math.degrees(lon))
+
+
+def latlon_to_dcs(lat: float, lon: float, theater: str) -> tuple[float, float]:
+    """Convert (latitude, longitude) to DCS coordinates (x=north, z=east).
+
+    Forward Transverse Mercator (WGS84, lat_0=0). Inverse of :func:`dcs_to_latlon`;
+    used to validate the projection. Raises ValueError if the theater is unknown.
+    """
+    params = THEATERS.get(theater)
+    if not params:
+        available = ", ".join(sorted(THEATERS.keys()))
+        raise ValueError(f"Unsupported DCS theater '{theater}'. Available: {available}")
+
+    phi = math.radians(lat)
+    sin_phi = math.sin(phi)
+    cos_phi = math.cos(phi)
+    tan_phi = math.tan(phi)
+    n = _A / math.sqrt(1 - _E2 * sin_phi**2)
+    t = tan_phi**2
+    c = _E_PRIME2 * cos_phi**2
+    a = cos_phi * math.radians(lon - params.lon_0)
+    m = _meridional_arc(phi)
+
+    easting = params.x_0 + params.k_0 * n * (
+        a + (1 - t + c) * a**3 / 6 + (5 - 18 * t + t**2 + 72 * c - 58 * _E_PRIME2) * a**5 / 120
+    )
+    northing = params.y_0 + params.k_0 * (
+        m
+        + n
+        * tan_phi
+        * (
+            a**2 / 2
+            + (5 - t + 9 * c + 4 * c**2) * a**4 / 24
+            + (61 - 58 * t + t**2 + 600 * c - 330 * _E_PRIME2) * a**6 / 720
+        )
+    )
+
+    return (northing, easting)  # DCS x = north, z = east
 
 
 def detect_theater(center_lat: float, center_lon: float) -> str | None:

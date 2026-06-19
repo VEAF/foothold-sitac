@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Legacy CTLD coordinate conversion now supports Afghanistan, GermanyCW, Nevada, TheChannel and Mariana Islands theaters ([#132](https://github.com/VEAF/foothold-sitac/issues/132))
+
+### Changed
+
+- Read CTLD FARP latitude/longitude directly from the FARPS CSV when those columns are present, falling back to theater-based coordinate conversion only for legacy CSVs ([#132](https://github.com/VEAF/foothold-sitac/issues/132))
+- Legacy CTLD x/z → lat/lon now uses exact per-map Transverse Mercator parameters (`k_0=0.9996`, false easting/northing) vendored from [VEAF/dcs-maps](https://github.com/VEAF/dcs-maps), replacing the previous ~300 m approximation and fixing all theaters ([#132](https://github.com/VEAF/foothold-sitac/issues/132))
+
+### Fixed
+
+- Display CTLD FARPs even when the DCS theater cannot be auto-detected, as long as the CSV provides latitude/longitude columns ([#132](https://github.com/VEAF/foothold-sitac/issues/132))
+
 ## [0.4.0] - 2026-03-22
 
 ### Added

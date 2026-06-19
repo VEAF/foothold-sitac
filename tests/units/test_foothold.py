@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from foothold_sitac.dcs_coordinates import dcs_to_latlon, detect_theater
+from foothold_sitac.dcs_coordinates import THEATERS, dcs_to_latlon, detect_theater, latlon_to_dcs
 from foothold_sitac.foothold import (
     Connection,
     EjectedPilot,
@@ -615,6 +615,48 @@ def test_detect_theater_no_match() -> None:
     assert detect_theater(0.0, 0.0) is None
 
 
+@pytest.mark.parametrize("theater", list(THEATERS))
+def test_dcs_latlon_roundtrip_all_theaters(theater: str) -> None:
+    """Forward/inverse tmerc agree: (x,z) -> (lat,lon) -> (x,z) round-trips to <1cm."""
+    x, z = 100_000.0, 50_000.0  # ~100 km north, 50 km east of the projection origin
+    lat, lon = dcs_to_latlon(x, z, theater)
+    rx, rz = latlon_to_dcs(lat, lon, theater)
+    assert rx == pytest.approx(x, abs=1e-2)
+    assert rz == pytest.approx(z, abs=1e-2)
+
+
+def test_dcs_to_latlon_persiangulf_origin_anchor() -> None:
+    """DCS origin (0,0) on Persian Gulf matches the known LOtoLL origin point.
+
+    Reference 26.171819 / 56.241935 comes from the VEAF/dcs-maps and
+    Kilcekru/dcs-coordinates grid data for the persianGulf DCS origin.
+    """
+    lat, lon = dcs_to_latlon(0.0, 0.0, "persianGulf")
+    assert lat == pytest.approx(26.171819, abs=1e-3)
+    assert lon == pytest.approx(56.241935, abs=1e-3)
+
+
+@pytest.mark.parametrize(
+    ("lat", "lon", "expected"),
+    [
+        (25.25, 55.36, "persianGulf"),  # Dubai
+        (41.70, 44.80, "caucasus"),  # Tbilisi
+        (33.50, 36.30, "syria"),  # Damascus
+        (29.00, 33.50, "sinai"),  # Sinai peninsula
+        (-51.70, -59.00, "southAtlantic"),  # Falklands
+        (49.20, -0.40, "normandy"),  # Caen
+        (34.50, 69.20, "afghanistan"),  # Kabul
+        (52.50, 13.40, "germanyCW"),  # Berlin
+        (36.20, -115.10, "nevada"),  # Las Vegas
+        (51.00, 1.50, "theChannel"),  # Dover/Calais
+        (13.40, 144.80, "marianaIslands"),  # Guam
+    ],
+)
+def test_detect_theater_representative_points(lat: float, lon: float, expected: str) -> None:
+    """A representative real coordinate in each map resolves to the right theater."""
+    assert detect_theater(lat, lon) == expected
+
+
 # FARP CSV loading tests
 
 
@@ -667,3 +709,88 @@ def test_load_sitac_without_farps() -> None:
     lua_path = Path("tests/fixtures/test_missions/Missions/Saves/foothold_missions.lua")
     sitac = load_sitac(lua_path)
     assert sitac.farps == []
+
+
+# Dual-format FARP CSV tests (issue #132): prefer embedded lat/lon, fall back to
+# theater-based x/z conversion only for legacy CSVs.
+
+LEGACY_FARPS_LUA = Path("tests/fixtures/test_farps/Missions/Saves/foothold_persiangulf.lua")
+LATLON_FARPS_LUA = Path("tests/fixtures/test_farps_latlon/Missions/Saves/foothold_iraq.lua")
+
+
+def test_load_farps_legacy_without_theater_returns_empty() -> None:
+    """Legacy x/z CSV cannot be converted without a theater -> empty list (fallback guard)."""
+    assert load_farps(LEGACY_FARPS_LUA, None) == []
+
+
+def test_load_farps_legacy_default_theater_is_none() -> None:
+    """Omitting the theater argument defaults to None, so a legacy CSV is not converted."""
+    assert load_farps(LEGACY_FARPS_LUA) == []
+
+
+def test_load_farps_new_format_prefers_latlon() -> None:
+    """New CSV format reads lat/lon directly, with no theater and no projection."""
+    farps = load_farps(LATLON_FARPS_LUA)
+    assert len(farps) == 2
+    assert farps[0].name == "CTLD FARP Baghdad"
+    assert farps[0].latitude == 33.312805
+    assert farps[0].longitude == 44.361488
+    assert farps[1].name == "CTLD FARP Paris"
+    assert farps[1].latitude == 35.417973
+    assert farps[1].longitude == 44.208750
+
+
+def test_load_farps_new_format_ignores_theater_when_present() -> None:
+    """A passed theater is ignored when the CSV already carries lat/lon columns."""
+    assert load_farps(LATLON_FARPS_LUA, "persianGulf") == load_farps(LATLON_FARPS_LUA)
+
+
+def test_load_farps_new_format_skips_empty_or_invalid_latlon(tmp_path: Path) -> None:
+    """Rows with empty or non-numeric lat/lon are skipped; valid rows are kept."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(
+        "seq;name;x;y;zell;latitude;longitude;\n"
+        "1;Valid;100.0;0.0;;33.0;44.0;\n"
+        "2;EmptyCoords;100.0;0.0;;;;\n"
+        "3;BadCoords;100.0;0.0;;abc;44.0;\n"
+    )
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "Valid"
+
+
+def test_load_farps_new_format_header_case_insensitive(tmp_path: Path) -> None:
+    """An upper-case column header is still detected as the new lat/lon format."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text("SEQ;NAME;X;Y;ZELL;LATITUDE;LONGITUDE;\n1;CTLD FARP Mosul;100.0;0.0;;36.34;43.13;\n")
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "CTLD FARP Mosul"
+    assert farps[0].latitude == 36.34
+
+
+def test_load_farps_new_format_handles_bom(tmp_path: Path) -> None:
+    """A UTF-8 BOM must not break new-format detection (file is opened as utf-8-sig).
+
+    The BOM is glued to the first header token; without utf-8-sig the ``latitude``
+    token would read as ``\\ufefflatitude`` and the file would be misread as legacy.
+    """
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text("﻿latitude;longitude;name;\n33.5;44.5;CTLD FARP Erbil;\n", encoding="utf-8")
+    farps = load_farps(tmp_path / "mission.lua")
+    assert len(farps) == 1
+    assert farps[0].name == "CTLD FARP Erbil"
+    assert farps[0].latitude == 33.5
+
+
+def test_load_sitac_loads_farps_when_theater_undetected() -> None:
+    """Core fix (#132): FARPs load from CSV lat/lon even when the theater is undetected."""
+    sitac = load_sitac(LATLON_FARPS_LUA)
+    # Sanity check: the Iraq fixture's zone center matches no supported theater bbox.
+    lats = [z.position.latitude for z in sitac.zones.values()]
+    lons = [z.position.longitude for z in sitac.zones.values()]
+    assert detect_theater(sum(lats) / len(lats), sum(lons) / len(lons)) is None
+    # ...yet the FARPs still load, thanks to the lat/lon columns in the CSV.
+    assert len(sitac.farps) == 2
+    assert sitac.farps[0].name == "CTLD FARP Baghdad"
+    assert sitac.farps[1].name == "CTLD FARP Paris"

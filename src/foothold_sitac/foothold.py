@@ -1,5 +1,6 @@
 import csv
 import re
+from collections.abc import Iterator
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -269,41 +270,75 @@ def _detect_theater_from_sitac(sitac: "Sitac") -> str | None:
     return detect_theater(sum(lats) / len(lats), sum(lons) / len(lons))
 
 
-def load_farps(mission_path: Path, theater: str) -> list[Farp]:
-    """Load CTLD FARP positions from CSV file alongside the mission Lua file.
+def load_farps(mission_path: Path, theater: str | None = None) -> list[Farp]:
+    """Load CTLD FARP positions from the CSV file alongside the mission Lua file.
 
-    CSV format:
-        FARP COORDINATES
-        1;CTLD FARP London;57367.292969;-54940.789062;
+    Two CSV formats are supported; the first line is inspected to choose one.
+
+    New format (preferred) has a column header containing ``latitude`` and
+    ``longitude``; coordinates are read directly and no theater is needed::
+
+        seq;name;x;y;zell;latitude;longitude;
+        3;CTLD FARP Paris;239626.78;455.45;;35.417973;44.208750;
+
+    Legacy format has a ``FARP COORDINATES`` title line, then positional
+    ``seq;name;x;z`` rows converted via the theater projection. When ``theater``
+    is ``None`` the legacy format cannot be converted and an empty list is returned.
     """
-    from foothold_sitac.dcs_coordinates import dcs_to_latlon
-
     csv_path = mission_path.parent / f"{mission_path.stem}_CTLD_FARPS.csv"
     if not csv_path.is_file():
         return []
 
-    farps: list[Farp] = []
-    with open(csv_path, encoding="utf-8") as f:
+    with open(csv_path, encoding="utf-8-sig") as f:
         content = f.read()
 
     lines = content.strip().split("\n")
     if len(lines) <= 1:
         return []
 
-    # Skip header line, parse data lines
-    reader = csv.reader(StringIO("\n".join(lines[1:])), delimiter=";")
-    for row in reader:
+    header_tokens = [token.strip().lower() for token in lines[0].split(";")]
+    data_rows = csv.reader(StringIO("\n".join(lines[1:])), delimiter=";")
+
+    if "latitude" in header_tokens and "longitude" in header_tokens:
+        return _parse_latlon_farps(data_rows, header_tokens)
+    return _parse_legacy_farps(data_rows, theater)
+
+
+def _parse_latlon_farps(rows: Iterator[list[str]], header_tokens: list[str]) -> list[Farp]:
+    """Parse new-format rows that carry direct latitude/longitude columns."""
+    lat_idx = header_tokens.index("latitude")
+    lon_idx = header_tokens.index("longitude")
+    name_idx = header_tokens.index("name") if "name" in header_tokens else 1
+
+    farps: list[Farp] = []
+    for row in rows:
+        if len(row) <= max(lat_idx, lon_idx, name_idx):
+            continue
+        try:
+            lat, lon = float(row[lat_idx]), float(row[lon_idx])
+        except ValueError:
+            continue
+        farps.append(Farp(name=row[name_idx].strip(), latitude=lat, longitude=lon))
+    return farps
+
+
+def _parse_legacy_farps(rows: Iterator[list[str]], theater: str | None) -> list[Farp]:
+    """Parse legacy positional rows (seq;name;x;z) via the theater projection."""
+    if theater is None:
+        return []
+
+    from foothold_sitac.dcs_coordinates import dcs_to_latlon
+
+    farps: list[Farp] = []
+    for row in rows:
         if len(row) < 4:
             continue
-        name = row[1].strip()
         try:
-            dcs_x = float(row[2])
-            dcs_z = float(row[3])
+            dcs_x, dcs_z = float(row[2]), float(row[3])
         except ValueError:
             continue
         lat, lon = dcs_to_latlon(dcs_x, dcs_z, theater)
-        farps.append(Farp(name=name, latitude=lat, longitude=lon))
-
+        farps.append(Farp(name=row[1].strip(), latitude=lat, longitude=lon))
     return farps
 
 
@@ -342,9 +377,11 @@ def load_sitac(file: Path) -> Sitac:
         updated_at=datetime.fromtimestamp(file.stat().st_mtime),
     )
 
+    # Always attempt to load FARPs: the new CSV format carries lat/lon directly,
+    # so FARPs must load even when the theater cannot be auto-detected. The theater
+    # is only needed as a fallback to convert legacy x/z coordinates.
     theater = _detect_theater_from_sitac(sitac)
-    if theater:
-        sitac.farps = load_farps(file, theater)
+    sitac.farps = load_farps(file, theater)
 
     return sitac
 
