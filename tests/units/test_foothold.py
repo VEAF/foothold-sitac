@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from foothold_sitac.dcs_coordinates import dcs_to_latlon, detect_theater
+from foothold_sitac.dcs_coordinates import THEATERS, dcs_to_latlon, detect_theater, latlon_to_dcs
 from foothold_sitac.foothold import (
     Connection,
     EjectedPilot,
@@ -613,6 +613,48 @@ def test_detect_theater_persiangulf() -> None:
 def test_detect_theater_no_match() -> None:
     """Test theater detection returns None for unknown coordinates"""
     assert detect_theater(0.0, 0.0) is None
+
+
+@pytest.mark.parametrize("theater", list(THEATERS))
+def test_dcs_latlon_roundtrip_all_theaters(theater: str) -> None:
+    """Forward/inverse tmerc agree: (x,z) -> (lat,lon) -> (x,z) round-trips to <1cm."""
+    x, z = 100_000.0, 50_000.0  # ~100 km north, 50 km east of the projection origin
+    lat, lon = dcs_to_latlon(x, z, theater)
+    rx, rz = latlon_to_dcs(lat, lon, theater)
+    assert rx == pytest.approx(x, abs=1e-2)
+    assert rz == pytest.approx(z, abs=1e-2)
+
+
+def test_dcs_to_latlon_persiangulf_origin_anchor() -> None:
+    """DCS origin (0,0) on Persian Gulf matches the known LOtoLL origin point.
+
+    Reference 26.171819 / 56.241935 comes from the VEAF/dcs-maps and
+    Kilcekru/dcs-coordinates grid data for the persianGulf DCS origin.
+    """
+    lat, lon = dcs_to_latlon(0.0, 0.0, "persianGulf")
+    assert lat == pytest.approx(26.171819, abs=1e-3)
+    assert lon == pytest.approx(56.241935, abs=1e-3)
+
+
+@pytest.mark.parametrize(
+    ("lat", "lon", "expected"),
+    [
+        (25.25, 55.36, "persianGulf"),  # Dubai
+        (41.70, 44.80, "caucasus"),  # Tbilisi
+        (33.50, 36.30, "syria"),  # Damascus
+        (29.00, 33.50, "sinai"),  # Sinai peninsula
+        (-51.70, -59.00, "southAtlantic"),  # Falklands
+        (49.20, -0.40, "normandy"),  # Caen
+        (34.50, 69.20, "afghanistan"),  # Kabul
+        (52.50, 13.40, "germanyCW"),  # Berlin
+        (36.20, -115.10, "nevada"),  # Las Vegas
+        (51.00, 1.50, "theChannel"),  # Dover/Calais
+        (13.40, 144.80, "marianaIslands"),  # Guam
+    ],
+)
+def test_detect_theater_representative_points(lat: float, lon: float, expected: str) -> None:
+    """A representative real coordinate in each map resolves to the right theater."""
+    assert detect_theater(lat, lon) == expected
 
 
 # FARP CSV loading tests
