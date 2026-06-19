@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-19
+
 ### Added
 
 - Legacy CTLD coordinate conversion now supports Afghanistan, GermanyCW, Nevada, TheChannel and Mariana Islands theaters ([#132](https://github.com/VEAF/foothold-sitac/issues/132))
