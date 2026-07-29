@@ -5,6 +5,7 @@ from foothold_sitac.cache import get_checked_at, get_status_mtime
 from foothold_sitac.config import get_config
 from foothold_sitac.dependencies import get_active_sitac
 from foothold_sitac.foothold import Sitac, list_servers, parse_coordinates_from_text
+from foothold_sitac.unit_names import get_unit_display_names
 from foothold_sitac.schemas import (
     MapConnection,
     MapData,
@@ -133,6 +134,16 @@ async def foothold_get_map_data(
     # Build FARPs list
     farps = [MapFarp(name=farp.name, lat=farp.latitude, lon=farp.longitude) for farp in sitac.farps]
 
+    # Build unit display names (filtered to only types present in this sitac)
+    # Keys in the mapping are lowercase; lookup uses .lower()
+    all_unit_types: set[str] = set()
+    if show_forces:
+        for zone in sitac.zones.values():
+            for units_dict in zone.remaining_units.values():
+                all_unit_types.update(units_dict.values())
+    full_mapping = get_unit_display_names()
+    unit_display_names = {t: full_mapping[t.lower()] for t in all_unit_types if t.lower() in full_mapping}
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
@@ -149,4 +160,5 @@ async def foothold_get_map_data(
         red_credits=sitac.accounts.red,
         blue_credits=sitac.accounts.blue,
         show_zone_forces=show_forces,
+        unit_display_names=unit_display_names,
     )
