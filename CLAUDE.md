@@ -67,16 +67,17 @@ The app auto-discovers Foothold servers by scanning `dcs.saved_games` for direct
 
 ### CTLD FARPs and DCS Coordinate Conversion
 
-CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`). `load_farps()` in `foothold.py` supports two CSV layouts and inspects the first line to choose one:
+CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`). `load_farps()` in `foothold.py` inspects the first line to pick a parser, then reads coordinates from lat/lon columns whenever the rows provide them:
 
 - **New format (preferred)**: a column header containing `latitude`/`longitude` (e.g. `seq;name;x;y;zell;latitude;longitude;`). Coordinates are read straight from those columns — **no theater and no projection are needed**, so FARPs load even on theaters we cannot auto-detect.
-- **Legacy format (fallback)**: a `FARP COORDINATES` title line followed by positional `seq;name;x;z` rows in DCS internal coordinates (x=north, z=east in meters). These are converted to lat/lon via a Transverse Mercator inverse projection, which requires a detected theater. When the theater is unknown, legacy rows cannot be converted and are skipped.
+- **Legacy format**: a `FARP COORDINATES` title line followed by positional `seq;name;x;z` rows in DCS internal coordinates (x=north, z=east in meters). Recent CTLD versions append lat/lon to those rows (`seq;name;x;z;;latitude;longitude;elevation;`); when columns 5 and 6 hold plausible coordinates (lat in ±90, lon in ±180) they are used directly, so **no theater is needed** either.
+- **Projection fallback**: legacy rows without usable lat/lon columns are converted from x/z via a Transverse Mercator inverse projection, which requires a detected theater. When the theater is unknown, those rows are skipped.
 
 The conversion logic (fallback path only) is in `src/foothold_sitac/dcs_coordinates.py`. Each DCS map is a standard Transverse Mercator (`+proj=tmerc +lat_0=0 +k_0=0.9996`) and only three constants change per map (`lon_0`, `x_0`=false easting, `y_0`=false northing). These are **vendored verbatim** into the `THEATERS` table from the authoritative dataset at https://github.com/VEAF/dcs-maps (`exports/maps.yaml`), giving a near-exact conversion. To add or refresh a map: copy its `lon_0`/`x_0`/`y_0` from `maps.yaml` into `THEATERS` and add a detection bounding box.
 
-**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — geographically overlapping maps (e.g. Sinai/Syria, Iraq/Syria, Iraq/PersianGulf, Normandy/TheChannel, Marianas/MarianasWWII) resolve by dict order. With the new CSV format this only affects the legacy fallback (new-format FARPs no longer depend on it).
+**Theater detection hack**: Since the Lua persistence file does not contain the DCS theater name, the theater is detected by checking if the center of all zone lat/lon coordinates falls within a known geographic bounding box. This is fragile — geographically overlapping maps (e.g. Sinai/Syria, Iraq/Syria, Iraq/PersianGulf, Normandy/TheChannel, Marianas/MarianasWWII) resolve by dict order. It now only affects legacy rows that carry no lat/lon columns at all — any CSV providing lat/lon is theater-independent.
 
-Theaters supported by the legacy fallback (14): persianGulf, caucasus, syria, sinai, southAtlantic (Falklands), normandy, afghanistan, germanyCW, nevada, theChannel, marianaIslands, marianaIslandsWWII, iraq, kola. New-format CSVs (with lat/lon columns) work everywhere regardless of theater.
+Theaters supported by the legacy fallback (14): persianGulf, caucasus, syria, sinai, southAtlantic (Falklands), normandy, afghanistan, germanyCW, nevada, theChannel, marianaIslands, marianaIslandsWWII, iraq, kola. CSVs providing lat/lon columns (new format, or legacy rows with columns 5/6 filled) work everywhere regardless of theater.
 
 ## Documentation
 

@@ -270,6 +270,12 @@ def _detect_theater_from_sitac(sitac: "Sitac") -> str | None:
     return detect_theater(sum(lats) / len(lats), sum(lons) / len(lons))
 
 
+# Lat/lon columns appended to legacy ``seq;name;x;z`` rows by recent CTLD versions:
+# ``seq;name;x;z;;latitude;longitude;elevation;``
+LEGACY_LATITUDE_INDEX = 5
+LEGACY_LONGITUDE_INDEX = 6
+
+
 def load_farps(mission_path: Path, theater: str | None = None) -> list[Farp]:
     """Load CTLD FARP positions from the CSV file alongside the mission Lua file.
 
@@ -282,8 +288,14 @@ def load_farps(mission_path: Path, theater: str | None = None) -> list[Farp]:
         3;CTLD FARP Paris;239626.78;455.45;;35.417973;44.208750;
 
     Legacy format has a ``FARP COORDINATES`` title line, then positional
-    ``seq;name;x;z`` rows converted via the theater projection. When ``theater``
-    is ``None`` the legacy format cannot be converted and an empty list is returned.
+    ``seq;name;x;z`` rows. Recent CTLD versions append lat/lon to those rows,
+    and those columns are used when present::
+
+        FARP COORDINATES
+        1;CTLD FARP Berlin;-86582.570313;576458.312500;;44.044403;41.436664;0;
+
+    Legacy rows without usable lat/lon columns fall back to converting ``x``/``z``
+    via the theater projection; when ``theater`` is ``None`` they are skipped.
     """
     csv_path = mission_path.parent / f"{mission_path.stem}_CTLD_FARPS.csv"
     if not csv_path.is_file():
@@ -323,23 +335,47 @@ def _parse_latlon_farps(rows: Iterator[list[str]], header_tokens: list[str]) -> 
 
 
 def _parse_legacy_farps(rows: Iterator[list[str]], theater: str | None) -> list[Farp]:
-    """Parse legacy positional rows (seq;name;x;z) via the theater projection."""
-    if theater is None:
-        return []
-
-    from foothold_sitac.dcs_coordinates import dcs_to_latlon
-
+    """Parse legacy positional rows (seq;name;x;z), preferring appended lat/lon columns."""
     farps: list[Farp] = []
     for row in rows:
         if len(row) < 4:
             continue
-        try:
-            dcs_x, dcs_z = float(row[2]), float(row[3])
-        except ValueError:
+        position = _legacy_row_latlon(row)
+        if position is None:
+            position = _legacy_row_projection(row, theater)
+        if position is None:
             continue
-        lat, lon = dcs_to_latlon(dcs_x, dcs_z, theater)
+        lat, lon = position
         farps.append(Farp(name=row[1].strip(), latitude=lat, longitude=lon))
     return farps
+
+
+def _legacy_row_latlon(row: list[str]) -> tuple[float, float] | None:
+    """Read the lat/lon columns recent CTLD versions append to legacy rows, when usable."""
+    if len(row) <= LEGACY_LONGITUDE_INDEX:
+        return None
+    try:
+        lat = float(row[LEGACY_LATITUDE_INDEX])
+        lon = float(row[LEGACY_LONGITUDE_INDEX])
+    except ValueError:
+        return None
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return None
+    return lat, lon
+
+
+def _legacy_row_projection(row: list[str], theater: str | None) -> tuple[float, float] | None:
+    """Convert the positional x/z columns, which requires a detected theater."""
+    if theater is None:
+        return None
+
+    from foothold_sitac.dcs_coordinates import dcs_to_latlon
+
+    try:
+        dcs_x, dcs_z = float(row[2]), float(row[3])
+    except ValueError:
+        return None
+    return dcs_to_latlon(dcs_x, dcs_z, theater)
 
 
 def lua_to_dict(lua_table: Any) -> dict[Any, Any] | None:
