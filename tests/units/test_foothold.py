@@ -816,3 +816,58 @@ def test_load_sitac_loads_farps_when_theater_undetected() -> None:
     assert len(sitac.farps) == 2
     assert sitac.farps[0].name == "CTLD FARP Alpha"
     assert sitac.farps[1].name == "CTLD FARP Bravo"
+
+
+# Legacy CSVs carrying lat/lon columns (issue #141): prefer those columns over the
+# theater projection, and keep the x/z conversion as a fallback for rows without them.
+
+LEGACY_LATLON_HEADER = "FARP COORDINATES\n"
+LEGACY_LATLON_ROW = "1;CTLD FARP Berlin;-86582.570313;576458.312500;;44.044403;41.436664;0;\n"
+
+
+def test_load_farps_legacy_latlon_columns_without_theater(tmp_path: Path) -> None:
+    """A legacy-titled CSV whose rows carry lat/lon needs no theater at all."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(LEGACY_LATLON_HEADER + LEGACY_LATLON_ROW)
+
+    farps = load_farps(tmp_path / "mission.lua")
+
+    assert len(farps) == 1
+    assert farps[0].name == "CTLD FARP Berlin"
+    assert farps[0].latitude == 44.044403
+    assert farps[0].longitude == 41.436664
+
+
+def test_load_farps_legacy_latlon_columns_ignore_theater(tmp_path: Path) -> None:
+    """The appended lat/lon columns win over the x/z projection, even with a theater."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(LEGACY_LATLON_HEADER + LEGACY_LATLON_ROW)
+    mission_path = tmp_path / "mission.lua"
+
+    assert load_farps(mission_path, "caucasus") == load_farps(mission_path)
+
+
+def test_load_farps_legacy_mixed_rows_fall_back_to_projection(tmp_path: Path) -> None:
+    """Rows without lat/lon still go through the theater projection when one is known."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(LEGACY_LATLON_HEADER + LEGACY_LATLON_ROW + "2;CTLD FARP London;57367.29;-54940.79;\n")
+
+    with_theater = load_farps(tmp_path / "mission.lua", "persianGulf")
+    assert len(with_theater) == 2
+    assert with_theater[0].latitude == 44.044403  # read from the CSV
+    assert 22.0 <= with_theater[1].latitude <= 30.0  # projected from x/z
+
+    without_theater = load_farps(tmp_path / "mission.lua")
+    assert [farp.name for farp in without_theater] == ["CTLD FARP Berlin"]
+
+
+def test_load_farps_legacy_out_of_range_columns_fall_back_to_projection(tmp_path: Path) -> None:
+    """Numeric columns that cannot be coordinates are not mistaken for lat/lon."""
+    csv_file = tmp_path / "mission_CTLD_FARPS.csv"
+    csv_file.write_text(LEGACY_LATLON_HEADER + "1;CTLD FARP Dubai;57367.29;-54940.79;;500000.0;900000.0;0;\n")
+
+    farps = load_farps(tmp_path / "mission.lua", "persianGulf")
+
+    assert len(farps) == 1
+    assert 22.0 <= farps[0].latitude <= 30.0
+    assert 48.0 <= farps[0].longitude <= 62.0

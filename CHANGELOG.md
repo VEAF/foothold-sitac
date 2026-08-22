@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- Read CTLD FARP latitude/longitude from legacy `FARP COORDINATES` CSVs when their rows carry those columns, keeping the theater-based x/z conversion as a fallback ([#141](https://github.com/VEAF/foothold-sitac/issues/141))
+
 ### Fixed
 
 - Load persistence files that no longer contain the `wasBlue` zone flag ([#142](https://github.com/VEAF/foothold-sitac/issues/142))
