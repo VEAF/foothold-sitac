@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Load persistence files that no longer contain the `wasBlue` zone flag ([#142](https://github.com/VEAF/foothold-sitac/issues/142))
+
 ## [0.5.1] - 2026-06-19
 
 ### Added

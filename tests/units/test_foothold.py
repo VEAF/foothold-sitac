@@ -63,6 +63,22 @@ def test_zone_unit_groups_multiple_groups(base_zone_data: dict[str, Any]) -> Non
     assert groups[1]["units"] == {"SA-11 Buk CC 9S470M1": 1}
 
 
+def test_zone_without_was_blue(base_zone_data: dict[str, Any]) -> None:
+    """Recent Foothold versions no longer write the wasBlue flag."""
+    del base_zone_data["wasBlue"]
+    zone = Zone.model_validate(base_zone_data)
+    assert zone.wasBlue is False
+
+
+def test_load_sitac_without_was_blue() -> None:
+    lua_path = Path("tests/fixtures/test_no_was_blue/foothold_no_was_blue.lua")
+    sitac = load_sitac(lua_path)
+    assert len(sitac.zones) == 2
+    assert sitac.zones["RedZone"].wasBlue is False
+    assert sitac.zones["BlueZone"].wasBlue is False
+    assert sitac.zones["BlueZone"].side == 2
+
+
 def test_load_sitac_with_remaining_units() -> None:
     lua_path = Path("tests/fixtures/test_forces/Missions/Saves/foothold_forces.lua")
     sitac = load_sitac(lua_path)

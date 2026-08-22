@@ -46,7 +46,7 @@ Each entry in `zonePersistance['zones']` is keyed by zone name (string) and cont
 | `upgradesUsedBlue` | number | yes | Blue upgrades used |
 | `logisticCenter` | boolean | yes | Whether zone has a logistic center |
 | `firstCaptureByRed` | boolean | yes | Whether zone was first captured by red |
-| `wasBlue` | boolean | yes | Whether zone was previously blue |
+| `wasBlue` | boolean | no | Whether zone was previously blue (dropped by recent Foothold versions, defaults to `false`) |
 | `lat_long` | object | yes | Zone position (see below) |
 | `remainingUnits` | dict | yes | Deployed units by group (see below) |
 | `destroyed` | dict | yes | Destroyed units (can be empty) |
