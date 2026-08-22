@@ -30,7 +30,7 @@ class Zone(BaseModel):
     remaining_units: dict[int, dict[int, str]] | dict[Any, Any] = Field(alias="remainingUnits")
     first_capture_by_red: bool = Field(alias="firstCaptureByRed")
     level: int
-    wasBlue: bool
+    wasBlue: bool = False  # dropped from recent Foothold persistence files
     triggers: dict[str, int]
     position: Position = Field(alias="lat_long")
     hidden: bool = False
