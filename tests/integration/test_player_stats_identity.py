@@ -85,6 +85,14 @@ def test_unsupported_identity_version_is_not_silently_misread(identity_save: Pat
         load_sitac(identity_save)
 
 
+@pytest.mark.parametrize("statistics", ["nil", "false", "0", '"invalid"'])
+def test_missing_or_invalid_statistics_table_is_rejected(identity_save: Path, statistics: str) -> None:
+    with identity_save.open("a", encoding="utf-8") as save:
+        save.write(f"\nzonePersistance.playerStats = {statistics}\n")
+    with pytest.raises(ValueError, match="Invalid playerStats"):
+        load_sitac(identity_save)
+
+
 @pytest.mark.parametrize("record", ["{stats = {Points = 10}}", '{name = "Viper"}', '{name = "", stats = {}}'])
 def test_malformed_identity_record_does_not_become_zero_stats(identity_save: Path, record: str) -> None:
     with identity_save.open("a", encoding="utf-8") as save:

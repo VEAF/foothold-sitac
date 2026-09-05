@@ -408,7 +408,10 @@ def load_sitac(file: Path) -> Sitac:
         # Keep the name-keyed view used by rankings, player pages and the API.
         # Sort identities so Lua table iteration cannot shuffle duplicate names.
         entries: list[tuple[str, dict[str, Any]]] = []
-        for _, record in sorted(zone_persistance_dict["playerStats"].items()):  # type: ignore[index]
+        player_stats_table = zone_persistance_dict.get("playerStats")  # type: ignore[union-attr]
+        if not isinstance(player_stats_table, dict):
+            raise ValueError("Invalid playerStats: expected a dictionary")
+        for _, record in sorted(player_stats_table.items()):
             if (
                 not isinstance(record, dict)
                 or not isinstance(record.get("name"), str)
