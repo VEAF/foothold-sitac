@@ -400,6 +400,39 @@ def load_sitac(file: Path) -> Sitac:
     zone_persistance = lua.globals().zonePersistance
     zone_persistance_dict = lua_to_dict(zone_persistance)
 
+    identity_version = zone_persistance_dict.get("playerStatsIdentityVersion")  # type: ignore[union-attr]
+    if identity_version is not None:
+        if isinstance(identity_version, bool) or identity_version != 1:
+            raise ValueError(f"Unsupported playerStatsIdentityVersion: {identity_version!r}")
+
+        # Keep the name-keyed view used by rankings, player pages and the API.
+        # Sort identities so Lua table iteration cannot shuffle duplicate names.
+        entries: list[tuple[str, dict[str, Any]]] = []
+        for _, record in sorted(zone_persistance_dict["playerStats"].items()):  # type: ignore[index]
+            if (
+                not isinstance(record, dict)
+                or not isinstance(record.get("name"), str)
+                or not record["name"]
+                or not isinstance(record.get("stats"), dict)
+            ):
+                raise ValueError("Invalid UCID playerStats record: expected a non-empty name and a stats table")
+            entries.append((record["name"], record["stats"]))
+        entries.extend(sorted(zone_persistance_dict.get("legacyPlayerStats", {}).items()))  # type: ignore[union-attr]
+
+        # Never merge histories or let an alias overwrite another player's name.
+        reserved_names = {name for name, _ in entries}
+        player_stats: dict[str, dict[str, Any]] = {}
+        for name, stats in entries:
+            display_name = name
+            suffix = 2
+            if display_name in player_stats:
+                display_name = f"{name} ({suffix})"
+                while display_name in reserved_names or display_name in player_stats:
+                    suffix += 1
+                    display_name = f"{name} ({suffix})"
+            player_stats[display_name] = stats
+        zone_persistance_dict["playerStats"] = player_stats  # type: ignore[index]
+
     # Merge zonesDetails into zones (new format support)
     # In new format, flavorText is stored in zonesDetails instead of directly in zones
     zones_details = zone_persistance_dict.get("zonesDetails", {})  # type: ignore[union-attr]
