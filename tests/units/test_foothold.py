@@ -10,8 +10,11 @@ from foothold_sitac.foothold import (
     Farp,
     Mission,
     Player,
+    Sitac,
     WeatherInfo,
     Zone,
+    get_server_path_by_name,
+    is_plain_server_name,
     load_farps,
     load_sitac,
     parse_coordinates_from_text,
@@ -871,3 +874,111 @@ def test_load_farps_legacy_out_of_range_columns_fall_back_to_projection(tmp_path
     assert len(farps) == 1
     assert 22.0 <= farps[0].latitude <= 30.0
     assert 48.0 <= farps[0].longitude <= 62.0
+
+
+# Player stats tests
+
+
+def _sitac_with_player_stats(player_stats: dict[Any, Any], **extra: Any) -> Sitac:
+    return Sitac.model_validate(
+        {"updated_at": "2026-01-01T00:00:00", "zones": {}, "playerStats": player_stats, **extra}
+    )
+
+
+def test_load_sitac_legacy_player_stats() -> None:
+    """Legacy format: players keyed by name, figures directly inside."""
+    sitac = load_sitac(Path("tests/fixtures/test_player_stats/Missions/Saves/foothold_player_stats.lua"))
+
+    assert sorted(sitac.player_stats) == ["Eagle", "Falcon", "Viper"]
+    viper = sitac.player_stats["Viper"]
+    assert viper.points == 1500
+    assert viper.deaths == 3
+    assert viper.air == 12
+    assert viper.flight_time == 320.5
+
+
+def test_load_sitac_identity_player_stats() -> None:
+    """playerStatsIdentityVersion 1: players keyed by identifier, name and stats nested."""
+    lua_path = Path("tests/fixtures/test_player_stats_identity/Missions/Saves/foothold_player_stats_identity.lua")
+    sitac = load_sitac(lua_path)
+
+    assert sorted(sitac.player_stats) == ["Eagle", "Falcon", "Viper"]
+    viper = sitac.player_stats["Viper"]
+    assert viper.points == 1500
+    assert viper.deaths == 3
+    assert viper.air == 12
+    assert viper.ground_units == 15
+    assert viper.flight_time == 320.5
+    assert sitac.player_stats["Eagle"].CAP_mission == 15
+
+
+@pytest.mark.parametrize(
+    "entry", [{"stats": {"Points": 10}}, {"name": "", "stats": {"Points": 10}}, {"name": "  ", "stats": {"Points": 10}}]
+)
+def test_identity_player_stats_without_name_falls_back_to_identifier(entry: dict[str, Any]) -> None:
+    sitac = _sitac_with_player_stats({"id-1": entry}, playerStatsIdentityVersion=1)
+
+    assert list(sitac.player_stats) == ["id-1"]
+    assert sitac.player_stats["id-1"].points == 10
+
+
+def test_identity_player_stats_without_stats_defaults_to_zero() -> None:
+    sitac = _sitac_with_player_stats({"id-1": {"name": "Viper"}}, playerStatsIdentityVersion=1)
+
+    assert sitac.player_stats["Viper"].points == 0
+
+
+def test_identity_player_stats_homonyms_are_all_kept() -> None:
+    """Two identifiers with the same name: the lowest identifier keeps the name, the others get a suffix."""
+    sitac = _sitac_with_player_stats(
+        {
+            "id-3": {"name": "Viper", "stats": {"Points": 30}},
+            "id-1": {"name": "Viper", "stats": {"Points": 10}},
+            "id-2": {"name": "Viper", "stats": {"Points": 20}},
+            "id-4": {"name": "Viper (2)", "stats": {"Points": 40}},
+        },
+        playerStatsIdentityVersion=1,
+    )
+
+    assert {name: stats.points for name, stats in sitac.player_stats.items()} == {
+        "Viper": 10,
+        "Viper (2)": 40,
+        "Viper (3)": 20,
+        "Viper (4)": 30,
+    }
+
+
+def test_player_stats_unknown_identity_version_is_read_by_shape(caplog: pytest.LogCaptureFixture) -> None:
+    """An unknown marker version is read entry by entry, from the shape of each entry, with a warning."""
+    sitac = _sitac_with_player_stats(
+        {"id-1": {"name": "Viper", "stats": {"Points": 10}}, "Falcon": {"Points": 20}},
+        playerStatsIdentityVersion=2,
+    )
+
+    assert sitac.player_stats["Viper"].points == 10
+    assert sitac.player_stats["Falcon"].points == 20
+    assert "playerStatsIdentityVersion" in caplog.text
+
+
+def test_player_stats_without_marker_is_read_as_legacy() -> None:
+    """Without the marker, a player literally named like a nested key is still read as legacy."""
+    sitac = _sitac_with_player_stats({"name": {"Points": 10}})
+
+    assert sitac.player_stats["name"].points == 10
+
+
+# Server name tests
+
+
+@pytest.mark.parametrize("name", ["Foothold Server", "test_hidden", "server-1.2"])
+def test_plain_server_name_accepted(name: str) -> None:
+    assert is_plain_server_name(name)
+
+
+@pytest.mark.parametrize(
+    "name", ["", ".", "..", "../x", r"..\x", "a/b", r"a\b", r"\\host\share", r"C:\Windows", "C:", "/etc"]
+)
+def test_path_like_server_name_rejected(name: str) -> None:
+    assert not is_plain_server_name(name)
+    with pytest.raises(ValueError):
+        get_server_path_by_name(name)

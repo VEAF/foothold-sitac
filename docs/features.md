@@ -61,6 +61,7 @@
 
 - Player statistics sorted by points
 - Columns: Rank, Player Name, Points, Deaths, Zone Captures, Zone Upgrades, Air Units, Ground Units
+- Reads both the legacy and the identity `playerStats` layouts; homonymous players are shown as `<name> (2)`, `<name> (3)`... (see [lua-file-format.md](lua-file-format.md#playerstats))
 
 ### Objectives
 

@@ -107,7 +107,7 @@ function openPilotModal(pilot) {
     body.innerHTML =
         '<div class="pilot-modal-header">' +
             '<i class="fa-solid fa-parachute-box" style="color: ' + color + ';"></i>' +
-            '<h2>' + pilot.player_name + '</h2>' +
+            '<h2>' + escapeHtml(pilot.player_name) + '</h2>' +
         '</div>' +
         '<div class="pilot-coords">' +
             '<h3>Decimal Degrees</h3>' +
@@ -260,7 +260,7 @@ function openMarkpointDetailModal(mp, index) {
     body.innerHTML =
         '<div class="pilot-modal-header">' +
             '<i class="fa-solid fa-location-dot" style="color: #f59e0b;"></i>' +
-            '<h2>' + mp.label + '</h2>' +
+            '<h2>' + escapeHtml(mp.label) + '</h2>' +
         '</div>' +
         '<div class="pilot-coords">' +
             '<div class="pilot-coords-row">' +

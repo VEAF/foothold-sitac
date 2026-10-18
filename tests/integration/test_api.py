@@ -305,3 +305,56 @@ def test_map_data_no_farps_returns_empty(client: TestClient) -> None:
 
     data = response.json()
     assert data["farps"] == []
+
+
+# Server name validation
+
+
+@pytest.mark.parametrize(
+    "server",
+    [
+        "unknown_server",
+        "test_no_was_blue",  # existing directory that is not a Foothold server
+        "..%5Cfixtures%5Ctest_player_stats",  # backslash-separated relative path
+        "%5C%5Chost%5Cshare",  # UNC path
+        "C:%5CWindows",  # absolute Windows path
+    ],
+)
+def test_unlisted_server_returns_same_404(client: TestClient, server: str) -> None:
+    for url in (f"/api/foothold/{server}/sitac", f"/api/foothold/{server}/map.json", f"/foothold/map/{server}"):
+        response = client.get(url)
+        assert response.status_code == 404, url
+        assert response.json() == {"detail": "server not found"}, url
+
+
+def test_unlisted_server_does_not_touch_the_filesystem(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(*args: object, **kwargs: object) -> None:
+        raise AssertionError("path built from an unlisted server name")
+
+    monkeypatch.setattr("foothold_sitac.foothold.get_server_path_by_name", fail)
+    monkeypatch.setattr("foothold_sitac.dependencies.list_servers", lambda: ["test_hidden"])
+
+    assert client.get("/api/foothold/%5C%5Chost%5Cshare/map.json").status_code == 404
+
+
+# HTML escaping of persistence data
+
+
+@pytest.mark.parametrize(
+    ("url", "markup"),
+    [
+        ("/foothold/map/test_markup_names/players", "<i>Viper"),
+        ("/foothold/sitac/test_markup_names", "<i>Viper"),
+        ("/foothold/player/test_markup_names/%3Ci%3EViper", "<i>Viper"),
+        ("/foothold/success/test_markup_names", "<i>Viper"),
+        ("/foothold/map/test_markup_names/missions", "<b>Strike"),
+        ("/foothold/map/test_markup_names/missions", "<u>Hit"),
+        ("/foothold/map/test_markup_names/ejected", "<i>Falcon"),
+        ("/foothold/map/test_markup_names/zones", "<i>Zone"),
+    ],
+)
+def test_persistence_names_are_html_escaped(client: TestClient, url: str, markup: str) -> None:
+    response = client.get(url)
+    assert response.status_code == 200
+    assert markup.replace("<", "&lt;").replace(">", "&gt;") in response.text
+    assert markup not in response.text
