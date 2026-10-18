@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Read player stats saved by recent Foothold versions (`playerStatsIdentityVersion = 1`, keyed by player identifier): player rankings showed identifiers and zero stats instead of names and figures ([#146](https://github.com/VEAF/foothold-sitac/issues/146))
 
+### Security
+
+- HTML-escape names and texts read from persistence files, in rendered pages (Jinja2 autoescape) and in map labels, tooltips and modals
+- Serve only servers discovered under `dcs.saved_games`: other server names in URLs get the same 404 and never build a filesystem path
+
 ## [0.5.2] - 2026-08-22
 
 ### Fixed
