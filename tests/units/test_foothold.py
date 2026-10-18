@@ -13,6 +13,8 @@ from foothold_sitac.foothold import (
     Sitac,
     WeatherInfo,
     Zone,
+    get_server_path_by_name,
+    is_plain_server_name,
     load_farps,
     load_sitac,
     parse_coordinates_from_text,
@@ -963,3 +965,20 @@ def test_player_stats_without_marker_is_read_as_legacy() -> None:
     sitac = _sitac_with_player_stats({"name": {"Points": 10}})
 
     assert sitac.player_stats["name"].points == 10
+
+
+# Server name tests
+
+
+@pytest.mark.parametrize("name", ["Foothold Server", "test_hidden", "server-1.2"])
+def test_plain_server_name_accepted(name: str) -> None:
+    assert is_plain_server_name(name)
+
+
+@pytest.mark.parametrize(
+    "name", ["", ".", "..", "../x", r"..\x", "a/b", r"a\b", r"\\host\share", r"C:\Windows", "C:", "/etc"]
+)
+def test_path_like_server_name_rejected(name: str) -> None:
+    assert not is_plain_server_name(name)
+    with pytest.raises(ValueError):
+        get_server_path_by_name(name)

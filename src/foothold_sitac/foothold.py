@@ -507,7 +507,19 @@ def detect_foothold_mission_path(server_name: str) -> Path | None:
     return mission_file_path
 
 
+def is_plain_server_name(server_name: str) -> bool:
+    """A server name is a single directory name: no separator, no drive, no `.` or `..`."""
+    return (
+        bool(server_name)
+        and server_name not in (".", "..")
+        and not any(char in server_name for char in "/\\:")
+        and Path(server_name).parts == (server_name,)
+    )
+
+
 def get_server_path_by_name(server_name: str) -> Path:
+    if not is_plain_server_name(server_name):
+        raise ValueError(f"invalid server name {server_name!r}")
     return Path(get_config().dcs.saved_games) / server_name
 
 
