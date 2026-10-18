@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Read player stats saved by recent Foothold versions (`playerStatsIdentityVersion = 1`, keyed by player identifier): player rankings showed identifiers and zero stats instead of names and figures ([#146](https://github.com/VEAF/foothold-sitac/issues/146))
+
 ## [0.5.2] - 2026-08-22
 
 ### Fixed

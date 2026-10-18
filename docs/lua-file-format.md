@@ -20,7 +20,8 @@ The file defines a single global Lua table `zonePersistance` with the following 
 |-----|------|-------------|
 | `zones` | dict | All campaign zones keyed by zone name |
 | `zonesDetails` | dict | Zone metadata (flavor text, hidden flag) keyed by zone name |
-| `playerStats` | dict | Player statistics keyed by player name |
+| `playerStats` | dict | Player statistics keyed by player name (legacy) or by player identifier (see `playerStatsIdentityVersion`) |
+| `playerStatsIdentityVersion` | number | Optional. `1` when `playerStats` is keyed by player identifier (recent Foothold versions) |
 | `ejectedPilots` | list | Ejected pilots with positions and credits |
 | `missions` | list | Active missions |
 | `connections` | list | Supply connections between zones |
@@ -95,7 +96,32 @@ These details are merged into the corresponding zone entry during parsing.
 
 ## playerStats
 
-Each entry in `zonePersistance['playerStats']` is keyed by player name (string). All fields are optional and default to `0` when absent.
+Two layouts exist, told apart by `zonePersistance['playerStatsIdentityVersion']`.
+
+**Legacy layout** (no marker): each entry is keyed by player name (string), with the figures directly inside.
+
+```lua
+zonePersistance['playerStats'] = {
+    ['<player name>'] = { ['Points'] = 42, ['Deaths'] = 1 },
+}
+```
+
+**Identity layout** (`playerStatsIdentityVersion = 1`, recent Foothold versions): each entry is keyed by the DCS player identifier, with the player name and the figures nested.
+
+```lua
+zonePersistance['playerStatsIdentityVersion'] = 1
+zonePersistance['playerStats'] = {
+    ['<player identifier>'] = { ['name'] = '<player name>', ['stats'] = { ['Points'] = 42, ['Deaths'] = 1 } },
+}
+```
+
+The SITAC always exposes player stats keyed by player name:
+
+- the displayed name is the nested `name`, or the identifier when `name` is missing or blank;
+- when several identifiers share a name, the lowest identifier keeps the name and the others are shown as `<name> (2)`, `<name> (3)`... (a suffix never takes a name another player already bears);
+- an unknown marker version is read entry by entry: an entry with `name` or `stats` is read with the identity layout, any other with the legacy one, and a warning is logged.
+
+The figures below sit directly in a legacy entry, or under `stats` in an identity entry. All fields are optional and default to `0` when absent.
 
 | Field | Type | Description |
 |-------|------|-------------|
