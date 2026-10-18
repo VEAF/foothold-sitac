@@ -1,7 +1,7 @@
 from importlib.resources import files
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from foothold_sitac.config import get_config
 
@@ -33,6 +33,6 @@ def static_url(path: str) -> str:
     return f"/static/{path}"
 
 
-env = Environment(loader=FileSystemLoader(str(templates_path)))
+env = Environment(loader=FileSystemLoader(str(templates_path)), autoescape=select_autoescape(["html", "xml"]))
 env.globals["config"] = get_config()  # add all variables accessibles in templates
 env.globals["static_url"] = static_url  # cache-busting for static assets

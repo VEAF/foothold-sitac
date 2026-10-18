@@ -335,3 +335,26 @@ def test_unlisted_server_does_not_touch_the_filesystem(client: TestClient, monke
     monkeypatch.setattr("foothold_sitac.dependencies.list_servers", lambda: ["test_hidden"])
 
     assert client.get("/api/foothold/%5C%5Chost%5Cshare/map.json").status_code == 404
+
+
+# HTML escaping of persistence data
+
+
+@pytest.mark.parametrize(
+    ("url", "markup"),
+    [
+        ("/foothold/map/test_markup_names/players", "<i>Viper"),
+        ("/foothold/sitac/test_markup_names", "<i>Viper"),
+        ("/foothold/player/test_markup_names/%3Ci%3EViper", "<i>Viper"),
+        ("/foothold/success/test_markup_names", "<i>Viper"),
+        ("/foothold/map/test_markup_names/missions", "<b>Strike"),
+        ("/foothold/map/test_markup_names/missions", "<u>Hit"),
+        ("/foothold/map/test_markup_names/ejected", "<i>Falcon"),
+        ("/foothold/map/test_markup_names/zones", "<i>Zone"),
+    ],
+)
+def test_persistence_names_are_html_escaped(client: TestClient, url: str, markup: str) -> None:
+    response = client.get(url)
+    assert response.status_code == 200
+    assert markup.replace("<", "&lt;").replace(">", "&gt;") in response.text
+    assert markup not in response.text
