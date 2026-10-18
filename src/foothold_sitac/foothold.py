@@ -1,4 +1,5 @@
 import csv
+import logging
 import re
 from collections.abc import Iterator
 from datetime import datetime
@@ -7,9 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from lupa import LuaRuntime  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from foothold_sitac.config import get_config
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigError(Exception): ...
@@ -134,6 +137,64 @@ class PlayerStats(BaseModel):
         return self.deaths + 1
 
 
+PLAYER_STATS_IDENTITY_VERSION = 1
+
+
+def _is_identity_entry(entry: Any) -> bool:
+    """An identity entry nests the figures under `stats`, next to an optional `name`."""
+    return (
+        isinstance(entry, dict) and isinstance(entry.get("stats", {}), dict) and ("stats" in entry or "name" in entry)
+    )
+
+
+def normalize_player_stats(player_stats: dict[Any, Any], identity_version: Any) -> dict[str, Any]:
+    """Return player stats keyed by player name, whatever the persistence format.
+
+    Legacy format (no `playerStatsIdentityVersion` marker) is keyed by player name,
+    figures directly inside, and is returned unchanged.
+
+    Identity format (`playerStatsIdentityVersion = 1`) is keyed by the DCS player
+    identifier, with `name` and `stats` nested. The displayed key is `name`, or the
+    identifier when the name is missing or blank. Entries are processed by ascending
+    identifier, so that when several identifiers share a name the lowest one keeps it
+    and the others get a deterministic ` (2)`, ` (3)`... suffix, skipping any name
+    a real player already bears: no player overwrites another.
+
+    An unknown marker version is read entry by entry from the shape of each entry.
+    """
+    if identity_version is None:
+        return player_stats
+
+    if identity_version != PLAYER_STATS_IDENTITY_VERSION:
+        logger.warning("Unknown playerStatsIdentityVersion %r, reading player stats by entry shape", identity_version)
+
+    named: list[tuple[str, Any]] = []
+    for identifier in sorted(player_stats, key=str):
+        entry = player_stats[identifier]
+        if not _is_identity_entry(entry):
+            named.append((str(identifier), entry))
+            continue
+        raw_name = entry.get("name")
+        name = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else str(identifier)
+        named.append((name, entry.get("stats", {})))
+
+    # First pass: every distinct name goes to its lowest identifier. Second pass:
+    # homonyms get a suffix that never takes a name a real player already bears.
+    result: dict[str, Any] = {}
+    homonyms: list[tuple[str, Any]] = []
+    for name, stats in named:
+        if name in result:
+            homonyms.append((name, stats))
+        else:
+            result[name] = stats
+    for name, stats in homonyms:
+        rank = 2
+        while f"{name} ({rank})" in result:
+            rank += 1
+        result[f"{name} ({rank})"] = stats
+    return result
+
+
 class Accounts(BaseModel):
     red: float = 0
     blue: float = 0
@@ -166,6 +227,17 @@ class Sitac(BaseModel):
     accounts: Accounts = Field(default_factory=Accounts)
     weather_info: WeatherInfo | None = Field(alias="weatherInfo", default=None)
     farps: list[Farp] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_player_stats_format(cls, data: Any) -> Any:
+        """Read both playerStats formats (see normalize_player_stats)."""
+        if isinstance(data, dict) and isinstance(data.get("playerStats"), dict):
+            data = {
+                **data,
+                "playerStats": normalize_player_stats(data["playerStats"], data.get("playerStatsIdentityVersion")),
+            }
+        return data
 
     @field_validator("accounts", mode="before")
     @classmethod
