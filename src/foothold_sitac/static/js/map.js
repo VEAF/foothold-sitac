@@ -145,11 +145,11 @@ function openZoneModal(zone) {
     var formattedLon = formatCoord(zone.lon, false);
 
     var html =
-        '<h3 style="margin-top: 0; color: ' + zone.color + ';">' + (zone.name || 'Unknown zone') + '</h3>' +
+        '<h3 style="margin-top: 0; color: ' + escapeHtml(zone.color) + ';">' + escapeHtml(zone.name || 'Unknown zone') + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Coalition</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.side + '</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + escapeHtml(zone.side) + '</td>' +
             '</tr>' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Detected units</td>' +
@@ -178,7 +178,7 @@ function openZoneModal(zone) {
             var unitList = [];
             for (var unitType in group.units) {
                 var count = group.units[unitType];
-                unitList.push(unitType + (count > 1 ? ' x' + count : ''));
+                unitList.push(escapeHtml(unitType) + (count > 1 ? ' x' + escapeHtml(count) : ''));
             }
             html += '<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">';
             html += '<span style="color: #8892a0; font-size: 12px;">Group ' + group.group_id + '</span><br>';
@@ -211,7 +211,7 @@ function getFirstLine(text) {
 
 function createLabelContent(zone, zoom) {
     var truckIcon = zone.units > 0
-        ? '<i class="fa-solid fa-truck" style="color: ' + zone.color + ';"></i>'
+        ? '<i class="fa-solid fa-truck" style="color: ' + escapeHtml(zone.color) + ';"></i>'
         : '';
 
     if (zoom <= 8) {
@@ -219,15 +219,15 @@ function createLabelContent(zone, zoom) {
         return truckIcon;
     } else if (zoom <= 9) {
         // low zoom: flavor_text only (if available) + truck
-        var label = getFirstLine(zone.flavor_text);
+        var label = escapeHtml(getFirstLine(zone.flavor_text));
         if (truckIcon) {
             label += label ? '<br>' + truckIcon : truckIcon;
         }
         return label;
     } else if (zoom <= 10) {
         // medium zoom: short name + flavor_text + truck
-        var label = getShortName(zone.name);
-        var flavorLine = getFirstLine(zone.flavor_text);
+        var label = escapeHtml(getShortName(zone.name));
+        var flavorLine = escapeHtml(getFirstLine(zone.flavor_text));
         if (flavorLine) {
             label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
         }
@@ -237,8 +237,8 @@ function createLabelContent(zone, zoom) {
         return label;
     } else {
         // high zoom: full name + flavor_text + truck with count
-        var label = zone.name || '';
-        var flavorLine = getFirstLine(zone.flavor_text);
+        var label = escapeHtml(zone.name);
+        var flavorLine = escapeHtml(getFirstLine(zone.flavor_text));
         if (flavorLine) {
             label += '<br><span style="font-size: 10px; opacity: 0.8;">' + flavorLine + '</span>';
         }
@@ -298,14 +298,14 @@ function updateConnections() {
 }
 
 function createPlayerLabelContent(player, zoom) {
-    var planeIcon = '<i class="fa-solid fa-plane" style="color: ' + player.color + ';"></i>';
+    var planeIcon = '<i class="fa-solid fa-plane" style="color: ' + escapeHtml(player.color) + ';"></i>';
 
     if (zoom < 10) {
         // Low zoom: plane icon only
         return planeIcon;
     } else {
         // Zoom 10+: plane icon + player name
-        return planeIcon + '<br><span style="font-size: 10px;">' + player.player_name + '</span>';
+        return planeIcon + '<br><span style="font-size: 10px;">' + escapeHtml(player.player_name) + '</span>';
     }
 }
 
@@ -323,7 +323,7 @@ function updatePlayers() {
                 iconAnchor: [60, 20]
             })
         });
-        marker.bindTooltip(player.player_name + '<br>' + player.unit_type, {
+        marker.bindTooltip(escapeHtml(player.player_name) + '<br>' + escapeHtml(player.unit_type), {
             direction: 'top',
             offset: [0, -10]
         });
@@ -345,7 +345,7 @@ function updateEjections() {
     ejectionsData.forEach(function(pilot) {
         var icon = '<i class="fa-solid fa-parachute-box"></i>';
         var content = zoom >= 10
-            ? icon + '<br><span style="font-size: 9px;">' + pilot.player_name + '</span>'
+            ? icon + '<br><span style="font-size: 9px;">' + escapeHtml(pilot.player_name) + '</span>'
             : icon;
 
         var marker = L.marker([pilot.lat, pilot.lon], {
@@ -357,7 +357,7 @@ function updateEjections() {
             })
         });
 
-        marker.bindTooltip(pilot.player_name + '<br>Alt: ' + Math.round(pilot.altitude) + 'm', {
+        marker.bindTooltip(escapeHtml(pilot.player_name) + '<br>Alt: ' + Math.round(pilot.altitude) + 'm', {
             direction: 'top',
             offset: [0, -10]
         });
@@ -383,7 +383,7 @@ function updateMissions() {
     missionsData.forEach(function(mission) {
         var icon = '<i class="fa-solid fa-crosshairs"></i>';
         var content = zoom >= 10
-            ? icon + '<br><span style="font-size: 9px;">' + mission.title + '</span>'
+            ? icon + '<br><span style="font-size: 9px;">' + escapeHtml(mission.title) + '</span>'
             : icon;
 
         var marker = L.marker([mission.lat, mission.lon], {
@@ -395,7 +395,7 @@ function updateMissions() {
             })
         });
 
-        marker.bindTooltip(mission.title, {
+        marker.bindTooltip(escapeHtml(mission.title), {
             direction: 'top',
             offset: [0, -10]
         });
@@ -422,7 +422,7 @@ function openFarpModal(farp) {
     var formattedLon = formatCoord(farp.lon, false);
 
     var html =
-        '<h3 style="margin-top: 0; color: #60a5fa;"><i class="fa-solid fa-helicopter"></i> ' + farp.name + '</h3>' +
+        '<h3 style="margin-top: 0; color: #60a5fa;"><i class="fa-solid fa-helicopter"></i> ' + escapeHtml(farp.name) + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
@@ -446,7 +446,7 @@ function updateFarps() {
     farpsData.forEach(function(farp) {
         var icon = '<i class="fa-solid fa-helicopter"></i>';
         var content = zoom >= 10
-            ? icon + '<br><span style="font-size: 9px;">' + farp.name + '</span>'
+            ? icon + '<br><span style="font-size: 9px;">' + escapeHtml(farp.name) + '</span>'
             : icon;
 
         var marker = L.marker([farp.lat, farp.lon], {
@@ -458,7 +458,7 @@ function updateFarps() {
             })
         });
 
-        marker.bindTooltip(farp.name, {
+        marker.bindTooltip(escapeHtml(farp.name), {
             direction: 'top',
             offset: [0, -10]
         });
@@ -809,7 +809,7 @@ function updateMarkpoints() {
         var zoom = map.getZoom();
         var content = '<i class="fa-solid fa-location-dot"></i>';
         if (zoom >= 10) {
-            content += '<br><span style="font-size: 10px;">' + mp.label + '</span>';
+            content += '<br><span style="font-size: 10px;">' + escapeHtml(mp.label) + '</span>';
         }
 
         var marker = L.marker([mp.lat, mp.lon], {
@@ -821,7 +821,7 @@ function updateMarkpoints() {
             })
         });
 
-        marker.bindTooltip(mp.label + '<br>' + formatCoord(mp.lat, true) + '<br>' + formatCoord(mp.lon, false), {
+        marker.bindTooltip(escapeHtml(mp.label) + '<br>' + formatCoord(mp.lat, true) + '<br>' + formatCoord(mp.lon, false), {
             direction: 'top',
             offset: [0, -10]
         });
