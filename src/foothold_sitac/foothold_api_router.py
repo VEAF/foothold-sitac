@@ -5,8 +5,10 @@ from foothold_sitac.cache import get_checked_at, get_status_mtime
 from foothold_sitac.config import get_config
 from foothold_sitac.dependencies import get_active_sitac
 from foothold_sitac.foothold import Sitac, list_servers, parse_coordinates_from_text
+from foothold_sitac.veaf_campaign import split_campaign_key
 from foothold_sitac.schemas import (
     MapConnection,
+    MapConvoy,
     MapData,
     MapEjectedPilot,
     MapFarp,
@@ -19,10 +21,15 @@ from foothold_sitac.schemas import (
 
 router = APIRouter()
 
+SIDE_COLORS = {"red": "red", "blue": "blue"}
+
 
 @router.get("", response_model=list[Server], description="List foothold servers")
 async def foothold_list_servers() -> Any:
-    return [Server.model_validate({"name": server}) for server in list_servers()]
+    return [
+        Server.model_validate({"name": server, "kind": "veaf" if split_campaign_key(server) else "foothold"})
+        for server in list_servers()
+    ]
 
 
 @router.get("/{server}/sitac", response_model=Sitac)
@@ -52,6 +59,9 @@ async def foothold_get_map_data(
                 "unit_groups": [UnitGroup(group_id=g["group_id"], units=g["units"]) for g in zone.unit_groups]
                 if show_forces
                 else None,
+                **(
+                    zone.veaf.model_dump(exclude={"garrison_alive"}) if zone.veaf else {}
+                ),  # VEAF campaign details; the alive count is already `units`
             }
         )
         for zone_name, zone in sitac.zones.items()
@@ -133,6 +143,26 @@ async def foothold_get_map_data(
     # Build FARPs list
     farps = [MapFarp(name=farp.name, lat=farp.latitude, lon=farp.longitude) for farp in sitac.farps]
 
+    # VEAF campaign assault convoys, drawn from their zone of departure to their target
+    convoys = []
+    for convoy in sitac.convoys:
+        origin = sitac.zones.get(convoy.from_zone)
+        target = sitac.zones.get(convoy.to_zone)
+        if origin and target:
+            convoys.append(
+                MapConvoy(
+                    side=convoy.side,
+                    color=SIDE_COLORS.get(convoy.side, "gray"),
+                    from_zone=convoy.from_zone,
+                    to_zone=convoy.to_zone,
+                    from_lat=origin.position.latitude,
+                    from_lon=origin.position.longitude,
+                    to_lat=target.position.latitude,
+                    to_lon=target.position.longitude,
+                    units=convoy.units,
+                )
+            )
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
@@ -149,4 +179,8 @@ async def foothold_get_map_data(
         red_credits=sitac.accounts.red,
         blue_credits=sitac.accounts.blue,
         show_zone_forces=show_forces,
+        source=sitac.source,
+        convoys=convoys,
+        red_resources=sitac.resources.red if sitac.resources else None,
+        blue_resources=sitac.resources.blue if sitac.resources else None,
     )

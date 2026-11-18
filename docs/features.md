@@ -3,6 +3,7 @@
 ## Server List
 
 - Auto-discovers Foothold servers from DCS Saved Games directory
+- Auto-discovers VEAF dynamic campaigns (`Missions/Saves/<campaign>/persistent.state` with a `sitac` block), listed as `<server>@<campaign>` under the campaign's name
 - Displays server cards with last update timestamp
 - Visual freshness indicators (fresh/stale/unknown)
 
@@ -24,6 +25,17 @@
 - Detailed forces composition per group (unit types and counts)
 - Upgrades used vs zone level display
 - Forces display configurable via `features.show_zone_forces` (default: enabled)
+
+### VEAF Dynamic Campaigns
+
+See [veaf-campaign-format.md](veaf-campaign-format.md) for the file read.
+
+- Zone kind icon on the label (airfield, outpost, factory, depot) and waypoint number at high zoom
+- Circle size by kind; a paler circle for a sleeping zone
+- Capture in progress: a dashed ring in the capturing side's colour
+- Zone window: kind, waypoint, garrison alive / total (counts only, never the composition), factory or depot buildings standing, capture side and time, awake or asleep
+- Assault convoys on the road: a line from their zone to their target, with a truck and a tooltip (side, route, vehicles)
+- Navbar: the players' credits and each side's resource stock
 
 ### Players
 
@@ -103,6 +115,6 @@
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/foothold` | List all Foothold servers |
+| `GET /api/foothold` | List all Foothold servers and VEAF campaigns (`kind`: `foothold` or `veaf`) |
 | `GET /api/foothold/{server}/sitac` | Full sitac data (zones, players, missions) |
-| `GET /api/foothold/{server}/map.json` | Map-specific data for rendering |
+| `GET /api/foothold/{server}/map.json` | Map-specific data for rendering (VEAF campaigns add zone `kind`, `waypoint`, `garrison_total`, `capture_*`, `structures_*`, `awake`, plus `convoys` and `*_resources`) |

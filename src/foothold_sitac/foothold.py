@@ -24,6 +24,23 @@ class Position(BaseModel):
     altitude: int | None = None  # not used anymore
 
 
+class VeafZone(BaseModel):
+    """What a VEAF dynamic campaign says of a zone, beyond what Foothold has.
+
+    The garrison is a count only: the campaign hides its composition until the zone is reconnoitred.
+    """
+
+    kind: str
+    waypoint: int | None = None
+    garrison_alive: int | None = None
+    garrison_total: int | None = None
+    capture_side: str | None = None
+    capture_seconds: float | None = None
+    structures_standing: int | None = None
+    structures_total: int | None = None
+    awake: bool = True
+
+
 class Zone(BaseModel):
     upgrades_used: int = Field(alias="upgradesUsed")
     side: int
@@ -38,6 +55,7 @@ class Zone(BaseModel):
     position: Position = Field(alias="lat_long")
     hidden: bool = False
     flavor_text: str | None = Field(alias="flavorText", default=None)
+    veaf: VeafZone | None = None
 
     @property
     def side_color(self) -> str:
@@ -61,6 +79,8 @@ class Zone(BaseModel):
 
     @property
     def total_units(self) -> int:
+        if self.veaf is not None:
+            return self.veaf.garrison_alive or 0
         return sum([len(group_units) for group_units in self.remaining_units.values()])
 
     @property
@@ -216,6 +236,15 @@ class Farp(BaseModel):
     longitude: float
 
 
+class Convoy(BaseModel):
+    """A VEAF campaign's assault convoy on the road."""
+
+    side: str
+    from_zone: str
+    to_zone: str
+    units: int
+
+
 class Sitac(BaseModel):
     updated_at: datetime
     zones: dict[str, Zone]
@@ -227,6 +256,12 @@ class Sitac(BaseModel):
     accounts: Accounts = Field(default_factory=Accounts)
     weather_info: WeatherInfo | None = Field(alias="weatherInfo", default=None)
     farps: list[Farp] = Field(default_factory=list)
+    # "foothold", or "veaf" for a VEAF dynamic campaign (see veaf_campaign.py)
+    source: str = "foothold"
+    campaign_name: str | None = None
+    theatre: str | None = None
+    convoys: list[Convoy] = Field(default_factory=list)
+    resources: Accounts | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -545,9 +580,17 @@ def list_servers() -> list[str]:
     if not base_path.is_dir():
         raise ConfigError(f"config:dcs.saved_games '{get_config().dcs.saved_games}' is not a valid dir")
 
-    return sorted(
-        [file.name for file in base_path.iterdir() if not file.name.startswith(".") and is_foothold_path(file.name)]
-    )
+    from foothold_sitac.veaf_campaign import list_campaigns
+
+    servers: list[str] = []
+    for file in base_path.iterdir():
+        if file.name.startswith(".") or not file.is_dir():
+            continue
+        if is_foothold_path(file.name):
+            servers.append(file.name)
+        # a VEAF dynamic campaign is listed next to the server's Foothold mission, as `<server>@<campaign>`
+        servers.extend(list_campaigns(file.name))
+    return sorted(servers)
 
 
 def get_sitac_range(sitac: Sitac) -> tuple[Position, Position]:

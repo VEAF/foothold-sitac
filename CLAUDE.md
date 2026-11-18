@@ -65,6 +65,8 @@ Key config sections:
 
 The app auto-discovers Foothold servers by scanning `dcs.saved_games` for directories containing a `foothold.status` file in their `Missions/Saves/` subfolder.
 
+It also lists VEAF dynamic campaigns: a `Missions/Saves/<campaign>/persistent.state` holding a `sitac` block, served under the key `<server>@<campaign>`. `src/foothold_sitac/veaf_campaign.py` discovers them, reads the file with lupa in an empty environment and maps the block onto `Sitac` (`source = "veaf"`, VEAF zone details in `Zone.veaf`); `cache.py` caches them on the state file's mtime. Format: `docs/veaf-campaign-format.md`.
+
 ### CTLD FARPs and DCS Coordinate Conversion
 
 CTLD (Combat Troop and Logistics Delivery) writes FARP positions to CSV files (`{mission_name}_CTLD_FARPS.csv`). `load_farps()` in `foothold.py` inspects the first line to pick a parser, then reads coordinates from lat/lon columns whenever the rows provide them:
@@ -83,3 +85,4 @@ Theaters supported by the legacy fallback (14): persianGulf, caucasus, syria, si
 
 - **docs/features.md**: Complete list of user-facing features (map, ruler, modals, API endpoints)
 - **docs/lua-file-format.md**: Lua persistence file format documentation (Foothold 3.2.2) with YAML example
+- **docs/veaf-campaign-format.md**: VEAF dynamic campaign `persistent.state` and its `sitac` block

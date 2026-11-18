@@ -145,3 +145,49 @@ def test_checked_at_updated_on_cache_hit(tmp_path: Path, status_file: Path) -> N
 def test_get_checked_at_returns_none_for_unknown_server() -> None:
     """get_checked_at should return None for uncached servers."""
     assert get_checked_at("nonexistent") is None
+
+
+# VEAF campaigns: the state file is missing or half-written for a moment at every save
+
+VEAF_FIXTURE = Path("tests/fixtures/test_veaf_campaign/Missions/Saves/Bouclier de l_Oronte/persistent.state")
+
+
+@pytest.fixture
+def campaign_state(tmp_path: Path) -> Path:
+    folder = tmp_path / "Missions" / "Saves" / "Oronte"
+    folder.mkdir(parents=True)
+    return folder / "persistent.state"
+
+
+def _campaign(state: Path) -> object:
+    with patch("foothold_sitac.cache.get_campaign_state_path", return_value=state):
+        return get_cached_sitac("server@Oronte")
+
+
+def test_campaign_read_from_its_temporary_while_the_file_is_missing(campaign_state: Path) -> None:
+    Path(f"{campaign_state}.tmp").write_bytes(VEAF_FIXTURE.read_bytes())
+    sitac = _campaign(campaign_state)
+    assert sitac is not None
+    assert "Minakh" in sitac.zones  # type: ignore[attr-defined]
+
+
+def test_campaign_read_from_its_temporary_while_the_file_is_half_written(campaign_state: Path) -> None:
+    content = VEAF_FIXTURE.read_bytes()
+    Path(f"{campaign_state}.tmp").write_bytes(content)
+    campaign_state.write_bytes(content[: len(content) // 2])
+    sitac = _campaign(campaign_state)
+    assert sitac is not None
+    assert "Aleppo" in sitac.zones  # type: ignore[attr-defined]
+
+
+def test_campaign_keeps_what_was_read_last_when_nothing_is_readable(campaign_state: Path) -> None:
+    campaign_state.write_bytes(VEAF_FIXTURE.read_bytes())
+    first = _campaign(campaign_state)
+    assert first is not None
+    campaign_state.write_text("return {", encoding="utf-8")
+    os.utime(campaign_state, (time.time() + 10, time.time() + 10))
+    assert _campaign(campaign_state) is first
+
+
+def test_campaign_without_any_file_is_gone(campaign_state: Path) -> None:
+    assert _campaign(campaign_state) is None

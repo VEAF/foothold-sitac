@@ -9,6 +9,7 @@ from foothold_sitac.foothold import (
     get_foothold_server_status_path,
     load_sitac,
 )
+from foothold_sitac.veaf_campaign import get_campaign_state_path, load_campaign_sitac, temporary_path
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,12 @@ def get_cached_sitac(server_name: str) -> Sitac | None:
     """Return a cached Sitac if the status file hasn't changed, or reload it.
 
     Returns None if the server has no valid foothold data.
+    A VEAF campaign key (`server@campaign`) is read from the campaign's state file, cached on its mtime.
     """
+    state_path = get_campaign_state_path(server_name)
+    if state_path is not None:
+        return _get_cached_campaign_sitac(server_name, state_path)
+
     status_path = get_foothold_server_status_path(server_name)
 
     if not status_path.is_file():
@@ -57,6 +63,40 @@ def get_cached_sitac(server_name: str) -> Sitac | None:
         checked_at=datetime.now(),
     )
     return sitac
+
+
+def _get_cached_campaign_sitac(key: str, state_path: Path) -> Sitac | None:
+    """The cached Sitac of a VEAF campaign, reloaded when its state file changes.
+
+    The campaign writes a complete temporary first, then the file itself (moved over it, or written again in
+    place on a server without `os`): while the file is missing or half-written, its temporary is read instead,
+    as the campaign does itself when it reloads.
+    """
+    cached = _cache.get(key)
+    files = [path for path in (state_path, temporary_path(state_path)) if path.is_file()]
+    if not files:
+        _cache.pop(key, None)
+        return None
+
+    try:
+        current_mtime = max(path.stat().st_mtime for path in files)
+    except OSError:  # removed between is_file() and stat(), in the middle of a save
+        return cached.sitac if cached is not None else None
+    if cached is not None and cached.status_mtime == current_mtime:
+        cached.checked_at = datetime.now()
+        return cached.sitac
+
+    logger.info("Cache miss for campaign '%s', reloading sitac", key)
+    for path in files:
+        try:
+            sitac = load_campaign_sitac(path)
+        except (ValueError, OSError) as error:
+            logger.warning("Campaign '%s': %s not readable: %s", key, path.name, error)
+            continue
+        _cache[key] = CacheEntry(status_mtime=current_mtime, mission_path=path, sitac=sitac)
+        return sitac
+    # nothing readable right now: keep what was read last
+    return cached.sitac if cached is not None else None
 
 
 def get_checked_at(server_name: str) -> datetime | None:

@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 
 class Server(BaseModel):
     name: str
+    # "foothold", or "veaf" for a VEAF dynamic campaign (`<server>@<campaign>`)
+    kind: str = "foothold"
 
 
 class UnitGroup(BaseModel):
@@ -22,6 +24,15 @@ class MapZone(BaseModel):
     flavor_text: str | None = None
     upgrades_used: int = 0
     unit_groups: list[UnitGroup] | None = None
+    # VEAF dynamic campaigns only (None for Foothold)
+    kind: str | None = None
+    waypoint: int | None = None
+    garrison_total: int | None = None
+    capture_side: str | None = None
+    capture_seconds: float | None = None
+    structures_standing: int | None = None
+    structures_total: int | None = None
+    awake: bool | None = None
 
 
 class MapConnection(BaseModel):
@@ -65,6 +76,18 @@ class MapFarp(BaseModel):
     lon: float
 
 
+class MapConvoy(BaseModel):
+    side: str
+    color: str
+    from_zone: str
+    to_zone: str
+    from_lat: float
+    from_lon: float
+    to_lat: float
+    to_lon: float
+    units: int
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
@@ -81,3 +104,7 @@ class MapData(BaseModel):
     red_credits: float = 0
     blue_credits: float = 0
     show_zone_forces: bool = True
+    source: str = "foothold"
+    convoys: list[MapConvoy] = Field(default_factory=list)
+    red_resources: float | None = None
+    blue_resources: float | None = None

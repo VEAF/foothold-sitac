@@ -427,6 +427,15 @@
     font-size: 20px;
 }
 
+/* VEAF campaign assault convoy */
+.convoy-label {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+    text-align: center;
+}
+
 /* Markpoint modal input */
 .markpoint-preview {
     margin-top: 8px;

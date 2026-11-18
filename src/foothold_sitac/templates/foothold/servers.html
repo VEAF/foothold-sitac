@@ -10,13 +10,16 @@
 
 {% block content %}
 <div class="container">
-    <h1>Foothold Servers</h1>
+    <h1>Servers and campaigns</h1>
 
     {% if servers %}
     <div class="cards-grid">
         {% for server in servers %}
         <a href="{{ request.url_for('foothold_map', server=server.name) }}" class="card">
-            <h2 class="card-title">{{ server.name }}</h2>
+            <h2 class="card-title">{{ server.label or server.name }}</h2>
+            {% if server.kind == 'veaf' %}
+            <p class="card-meta card-kind">VEAF dynamic campaign &middot; {{ server.host }}</p>
+            {% endif %}
             {% if server.updated_at %}
                 {% set delta = (now - server.updated_at).total_seconds() %}
                 {% if delta < 120 %}
@@ -36,7 +39,7 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>No Foothold servers found.</p>
+        <p>No Foothold server nor VEAF campaign found.</p>
     </div>
     {% endif %}
 
