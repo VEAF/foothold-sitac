@@ -40,6 +40,7 @@ var ejectionsLayer = null;
 var markpointsLayer = null;
 var missionsLayer = null;
 var farpsLayer = null;
+var convoysLayer = null;
 
 // Data arrays
 var zonesData = [];
@@ -49,6 +50,7 @@ var ejectionsData = [];
 var markpointsData = [];
 var missionsData = [];
 var farpsData = [];
+var convoysData = [];
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -102,6 +104,7 @@ function initMap() {
     markpointsLayer = L.layerGroup().addTo(map);
     missionsLayer = L.layerGroup().addTo(map);
     farpsLayer = L.layerGroup().addTo(map);
+    convoysLayer = L.layerGroup().addTo(map);
     rulerLayer = L.layerGroup().addTo(map);
 
     // Load markpoints from localStorage
@@ -167,6 +170,7 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; color: #8892a0;">' + formatLabel + '</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + formattedLat + '<br>' + formattedLon + '</td>' +
             '</tr>' +
+        veafZoneRows(zone) +
         '</table>';
 
     // Add unit groups section if available
@@ -193,6 +197,65 @@ function openZoneModal(zone) {
     overlay.classList.add('visible', 'zone-modal');
 }
 
+// VEAF dynamic campaign zones (kind is only set for them)
+var VEAF_KIND_ICONS = {
+    airfield: 'fa-plane-departure',
+    outpost: 'fa-flag',
+    factory: 'fa-industry',
+    depot: 'fa-warehouse'
+};
+var VEAF_KIND_RADIUS = { airfield: 5000, outpost: 3000, factory: 3000, depot: 3000 };
+
+function zoneRadius(zone) {
+    if (zone.kind) {
+        return VEAF_KIND_RADIUS[zone.kind] || 3000;
+    }
+    return Math.min(20000, Math.max(2000, 2000 * zone.level));
+}
+
+function modalRow(label, value) {
+    return '<tr>' +
+        '<td style="padding: 8px 0; color: #8892a0;">' + label + '</td>' +
+        '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + value + '</td>' +
+    '</tr>';
+}
+
+function formatSeconds(seconds) {
+    var total = Math.round(seconds || 0);
+    var minutes = Math.floor(total / 60);
+    var rest = total % 60;
+    return minutes + ':' + (rest < 10 ? '0' : '') + rest;
+}
+
+function veafZoneRows(zone) {
+    if (!zone.kind) return '';
+    var rows = modalRow('Kind', escapeHtml(zone.kind));
+    if (zone.waypoint != null) {
+        rows += modalRow('Waypoint', 'WP ' + escapeHtml(zone.waypoint));
+    }
+    if (zone.garrison_total != null) {
+        rows += modalRow('Garrison', escapeHtml(zone.units) + ' / ' + escapeHtml(zone.garrison_total));
+    }
+    if (zone.structures_total != null) {
+        rows += modalRow('Buildings standing', escapeHtml(zone.structures_standing) + ' / ' + escapeHtml(zone.structures_total));
+    }
+    if (zone.capture_side) {
+        rows += modalRow('Capture', escapeHtml(zone.capture_side) + ' for ' + formatSeconds(zone.capture_seconds));
+    }
+    rows += modalRow('Activity', zone.awake === false ? 'asleep' : 'awake');
+    return rows;
+}
+
+function veafKindIcon(zone) {
+    if (!zone.kind || !VEAF_KIND_ICONS[zone.kind]) return '';
+    return '<i class="fa-solid ' + VEAF_KIND_ICONS[zone.kind] + '" style="color: ' + escapeHtml(zone.color) + ';"></i> ';
+}
+
+function veafCaptureIcon(zone) {
+    if (!zone.capture_side) return '';
+    return ' <i class="fa-solid fa-flag-checkered" style="color: ' + escapeHtml(zone.capture_side) + ';" title="capture in progress"></i>';
+}
+
 // Zone label functions
 function getShortName(name) {
     if (!name || name.length <= 5) return name || '';
@@ -210,6 +273,16 @@ function getFirstLine(text) {
 }
 
 function createLabelContent(zone, zoom) {
+    var content = createBaseLabelContent(zone, zoom);
+    if (!zone.kind) return content;
+    var suffix = veafCaptureIcon(zone);
+    if (zoom > 10 && zone.waypoint != null) {
+        suffix += '<br><span style="font-size: 10px; opacity: 0.8;">WP ' + escapeHtml(zone.waypoint) + '</span>';
+    }
+    return veafKindIcon(zone) + content + suffix;
+}
+
+function createBaseLabelContent(zone, zoom) {
     var truckIcon = zone.units > 0
         ? '<i class="fa-solid fa-truck" style="color: ' + escapeHtml(zone.color) + ';"></i>'
         : '';
@@ -521,6 +594,50 @@ function updateNavbar(progress, missionsCount, ejectedPilotsCount, blueCredits, 
     }
 }
 
+// VEAF campaign: resource stock of each side (the badges exist only when the campaign counts it)
+function updateResources(blueResources, redResources) {
+    var resourcesBlue = document.getElementById('resources-blue');
+    var resourcesRed = document.getElementById('resources-red');
+    if (resourcesBlue && blueResources != null) {
+        resourcesBlue.textContent = Math.round(blueResources);
+    }
+    if (resourcesRed && redResources != null) {
+        resourcesRed.textContent = Math.round(redResources);
+    }
+}
+
+// VEAF campaign: assault convoys on the road, a line from their zone to their target
+function updateConvoys() {
+    convoysLayer.clearLayers();
+
+    convoysData.forEach(function(convoy) {
+        L.polyline([[convoy.from_lat, convoy.from_lon], [convoy.to_lat, convoy.to_lon]], {
+            color: convoy.color,
+            weight: 4,
+            opacity: 0.9
+        }).addTo(convoysLayer);
+
+        // the truck drawn two thirds of the way: the convoy's true position is not saved
+        var lat = convoy.from_lat + (convoy.to_lat - convoy.from_lat) * 2 / 3;
+        var lon = convoy.from_lon + (convoy.to_lon - convoy.from_lon) * 2 / 3;
+        var marker = L.marker([lat, lon], {
+            icon: L.divIcon({
+                className: 'convoy-label',
+                html: '<i class="fa-solid fa-truck-moving" style="color: ' + escapeHtml(convoy.color) + ';"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            })
+        });
+        marker.bindTooltip(
+            'Assault convoy (' + escapeHtml(convoy.side) + ')<br>' +
+            escapeHtml(convoy.from_zone) + ' &rarr; ' + escapeHtml(convoy.to_zone) + '<br>' +
+            escapeHtml(convoy.units) + ' vehicle(s)',
+            { direction: 'top', offset: [0, -10] }
+        );
+        marker.addTo(convoysLayer);
+    });
+}
+
 function updateFreshnessWidget() {
     var widget = document.getElementById('freshness-widget');
     var countdown = document.getElementById('countdown');
@@ -566,15 +683,28 @@ function loadData() {
             nextRefresh = REFRESH_INTERVAL;
             updateFreshnessWidget();
             updateNavbar(data.progress, data.missions_count, data.ejected_pilots_count, data.blue_credits, data.red_credits);
+            updateResources(data.blue_resources, data.red_resources);
 
             zonesLayer.clearLayers();
             data.zones.forEach(function(p) {
                 var circle = L.circle([p.lat, p.lon], {
                     color: p.color,
                     fillColor: p.color,
-                    fillOpacity: 0.3,
-                    radius: Math.min(20000, Math.max(2000, 2000 * p.level)),
+                    fillOpacity: p.awake === false ? 0.15 : 0.3,
+                    radius: zoneRadius(p),
                 }).addTo(zonesLayer);
+
+                if (p.capture_side) {
+                    // a capture in progress: a dashed ring in the capturing side's colour
+                    L.circle([p.lat, p.lon], {
+                        color: p.capture_side,
+                        fill: false,
+                        weight: 3,
+                        dashArray: '6, 6',
+                        radius: zoneRadius(p) * 1.4,
+                        interactive: false
+                    }).addTo(zonesLayer);
+                }
 
                 circle.on('click', function(e) {
                     if (rulerMode) {
@@ -592,7 +722,9 @@ function loadData() {
             ejectionsData = data.ejected_pilots || [];
             missionsData = data.missions || [];
             farpsData = data.farps || [];
+            convoysData = data.convoys || [];
             updateConnections();
+            updateConvoys();
             updatePlayers();
             updateEjections();
             updateMissions();

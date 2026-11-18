@@ -17,10 +17,10 @@
 <nav class="navbar">
     <div class="navbar-brand-dropdown">
         <span class="navbar-brand" onclick="toggleServerDropdown()">
-            <i class="fa-solid fa-server"></i><span class="navbar-brand-label"> {{ server }}</span> <i class="fa-solid fa-chevron-down navbar-brand-chevron"></i>
+            <i class="fa-solid fa-server"></i><span class="navbar-brand-label"> {{ server_label }}</span> <i class="fa-solid fa-chevron-down navbar-brand-chevron"></i>
         </span>
         <div class="navbar-dropdown" id="server-dropdown">
-            <span class="navbar-dropdown-header"><i class="fa-solid fa-server"></i> {{ server }}</span>
+            <span class="navbar-dropdown-header"><i class="fa-solid fa-server"></i> {{ server_label }}</span>
             <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Back to server list</a>
             <div class="navbar-dropdown-separator"></div>
             <a href="https://github.com/VEAF/foothold-sitac" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
@@ -32,6 +32,7 @@
         <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="navbar-burger-item {% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
         <span class="navbar-item navbar-burger-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
         <span class="navbar-item" id="credits-info"><i class="fa-solid fa-coins"></i><span class="navbar-link-label"> Credits</span><span class="navbar-badge navbar-badge-blue" id="credits-blue">{{ "%.0f"|format(sitac.accounts.blue) }}</span><span class="navbar-badge navbar-badge-red" id="credits-red">{{ "%.0f"|format(sitac.accounts.red) }}</span><span class="navbar-tooltip">Coalition credits (Blue / Red)</span></span>
+        {% if sitac.resources %}<span class="navbar-item" id="resources-info"><i class="fa-solid fa-boxes-stacked"></i><span class="navbar-link-label"> Stock</span><span class="navbar-badge navbar-badge-blue" id="resources-blue">{{ "%.0f"|format(sitac.resources.blue) }}</span><span class="navbar-badge navbar-badge-red" id="resources-red">{{ "%.0f"|format(sitac.resources.red) }}</span><span class="navbar-tooltip">Resource stock of each side (Blue / Red)</span></span>{% endif %}
         <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
         <span class="navbar-item navbar-burger-item ruler-toggle" id="ruler-toggle" onclick="toggleRulerMode()" style="cursor: pointer;"><i class="fa-solid fa-ruler"></i><span class="navbar-link-label"> Ruler</span><span class="navbar-tooltip">Measure distance between two points</span></span>
         <span class="navbar-item navbar-burger-item" onclick="openMarkpointModal()" style="cursor: pointer;"><i class="fa-solid fa-location-dot"></i><span class="navbar-link-label"> Markpoint</span><span class="navbar-tooltip">Add a marker at coordinates</span></span>

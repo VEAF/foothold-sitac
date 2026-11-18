@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from foothold_sitac.foothold import PlayerStats, Sitac, get_sitac_center, list_servers
 from foothold_sitac.templater import env
 from foothold_sitac.dependencies import get_active_sitac, get_sitac_or_none
+from foothold_sitac.veaf_campaign import split_campaign_key
 
 
 @dataclass
@@ -70,6 +71,19 @@ router = APIRouter()
 class ServerInfo(BaseModel):
     name: str
     updated_at: datetime | None
+    kind: str = "foothold"
+    label: str = ""
+    host: str | None = None
+
+
+def server_label(server: str, sitac: Sitac | None) -> str:
+    """How a server is named on the pages: a VEAF campaign by its name, else the server folder."""
+    split = split_campaign_key(server)
+    if split is None:
+        return server
+    if sitac is not None and sitac.campaign_name:
+        return sitac.campaign_name
+    return split[1]
 
 
 @router.get("", response_class=HTMLResponse)
@@ -77,10 +91,14 @@ async def foothold_servers(request: Request) -> str:
     servers_data: list[ServerInfo] = []
     for server_name in list_servers():
         sitac = get_sitac_or_none(server_name)
+        split = split_campaign_key(server_name)
         servers_data.append(
             ServerInfo(
                 name=server_name,
                 updated_at=sitac.updated_at if sitac else None,
+                kind="veaf" if split else "foothold",
+                label=server_label(server_name, sitac),
+                host=split[0] if split else None,
             )
         )
 
@@ -116,6 +134,7 @@ async def foothold_map(request: Request, server: str, sitac: Annotated[Sitac, De
             "request": request,
             "sitac": sitac,
             "server": server,
+            "server_label": server_label(server, sitac),
             "center": [map_center.latitude, map_center.longitude],
             "progress": sitac.campaign_progress,
         }

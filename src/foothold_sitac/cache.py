@@ -9,6 +9,7 @@ from foothold_sitac.foothold import (
     get_foothold_server_status_path,
     load_sitac,
 )
+from foothold_sitac.veaf_campaign import get_campaign_state_path, load_campaign_sitac
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,12 @@ def get_cached_sitac(server_name: str) -> Sitac | None:
     """Return a cached Sitac if the status file hasn't changed, or reload it.
 
     Returns None if the server has no valid foothold data.
+    A VEAF campaign key (`server@campaign`) is read from the campaign's state file, cached on its mtime.
     """
+    state_path = get_campaign_state_path(server_name)
+    if state_path is not None:
+        return _get_cached_campaign_sitac(server_name, state_path)
+
     status_path = get_foothold_server_status_path(server_name)
 
     if not status_path.is_file():
@@ -56,6 +62,29 @@ def get_cached_sitac(server_name: str) -> Sitac | None:
         sitac=sitac,
         checked_at=datetime.now(),
     )
+    return sitac
+
+
+def _get_cached_campaign_sitac(key: str, state_path: Path) -> Sitac | None:
+    """The cached Sitac of a VEAF campaign, reloaded when its state file changes."""
+    if not state_path.is_file():
+        _cache.pop(key, None)
+        return None
+
+    current_mtime = state_path.stat().st_mtime
+    cached = _cache.get(key)
+    if cached is not None and cached.status_mtime == current_mtime:
+        cached.checked_at = datetime.now()
+        return cached.sitac
+
+    logger.info("Cache miss for campaign '%s', reloading sitac", key)
+    try:
+        sitac = load_campaign_sitac(state_path)
+    except ValueError as error:
+        # a save caught half-written, or a build without the sitac block: keep what was read last
+        logger.warning("Campaign '%s' not readable: %s", key, error)
+        return cached.sitac if cached is not None else None
+    _cache[key] = CacheEntry(status_mtime=current_mtime, mission_path=state_path, sitac=sitac)
     return sitac
 
 

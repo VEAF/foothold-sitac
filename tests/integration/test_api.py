@@ -358,3 +358,81 @@ def test_persistence_names_are_html_escaped(client: TestClient, url: str, markup
     assert response.status_code == 200
     assert markup.replace("<", "&lt;").replace(">", "&gt;") in response.text
     assert markup not in response.text
+
+
+# VEAF dynamic campaigns
+
+VEAF_KEY = "test_veaf_campaign@Bouclier de l_Oronte"
+
+
+def test_veaf_campaign_is_listed_next_to_foothold_servers(client: TestClient) -> None:
+    servers = {server["name"]: server["kind"] for server in client.get("/api/foothold").json()}
+    assert servers[VEAF_KEY] == "veaf"
+    assert servers["test_hidden"] == "foothold"
+    # a state file written before the sitac block is not a campaign the map can draw
+    assert "test_veaf_campaign@Old Campaign" not in servers
+    assert "test_veaf_campaign" not in servers
+
+
+def test_veaf_campaign_map_data(client: TestClient) -> None:
+    response = client.get(f"/api/foothold/{VEAF_KEY}/map.json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source"] == "veaf"
+    zones = {zone["name"]: zone for zone in data["zones"]}
+    assert zones["Kafr Naya"]["kind"] == "factory"
+    assert zones["Kafr Naya"]["color"] == "red"
+    assert zones["Kafr Naya"]["units"] == 5
+    assert zones["Kafr Naya"]["garrison_total"] == 6
+    assert zones["Kafr Naya"]["unit_groups"] == []
+    assert (zones["Kafr Naya"]["structures_standing"], zones["Kafr Naya"]["structures_total"]) == (2, 3)
+    assert zones["Tal Rifaat"]["capture_side"] == "blue"
+    assert zones["Minakh"]["waypoint"] == 2
+    assert len(data["connections"]) == 4
+    assert data["convoys"][0]["from_zone"] == "Minakh"
+    assert data["convoys"][0]["color"] == "blue"
+    assert data["convoys"][0]["units"] == 3
+    assert (data["blue_credits"], data["red_credits"]) == (1915, 0)
+    assert (data["blue_resources"], data["red_resources"]) == (600, 250)
+
+
+def test_foothold_map_data_has_no_veaf_fields(client: TestClient) -> None:
+    data = client.get("/api/foothold/test_forces/map.json").json()
+    assert data["source"] == "foothold"
+    assert data["convoys"] == []
+    assert data["blue_resources"] is None
+    assert all(zone["kind"] is None for zone in data["zones"])
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        f"/foothold/map/{VEAF_KEY}",
+        f"/foothold/sitac/{VEAF_KEY}",
+        f"/foothold/map/{VEAF_KEY}/zones",
+        f"/foothold/map/{VEAF_KEY}/players",
+        f"/foothold/success/{VEAF_KEY}",
+    ],
+)
+def test_veaf_campaign_pages_render(client: TestClient, url: str) -> None:
+    assert client.get(url).status_code == 200
+
+
+def test_veaf_campaign_map_page_names_the_campaign(client: TestClient) -> None:
+    text = client.get(f"/foothold/map/{VEAF_KEY}").text
+    assert "Bouclier de l&#39;Oronte" in text
+    assert 'id="resources-blue"' in text
+
+
+def test_server_list_page_shows_the_campaign(client: TestClient) -> None:
+    text = client.get("/foothold").text
+    assert "VEAF dynamic campaign" in text
+    assert "Bouclier de l&#39;Oronte" in text
+
+
+@pytest.mark.parametrize(
+    "server",
+    ["test_veaf_campaign@Old Campaign", "test_veaf_campaign@..", "test_veaf_campaign@Missing", "x@y@z"],
+)
+def test_unlisted_campaign_returns_404(client: TestClient, server: str) -> None:
+    assert client.get(f"/api/foothold/{server}/map.json").status_code == 404
