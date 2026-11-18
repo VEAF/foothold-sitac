@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Show VEAF dynamic campaigns (VEAF Mission Creation Tools) next to Foothold missions: their `persistent.state` with a `sitac` block is listed as `<server>@<campaign>`, and the map draws zone kinds, waypoints, garrison counts, captures in progress, buildings, sleeping zones, assault convoys, credits and resource stock ([docs/veaf-campaign-format.md](docs/veaf-campaign-format.md))
+
 ### Fixed
 
 - Read player stats saved by recent Foothold versions (`playerStatsIdentityVersion = 1`, keyed by player identifier): player rankings showed identifiers and zero stats instead of names and figures ([#146](https://github.com/VEAF/foothold-sitac/issues/146))

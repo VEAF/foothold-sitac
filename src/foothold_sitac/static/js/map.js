@@ -158,10 +158,8 @@ function openZoneModal(zone) {
                 '<td style="padding: 8px 0; color: #8892a0;">Detected units</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
             '</tr>' +
-            '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Level</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + (zone.level != null ? zone.level : '-') + '</td>' +
-            '</tr>' +
+            // a VEAF campaign zone has no Foothold level
+            (zone.kind ? '' : modalRow('Level', zone.level != null ? zone.level : '-')) +
             '<tr>' +
                 '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.lat.toFixed(6) + ', ' + zone.lon.toFixed(6) + '</td>' +

@@ -1,6 +1,6 @@
 # Foothold Sitac
 
-POC about a web sitac for Foothold missions
+POC about a web sitac for Foothold missions, and for the VEAF dynamic campaigns built with [VEAF Mission Creation Tools](https://github.com/VEAF/VEAF-Mission-Creation-Tools) (see [docs/veaf-campaign-format.md](docs/veaf-campaign-format.md)).
 
 ## Features
 
@@ -9,6 +9,7 @@ See [docs/features.md](docs/features.md) for a complete list of features includi
 - Distance measurement tool (ruler)
 - Player rankings and statistics
 - Campaign progress tracking
+- VEAF dynamic campaigns next to Foothold missions: zone kinds, captures, convoys, credits and stock
 - REST API for programmatic access
 
 ## Installation
