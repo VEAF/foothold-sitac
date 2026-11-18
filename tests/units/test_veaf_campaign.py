@@ -99,3 +99,16 @@ def test_a_state_file_cannot_run_code(tmp_path: Path) -> None:
 def test_a_state_file_without_sitac_is_refused() -> None:
     with pytest.raises(ValueError):
         load_campaign_sitac(OLD_STATE)
+
+
+def test_a_campaign_is_listed_while_only_its_temporary_holds_the_block(tmp_path: Path) -> None:
+    from unittest.mock import patch
+
+    from foothold_sitac.veaf_campaign import list_campaigns
+
+    folder = tmp_path / "Oronte"
+    folder.mkdir()
+    (folder / "persistent.state.tmp").write_bytes(FIXTURE.read_bytes())
+    (folder / "persistent.state").write_text("return {", encoding="utf-8")
+    with patch("foothold_sitac.veaf_campaign.get_foothold_server_saves_path", return_value=tmp_path):
+        assert list_campaigns("server") == ["server@Oronte"]

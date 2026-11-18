@@ -9,7 +9,7 @@ from foothold_sitac.foothold import (
     get_foothold_server_status_path,
     load_sitac,
 )
-from foothold_sitac.veaf_campaign import get_campaign_state_path, load_campaign_sitac
+from foothold_sitac.veaf_campaign import get_campaign_state_path, load_campaign_sitac, temporary_path
 
 logger = logging.getLogger(__name__)
 
@@ -66,26 +66,37 @@ def get_cached_sitac(server_name: str) -> Sitac | None:
 
 
 def _get_cached_campaign_sitac(key: str, state_path: Path) -> Sitac | None:
-    """The cached Sitac of a VEAF campaign, reloaded when its state file changes."""
-    if not state_path.is_file():
+    """The cached Sitac of a VEAF campaign, reloaded when its state file changes.
+
+    The campaign writes a complete temporary first, then the file itself (moved over it, or written again in
+    place on a server without `os`): while the file is missing or half-written, its temporary is read instead,
+    as the campaign does itself when it reloads.
+    """
+    cached = _cache.get(key)
+    files = [path for path in (state_path, temporary_path(state_path)) if path.is_file()]
+    if not files:
         _cache.pop(key, None)
         return None
 
-    current_mtime = state_path.stat().st_mtime
-    cached = _cache.get(key)
+    try:
+        current_mtime = max(path.stat().st_mtime for path in files)
+    except OSError:  # removed between is_file() and stat(), in the middle of a save
+        return cached.sitac if cached is not None else None
     if cached is not None and cached.status_mtime == current_mtime:
         cached.checked_at = datetime.now()
         return cached.sitac
 
     logger.info("Cache miss for campaign '%s', reloading sitac", key)
-    try:
-        sitac = load_campaign_sitac(state_path)
-    except ValueError as error:
-        # a save caught half-written, or a build without the sitac block: keep what was read last
-        logger.warning("Campaign '%s' not readable: %s", key, error)
-        return cached.sitac if cached is not None else None
-    _cache[key] = CacheEntry(status_mtime=current_mtime, mission_path=state_path, sitac=sitac)
-    return sitac
+    for path in files:
+        try:
+            sitac = load_campaign_sitac(path)
+        except (ValueError, OSError) as error:
+            logger.warning("Campaign '%s': %s not readable: %s", key, path.name, error)
+            continue
+        _cache[key] = CacheEntry(status_mtime=current_mtime, mission_path=path, sitac=sitac)
+        return sitac
+    # nothing readable right now: keep what was read last
+    return cached.sitac if cached is not None else None
 
 
 def get_checked_at(server_name: str) -> datetime | None:

@@ -65,6 +65,11 @@ def get_campaign_state_path(key: str) -> Path | None:
     return get_foothold_server_saves_path(server) / campaign / STATE_FILE_NAME
 
 
+def temporary_path(state_path: Path) -> Path:
+    """The complete copy the campaign writes before the state file itself (`persistent.state.tmp`)."""
+    return state_path.with_name(state_path.name + ".tmp")
+
+
 def has_sitac_block(path: Path) -> bool:
     """Whether a state file carries the `sitac` block (VMCT builds before it do not)."""
     try:
@@ -95,7 +100,8 @@ def list_campaigns(server: str) -> list[str]:
         # a folder whose key would not split back is left out rather than listed and never served
         if folder.is_dir()
         and split_campaign_key(campaign_key(server, folder.name)) is not None
-        and has_sitac_block(folder / STATE_FILE_NAME)
+        # the temporary too: the file itself is missing or half-written for a moment at every save
+        and (has_sitac_block(folder / STATE_FILE_NAME) or has_sitac_block(temporary_path(folder / STATE_FILE_NAME)))
     )
 
 

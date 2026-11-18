@@ -70,4 +70,5 @@ Each zone is a Foothold `Zone` (side 2 blue, 1 red, 0 neutral; level 0; no Footh
 `Sitac.convoys` and `Sitac.resources` exist only for VEAF campaigns; `Sitac.player_stats` is empty, so the ranking and success pages are empty for them.
 
 The state file's mtime is the cache key and the data's age.
-A file that cannot be read (caught half-written) keeps the last data read until the next save.
+At every save the campaign writes a complete `persistent.state.tmp` first, then the file itself: while the file is missing or half-written, the sitac reads the temporary, as the campaign does when it reloads.
+When neither can be read, the map keeps the last data read until the next save.
