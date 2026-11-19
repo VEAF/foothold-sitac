@@ -88,6 +88,20 @@ class MapConvoy(BaseModel):
     units: int
 
 
+class MapSupport(BaseModel):
+    """A VEAF dynamic campaign's AWACS or tanker, where it flies now."""
+
+    name: str
+    kind: str | None
+    side: str | None
+    color: str
+    lat: float
+    lon: float
+    altitude: float | None
+    frequency: float | None
+    tacan: str | None
+
+
 class MapData(BaseModel):
     updated_at: datetime
     age_seconds: float
@@ -108,3 +122,4 @@ class MapData(BaseModel):
     convoys: list[MapConvoy] = Field(default_factory=list)
     red_resources: float | None = None
     blue_resources: float | None = None
+    support: list[MapSupport] = Field(default_factory=list)

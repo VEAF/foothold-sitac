@@ -436,6 +436,22 @@
     text-align: center;
 }
 
+/* VEAF campaign AWACS and tankers */
+.support-label {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 10px;
+    line-height: 1.2;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.support-label i {
+    font-size: 18px;
+}
+
 /* Markpoint modal input */
 .markpoint-preview {
     margin-top: 8px;

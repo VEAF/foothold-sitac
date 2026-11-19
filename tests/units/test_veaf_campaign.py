@@ -112,3 +112,57 @@ def test_a_campaign_is_listed_while_only_its_temporary_holds_the_block(tmp_path:
     (folder / "persistent.state").write_text("return {", encoding="utf-8")
     with patch("foothold_sitac.veaf_campaign.get_foothold_server_saves_path", return_value=tmp_path):
         assert list_campaigns("server") == ["server@Oronte"]
+
+
+def test_players_are_read_as_foothold_players() -> None:
+    players = load_campaign_sitac(FIXTURE).players
+    assert len(players) == 1
+    player = players[0]
+    assert (player.player_name, player.coalition, player.unit_type) == ("Zip", "blue", "A-10C_2")
+    assert (player.latitude, player.longitude, player.altitude) == (36.5, 36.9, 3048)
+
+
+def test_the_ranking_is_read_by_foothold_names() -> None:
+    stats = load_campaign_sitac(FIXTURE).player_stats["Zip"]
+    assert stats.points == 420
+    assert (stats.air, stats.SAM, stats.ground_units, stats.infantry, stats.structure) == (1, 2, 7, 3, 1)
+    assert (stats.deaths, stats.warehouse_delivery, stats.helo, stats.zone_capture) == (1, 2, 0, 0)
+
+
+def test_ejected_pilots_are_read_with_their_lost_credits() -> None:
+    pilots = load_campaign_sitac(FIXTURE).ejected_pilots
+    assert [(p.player_name, p.lost_credits, p.altitude) for p in pilots] == [("Paluche", 15, 412)]
+
+
+def test_the_task_board_is_read_as_missions_with_its_zone_and_reward() -> None:
+    missions = load_campaign_sitac(FIXTURE).missions
+    assert [m.title for m in missions] == ["Prendre Tal Rifaat (300 cr.)", "Supériorité aérienne (200 cr.)"]
+    assert all(m.is_running and not m.is_escort_mission for m in missions)
+    assert (missions[0].zone, missions[0].reward) == ("Tal Rifaat", 300)
+    assert missions[1].zone is None
+    assert missions[1].description == "1/3"
+
+
+def test_support_aircraft_are_read_with_their_frequency() -> None:
+    support = load_campaign_sitac(FIXTURE).support
+    assert [s.name for s in support] == ["Arco", "Overlord", "Texaco"]
+    arco = support[0]
+    assert (arco.kind, arco.side, arco.frequency, arco.tacan, arco.alive) == ("tanker_boom", "blue", 252.5, "51Y", True)
+    assert (arco.latitude, arco.longitude, arco.altitude) == (36.2, 36.6, 7620)
+    assert support[1].tacan is None
+    assert (support[2].alive, support[2].latitude) == (False, None)
+
+
+def test_a_block_written_before_the_foothold_lists_reads_them_empty() -> None:
+    from datetime import datetime
+
+    from foothold_sitac.veaf_campaign import sitac_from_block
+
+    sitac = sitac_from_block({"campaign": "x", "zones": {}, "players": {}, "missions": {}}, datetime.now())
+    assert (sitac.players, sitac.player_stats, sitac.ejected_pilots, sitac.missions, sitac.support) == (
+        [],
+        {},
+        [],
+        [],
+        [],
+    )

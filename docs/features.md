@@ -36,6 +36,8 @@ See [veaf-campaign-format.md](veaf-campaign-format.md) for the file read.
 - Zone window: kind, waypoint, garrison alive / total (counts only, never the composition), factory or depot buildings standing, capture side and time, awake or asleep
 - Assault convoys on the road: a line from their zone to their target, with a truck and a tooltip (side, route, vehicles)
 - Navbar: the players' credits and each side's resource stock
+- Players, ranking, ejected pilots and missions as for Foothold, read from the campaign's own Foothold-shaped lists: the ranking and success pages fill in, and the missions list is the campaign's task board (a task is drawn on its zone)
+- AWACS and tankers where they fly now: a dish or a pump icon in their side's colour, with their name, frequency and TACAN at zoom 8 and above, and a tooltip with their kind and altitude
 
 ### Players
 
@@ -117,4 +119,4 @@ See [veaf-campaign-format.md](veaf-campaign-format.md) for the file read.
 |----------|-------------|
 | `GET /api/foothold` | List all Foothold servers and VEAF campaigns (`kind`: `foothold` or `veaf`) |
 | `GET /api/foothold/{server}/sitac` | Full sitac data (zones, players, missions) |
-| `GET /api/foothold/{server}/map.json` | Map-specific data for rendering (VEAF campaigns add zone `kind`, `waypoint`, `garrison_total`, `capture_*`, `structures_*`, `awake`, plus `convoys` and `*_resources`) |
+| `GET /api/foothold/{server}/map.json` | Map-specific data for rendering (VEAF campaigns add zone `kind`, `waypoint`, `garrison_total`, `capture_*`, `structures_*`, `awake`, plus `convoys`, `*_resources` and `support`) |
