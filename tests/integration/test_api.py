@@ -436,3 +436,34 @@ def test_server_list_page_shows_the_campaign(client: TestClient) -> None:
 )
 def test_unlisted_campaign_returns_404(client: TestClient, server: str) -> None:
     assert client.get(f"/api/foothold/{server}/map.json").status_code == 404
+
+
+def test_veaf_campaign_map_data_has_foothold_lists_and_support(client: TestClient) -> None:
+    data = client.get(f"/api/foothold/{VEAF_KEY}/map.json").json()
+    assert [(p["player_name"], p["color"]) for p in data["players"]] == [("Zip", "blue")]
+    assert [(p["player_name"], p["lost_credits"]) for p in data["ejected_pilots"]] == [("Paluche", 15)]
+    assert data["missions_count"] == 2
+    # a task with a zone is drawn on it; the air task has none, and stays on the list only
+    assert [m["title"] for m in data["missions"]] == ["Prendre Tal Rifaat (300 cr.)"]
+    assert (data["missions"][0]["lat"], data["missions"][0]["lon"]) == pytest.approx((36.4505, 36.9333), abs=1e-3)
+    # a destroyed asset has no position to draw
+    assert [(s["name"], s["kind"], s["frequency"], s["tacan"]) for s in data["support"]] == [
+        ("Arco", "tanker_boom", 252.5, "51Y"),
+        ("Overlord", "awacs", 251, None),
+    ]
+    assert data["support"][0]["color"] == "blue"
+
+
+def test_foothold_map_data_has_no_support(client: TestClient) -> None:
+    assert client.get("/api/foothold/test_forces/map.json").json()["support"] == []
+
+
+@pytest.mark.parametrize("page", ["missions", "ejected"])
+def test_veaf_campaign_lists_render(client: TestClient, page: str) -> None:
+    response = client.get(f"/foothold/map/{VEAF_KEY}/{page}")
+    assert response.status_code == 200
+    assert {"missions": "Prendre Tal Rifaat", "ejected": "Paluche"}[page] in response.text
+
+
+def test_veaf_campaign_ranking_lists_its_pilots(client: TestClient) -> None:
+    assert "Zip" in client.get(f"/foothold/sitac/{VEAF_KEY}").text

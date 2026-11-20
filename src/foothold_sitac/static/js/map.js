@@ -41,6 +41,7 @@ var markpointsLayer = null;
 var missionsLayer = null;
 var farpsLayer = null;
 var convoysLayer = null;
+var supportLayer = null;
 
 // Data arrays
 var zonesData = [];
@@ -51,6 +52,7 @@ var markpointsData = [];
 var missionsData = [];
 var farpsData = [];
 var convoysData = [];
+var supportData = [];
 
 // Freshness widget state (REFRESH_INTERVAL is set by the page from config)
 var REFRESH_INTERVAL = 60;
@@ -105,6 +107,7 @@ function initMap() {
     missionsLayer = L.layerGroup().addTo(map);
     farpsLayer = L.layerGroup().addTo(map);
     convoysLayer = L.layerGroup().addTo(map);
+    supportLayer = L.layerGroup().addTo(map);
     rulerLayer = L.layerGroup().addTo(map);
 
     // Load markpoints from localStorage
@@ -118,6 +121,7 @@ function initMap() {
         updateMarkpoints();
         updateMissions();
         updateFarps();
+        updateSupport();
     });
 
     // Cursor position display
@@ -636,6 +640,62 @@ function updateConvoys() {
     });
 }
 
+// VEAF campaign: the AWACS and tankers where they fly now, with their frequency and TACAN
+var SUPPORT_KIND_LABELS = {
+    awacs: 'AWACS',
+    tanker_boom: 'Tanker (boom)',
+    tanker_basket: 'Tanker (basket)',
+    tanker_both: 'Tanker (boom and basket)',
+    tanker: 'Tanker'
+};
+
+function supportRadio(aircraft) {
+    var parts = [];
+    if (aircraft.frequency != null) {
+        parts.push(Number(aircraft.frequency).toFixed(2) + ' MHz');
+    }
+    if (aircraft.tacan) {
+        parts.push('TACAN ' + aircraft.tacan);
+    }
+    return parts.join(' · ');
+}
+
+function updateSupport() {
+    supportLayer.clearLayers();
+    var zoom = map.getZoom();
+
+    supportData.forEach(function(aircraft) {
+        var icon = aircraft.kind === 'awacs' ? 'fa-satellite-dish' : 'fa-gas-pump';
+        var radio = supportRadio(aircraft);
+        var html = '<i class="fa-solid ' + icon + '" style="color: ' + escapeHtml(aircraft.color) + ';"></i>';
+        if (zoom >= 8) {
+            html += '<br><span>' + escapeHtml(aircraft.name) + (radio ? '<br>' + escapeHtml(radio) : '') + '</span>';
+        }
+        var marker = L.marker([aircraft.lat, aircraft.lon], {
+            icon: L.divIcon({
+                className: 'support-label',
+                html: html,
+                iconSize: [120, 50],
+                iconAnchor: [60, 12]
+            })
+        });
+        var altitude = aircraft.altitude != null ? Math.round(aircraft.altitude * 3.28084 / 100) * 100 + ' ft' : '';
+        marker.bindTooltip(
+            escapeHtml(aircraft.name) + ' — ' + escapeHtml(SUPPORT_KIND_LABELS[aircraft.kind] || 'Support') +
+            (radio ? '<br>' + escapeHtml(radio) : '') +
+            (altitude ? '<br>' + escapeHtml(altitude) : ''),
+            { direction: 'top', offset: [0, -10] }
+        );
+        marker.on('click', function(e) {
+            if (rulerMode) {
+                setRulerPoint(aircraft.lat, aircraft.lon, aircraft.name);
+                L.DomEvent.stopPropagation(e);
+            }
+        });
+        marker.addTo(supportLayer);
+    });
+}
+
 function updateFreshnessWidget() {
     var widget = document.getElementById('freshness-widget');
     var countdown = document.getElementById('countdown');
@@ -721,8 +781,10 @@ function loadData() {
             missionsData = data.missions || [];
             farpsData = data.farps || [];
             convoysData = data.convoys || [];
+            supportData = data.support || [];
             updateConnections();
             updateConvoys();
+            updateSupport();
             updatePlayers();
             updateEjections();
             updateMissions();

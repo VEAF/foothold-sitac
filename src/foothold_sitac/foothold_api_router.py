@@ -14,6 +14,7 @@ from foothold_sitac.schemas import (
     MapFarp,
     MapMission,
     MapPlayer,
+    MapSupport,
     MapZone,
     Server,
     UnitGroup,
@@ -129,6 +130,10 @@ async def foothold_get_map_data(
     missions_with_coords = []
     for mission in sitac.missions:
         pos = parse_coordinates_from_text(mission.description)
+        # a VEAF campaign's task names its zone rather than writing coordinates in its text
+        task_zone = sitac.zones.get(mission.zone) if mission.zone else None
+        if pos is None and task_zone is not None and not task_zone.hidden:
+            pos = task_zone.position
         if pos:
             missions_with_coords.append(
                 MapMission(
@@ -163,6 +168,23 @@ async def foothold_get_map_data(
                 )
             )
 
+    # VEAF campaign AWACS and tankers, where they fly now; one destroyed has no position to draw
+    support = [
+        MapSupport(
+            name=aircraft.name,
+            kind=aircraft.kind,
+            side=aircraft.side,
+            color=SIDE_COLORS.get(aircraft.side or "", "gray"),
+            lat=aircraft.latitude,
+            lon=aircraft.longitude,
+            altitude=aircraft.altitude,
+            frequency=aircraft.frequency,
+            tacan=aircraft.tacan,
+        )
+        for aircraft in sitac.support
+        if aircraft.alive and aircraft.latitude is not None and aircraft.longitude is not None
+    ]
+
     return MapData(
         updated_at=sitac.updated_at,
         age_seconds=age_seconds,
@@ -183,4 +205,5 @@ async def foothold_get_map_data(
         convoys=convoys,
         red_resources=sitac.resources.red if sitac.resources else None,
         blue_resources=sitac.resources.blue if sitac.resources else None,
+        support=support,
     )

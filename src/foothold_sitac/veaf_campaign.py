@@ -4,7 +4,9 @@ A VEAF persistent campaign (VEAF Mission Creation Tools) saves itself to
 ``{saved_games}/{server}/Missions/Saves/{campaign}/persistent.state``, a Lua literal
 ``return { ... }``. Since VMCT's FEAT-CAMPAIGN-SITAC-STATE, that file carries a ``sitac``
 block written for this map: zones in lat/lon, kinds, connections, convoys, credits and
-resources. See docs/veaf-campaign-format.md.
+resources. Since VMCT's FIX-CAMPAIGN-THIRD-SERVER-FLIGHT it also carries Foothold's own
+`players`, `playerStats`, `ejectedPilots` and `missions`, by Foothold's field names, and the
+AWACS and tankers (`support`). See docs/veaf-campaign-format.md.
 
 A campaign is served under the key ``{server}@{campaign}``, next to the Foothold servers.
 """
@@ -19,6 +21,7 @@ from foothold_sitac.foothold import (
     Accounts,
     Convoy,
     Sitac,
+    SupportAircraft,
     get_foothold_server_saves_path,
     is_plain_server_name,
     lua_to_dict,
@@ -157,6 +160,20 @@ def _zone(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _support(raw: dict[str, Any]) -> SupportAircraft:
+    """A `sitac` support aircraft; one that is gone has its name only."""
+    text = {key: raw.get(key) if isinstance(raw.get(key), str) else None for key in ("kind", "side", "tacan")}
+    return SupportAircraft(
+        name=str(raw.get("name")),
+        latitude=_number(raw.get("latitude")),
+        longitude=_number(raw.get("longitude")),
+        altitude=_number(raw.get("altitude")),
+        frequency=_number(raw.get("frequency")),
+        alive=raw.get("alive") is not False,
+        **text,
+    )
+
+
 def sitac_from_block(block: dict[str, Any], updated_at: datetime) -> Sitac:
     """Map a `sitac` block onto the Sitac model."""
     zones: dict[str, Any] = {}
@@ -192,7 +209,16 @@ def sitac_from_block(block: dict[str, Any], updated_at: datetime) -> Sitac:
         {
             "updated_at": updated_at,
             "zones": zones,
-            "playerStats": {},
+            # Foothold's own lists, by Foothold's field names: validated as Foothold's are
+            "playerStats": _table(block.get("playerStats")),
+            "players": [raw for raw in _lua_list(block.get("players")) if isinstance(raw, dict)],
+            "ejectedPilots": [raw for raw in _lua_list(block.get("ejectedPilots")) if isinstance(raw, dict)],
+            "missions": [raw for raw in _lua_list(block.get("missions")) if isinstance(raw, dict)],
+            "support": [
+                _support(raw)
+                for raw in _lua_list(block.get("support"))
+                if isinstance(raw, dict) and isinstance(raw.get("name"), str)
+            ],
             "connections": connections,
             "accounts": {1: _number(red.get("credits")) or 0, 2: _number(blue.get("credits")) or 0},
             "source": "veaf",

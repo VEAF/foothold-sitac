@@ -99,6 +99,10 @@ class Mission(BaseModel):
     description: str
     title: str
     is_running: bool = Field(alias="isRunning")
+    # VEAF dynamic campaigns only: a task's kind, the zone it points at, and its reward in credits
+    kind: str | None = None
+    zone: str | None = None
+    reward: float | None = None
 
 
 class Connection(BaseModel):
@@ -236,6 +240,21 @@ class Farp(BaseModel):
     longitude: float
 
 
+class SupportAircraft(BaseModel):
+    """A VEAF dynamic campaign's AWACS or tanker, where it flies now (Foothold saves its tankers' settings only)."""
+
+    name: str
+    # awacs, tanker_boom, tanker_basket, tanker_both, or tanker when how it refuels is unknown
+    kind: str | None = None
+    side: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    altitude: float | None = None
+    frequency: float | None = None  # MHz
+    tacan: str | None = None
+    alive: bool = True
+
+
 class Convoy(BaseModel):
     """A VEAF campaign's assault convoy on the road."""
 
@@ -262,6 +281,7 @@ class Sitac(BaseModel):
     theatre: str | None = None
     convoys: list[Convoy] = Field(default_factory=list)
     resources: Accounts | None = None
+    support: list[SupportAircraft] = Field(default_factory=list)
 
     @model_validator(mode="before")
     @classmethod
