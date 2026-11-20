@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Show VEAF dynamic campaigns (VEAF Mission Creation Tools) next to Foothold missions: their `persistent.state` with a `sitac` block is listed as `<server>@<campaign>`, and the map draws zone kinds, waypoints, garrison counts, captures in progress, buildings, sleeping zones, assault convoys, credits and resource stock ([docs/veaf-campaign-format.md](docs/veaf-campaign-format.md))
 - VEAF dynamic campaigns show what Foothold missions show: connected players, the ranking and success pages, ejected pilots and the missions list (the campaign's task board, each task drawn on its zone), read from the `players`, `playerStats`, `ejectedPilots` and `missions` lists the campaign writes by Foothold's field names
 - VEAF dynamic campaigns draw their AWACS and tankers where they fly now, with their frequency and TACAN (`support`)
+- French translation of every page, map label, tooltip and modal, with a FR / EN language selector (a globe at the top right); the choice is kept in a cookie, else the browser's language decides
 
 ### Fixed
 
