@@ -82,7 +82,7 @@ function initMap() {
         maxZoom: map_options.max_zoom,
         attribution: '&copy; OpenStreetMap'
     });
-    baseLayers['Default'] = defaultLayer;
+    baseLayers[t('map.default_layer')] = defaultLayer;
     defaultLayer.addTo(map);
 
     // Alternative tile layers
@@ -147,25 +147,25 @@ function openZoneModal(zone) {
     var body = document.getElementById('modal-body');
 
     var format = getCoordFormat();
-    var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : 'Decimal');
+    var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : t('coord.decimal'));
     var formattedLat = formatCoord(zone.lat, true);
     var formattedLon = formatCoord(zone.lon, false);
 
     var html =
-        '<h3 style="margin-top: 0; color: ' + escapeHtml(zone.color) + ';">' + escapeHtml(zone.name || 'Unknown zone') + '</h3>' +
+        '<h3 style="margin-top: 0; color: ' + escapeHtml(zone.color) + ';">' + escapeHtml(zone.name || t('zone.unknown')) + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Coalition</td>' +
-                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + escapeHtml(zone.side) + '</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">' + t('zone.coalition') + '</td>' +
+                '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + escapeHtml(sideLabel(zone.side)) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Detected units</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">' + t('zone.detected_units') + '</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.units + '</td>' +
             '</tr>' +
             // a VEAF campaign zone has no Foothold level
-            (zone.kind ? '' : modalRow('Level', zone.level != null ? zone.level : '-')) +
+            (zone.kind ? '' : modalRow(t('zone.level'), zone.level != null ? zone.level : '-')) +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">' + t('coord.latlon') + '</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + zone.lat.toFixed(6) + ', ' + zone.lon.toFixed(6) + '</td>' +
             '</tr>' +
             '<tr>' +
@@ -178,7 +178,7 @@ function openZoneModal(zone) {
     // Add unit groups section if available
     if (zone.unit_groups && zone.unit_groups.length > 0) {
         html += '<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">';
-        html += '<h4 style="margin: 0 0 8px 0; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Forces</h4>';
+        html += '<h4 style="margin: 0 0 8px 0; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">' + t('zone.forces') + '</h4>';
 
         zone.unit_groups.forEach(function(group) {
             var unitList = [];
@@ -187,7 +187,7 @@ function openZoneModal(zone) {
                 unitList.push(escapeHtml(unitType) + (count > 1 ? ' x' + escapeHtml(count) : ''));
             }
             html += '<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">';
-            html += '<span style="color: #8892a0; font-size: 12px;">Group ' + group.group_id + '</span><br>';
+            html += '<span style="color: #8892a0; font-size: 12px;">' + t('zone.group', { id: escapeHtml(group.group_id) }) + '</span><br>';
             html += '<span style="color: #e8eaed; font-size: 13px;">' + unitList.join(', ') + '</span>';
             html += '</div>';
         });
@@ -222,6 +222,11 @@ function modalRow(label, value) {
     '</tr>';
 }
 
+// A side as written in the data (red, blue, neutral, disabled), in the page's language
+function sideLabel(side) {
+    return tOr('side.' + side, side);
+}
+
 function formatSeconds(seconds) {
     var total = Math.round(seconds || 0);
     var minutes = Math.floor(total / 60);
@@ -231,20 +236,23 @@ function formatSeconds(seconds) {
 
 function veafZoneRows(zone) {
     if (!zone.kind) return '';
-    var rows = modalRow('Kind', escapeHtml(zone.kind));
+    var rows = modalRow(t('zone.kind'), escapeHtml(tOr('kind.' + zone.kind, zone.kind)));
     if (zone.waypoint != null) {
-        rows += modalRow('Waypoint', 'WP ' + escapeHtml(zone.waypoint));
+        rows += modalRow(t('zone.waypoint'), 'WP ' + escapeHtml(zone.waypoint));
     }
     if (zone.garrison_total != null) {
-        rows += modalRow('Garrison', escapeHtml(zone.units) + ' / ' + escapeHtml(zone.garrison_total));
+        rows += modalRow(t('zone.garrison'), escapeHtml(zone.units) + ' / ' + escapeHtml(zone.garrison_total));
     }
     if (zone.structures_total != null) {
-        rows += modalRow('Buildings standing', escapeHtml(zone.structures_standing) + ' / ' + escapeHtml(zone.structures_total));
+        rows += modalRow(t('zone.buildings'), escapeHtml(zone.structures_standing) + ' / ' + escapeHtml(zone.structures_total));
     }
     if (zone.capture_side) {
-        rows += modalRow('Capture', escapeHtml(zone.capture_side) + ' for ' + formatSeconds(zone.capture_seconds));
+        rows += modalRow(t('zone.capture'), t('zone.capture_for', {
+            side: escapeHtml(sideLabel(zone.capture_side)),
+            time: formatSeconds(zone.capture_seconds)
+        }));
     }
-    rows += modalRow('Activity', zone.awake === false ? 'asleep' : 'awake');
+    rows += modalRow(t('zone.activity'), zone.awake === false ? t('zone.asleep') : t('zone.awake'));
     return rows;
 }
 
@@ -255,7 +263,7 @@ function veafKindIcon(zone) {
 
 function veafCaptureIcon(zone) {
     if (!zone.capture_side) return '';
-    return ' <i class="fa-solid fa-flag-checkered" style="color: ' + escapeHtml(zone.capture_side) + ';" title="capture in progress"></i>';
+    return ' <i class="fa-solid fa-flag-checkered" style="color: ' + escapeHtml(zone.capture_side) + ';" title="' + escapeHtml(t('zone.capture_in_progress')) + '"></i>';
 }
 
 // Zone label functions
@@ -432,7 +440,7 @@ function updateEjections() {
             })
         });
 
-        marker.bindTooltip(escapeHtml(pilot.player_name) + '<br>Alt: ' + Math.round(pilot.altitude) + 'm', {
+        marker.bindTooltip(escapeHtml(pilot.player_name) + '<br>' + t('ejected.altitude', { altitude: Math.round(pilot.altitude) }), {
             direction: 'top',
             offset: [0, -10]
         });
@@ -492,7 +500,7 @@ function openFarpModal(farp) {
     var body = document.getElementById('modal-body');
 
     var format = getCoordFormat();
-    var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : 'Decimal');
+    var formatLabel = format === 'dms' ? 'DMS' : (format === 'ddm' ? 'DDM' : t('coord.decimal'));
     var formattedLat = formatCoord(farp.lat, true);
     var formattedLon = formatCoord(farp.lon, false);
 
@@ -500,7 +508,7 @@ function openFarpModal(farp) {
         '<h3 style="margin-top: 0; color: #60a5fa;"><i class="fa-solid fa-helicopter"></i> ' + escapeHtml(farp.name) + '</h3>' +
         '<table style="width: 100%; border-collapse: collapse;">' +
             '<tr>' +
-                '<td style="padding: 8px 0; color: #8892a0;">Lat / Lon</td>' +
+                '<td style="padding: 8px 0; color: #8892a0;">' + t('coord.latlon') + '</td>' +
                 '<td style="padding: 8px 0; text-align: right; color: #e8eaed;">' + farp.lat.toFixed(6) + ', ' + farp.lon.toFixed(6) + '</td>' +
             '</tr>' +
             '<tr>' +
@@ -631,9 +639,9 @@ function updateConvoys() {
             })
         });
         marker.bindTooltip(
-            'Assault convoy (' + escapeHtml(convoy.side) + ')<br>' +
+            t('convoy.tooltip', { side: escapeHtml(sideLabel(convoy.side)) }) + '<br>' +
             escapeHtml(convoy.from_zone) + ' &rarr; ' + escapeHtml(convoy.to_zone) + '<br>' +
-            escapeHtml(convoy.units) + ' vehicle(s)',
+            t('convoy.vehicles', { n: escapeHtml(convoy.units) }),
             { direction: 'top', offset: [0, -10] }
         );
         marker.addTo(convoysLayer);
@@ -641,13 +649,10 @@ function updateConvoys() {
 }
 
 // VEAF campaign: the AWACS and tankers where they fly now, with their frequency and TACAN
-var SUPPORT_KIND_LABELS = {
-    awacs: 'AWACS',
-    tanker_boom: 'Tanker (boom)',
-    tanker_basket: 'Tanker (basket)',
-    tanker_both: 'Tanker (boom and basket)',
-    tanker: 'Tanker'
-};
+// kinds: awacs, tanker_boom, tanker_basket, tanker_both, tanker
+function supportKindLabel(kind) {
+    return tOr('support.' + kind, t('support.other'));
+}
 
 function supportRadio(aircraft) {
     var parts = [];
@@ -681,7 +686,7 @@ function updateSupport() {
         });
         var altitude = aircraft.altitude != null ? Math.round(aircraft.altitude * 3.28084 / 100) * 100 + ' ft' : '';
         marker.bindTooltip(
-            escapeHtml(aircraft.name) + ' — ' + escapeHtml(SUPPORT_KIND_LABELS[aircraft.kind] || 'Support') +
+            escapeHtml(aircraft.name) + ' — ' + escapeHtml(supportKindLabel(aircraft.kind)) +
             (radio ? '<br>' + escapeHtml(radio) : '') +
             (altitude ? '<br>' + escapeHtml(altitude) : ''),
             { direction: 'top', offset: [0, -10] }
@@ -714,17 +719,17 @@ function updateFreshnessWidget() {
 
     if (!isConnected) {
         widget.classList.add('disconnected');
-        countdown.textContent = 'Offline';
-        tooltip.textContent = 'Connection to server lost';
+        countdown.textContent = t('freshness.offline');
+        tooltip.textContent = t('freshness.connection_lost');
     } else if (isDataFresh) {
         widget.classList.add('fresh');
         countdown.textContent = nextRefresh + 's';
-        tooltip.textContent = 'Data up to date (' + Math.round(dataAgeSeconds) + 's) • Refresh in ' + nextRefresh + 's';
+        tooltip.textContent = t('freshness.fresh', { age: Math.round(dataAgeSeconds), n: nextRefresh });
     } else {
         widget.classList.add('stale');
         countdown.textContent = nextRefresh + 's';
         var minutes = Math.floor(dataAgeSeconds / 60);
-        tooltip.textContent = 'Stale data (' + minutes + 'min) • Refresh in ' + nextRefresh + 's';
+        tooltip.textContent = t('freshness.stale', { minutes: minutes, n: nextRefresh });
     }
 }
 
@@ -913,17 +918,17 @@ function updateRulerWidget() {
 
     // Update point displays
     if (rulerPoints[0]) {
-        var label1 = rulerPoints[0].name ? rulerPoints[0].name : 'Point A';
+        var label1 = rulerPoints[0].name ? rulerPoints[0].name : t('ruler.point_a');
         point1Coords.textContent = label1;
     } else {
-        point1Coords.textContent = 'Click to set';
+        point1Coords.textContent = t('ruler.click_to_set');
     }
 
     if (rulerPoints[1]) {
-        var label2 = rulerPoints[1].name ? rulerPoints[1].name : 'Point B';
+        var label2 = rulerPoints[1].name ? rulerPoints[1].name : t('ruler.point_b');
         point2Coords.textContent = label2;
     } else {
-        point2Coords.textContent = 'Click to set';
+        point2Coords.textContent = t('ruler.click_to_set');
     }
 
     // Calculate and display measurements
@@ -973,7 +978,7 @@ function loadMarkpoints() {
 
 // Add a new markpoint
 function addMarkpoint(lat, lon, label) {
-    var markpoint = { lat: lat, lon: lon, label: label || 'Markpoint' };
+    var markpoint = { lat: lat, lon: lon, label: label || t('markpoint.default') };
     markpointsData.push(markpoint);
     saveMarkpoints();
     updateMarkpoints();
