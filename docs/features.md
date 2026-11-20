@@ -99,6 +99,12 @@ See [veaf-campaign-format.md](veaf-campaign-format.md) for the file read.
 - Coordinate format selection
 - Cruise speed for ruler (100-350 knots)
 
+## Language
+
+- English and French pages, chosen with the globe at the top right of every page (in the navbar on the map)
+- The choice is kept in a `lang` cookie; without one, the browser's preferred language decides (French, else English)
+- Game data (zone, player and unit names, mission titles) stays as the mission writes it
+
 ## SITAC Table View
 
 - Alternative tabular view at `/foothold/sitac/{server}`

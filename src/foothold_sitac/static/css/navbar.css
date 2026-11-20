@@ -370,4 +370,13 @@
     .navbar {
         padding: 0 8px;
     }
+
+    /* the globe alone, so that the burger menu stays on screen */
+    .navbar .lang-current {
+        display: none;
+    }
+
+    .navbar .lang-switcher summary {
+        padding: 6px;
+    }
 }

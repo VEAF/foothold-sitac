@@ -1,16 +1,16 @@
 <div class="ejected-header">
     <i class="fa-solid fa-parachute-box"></i>
-    <h2>Ejected Pilots</h2>
+    <h2>{{ t('ejected.heading') }}</h2>
 </div>
 <table class="modal-table ejected">
     <thead>
         <tr>
             <th>#</th>
-            <th>Pilot</th>
-            <th>Latitude</th>
-            <th>Longitude</th>
-            <th>Altitude</th>
-            <th>Credits</th>
+            <th>{{ t('ejected.pilot') }}</th>
+            <th>{{ t('js.coord.latitude') }}</th>
+            <th>{{ t('js.coord.longitude') }}</th>
+            <th>{{ t('ejected.altitude') }}</th>
+            <th>{{ t('ejected.credits') }}</th>
         </tr>
     </thead>
     <tbody>
@@ -25,7 +25,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center; color: #5a6270;">No ejected pilots</td>
+            <td colspan="6" style="text-align: center; color: #5a6270;">{{ t('ejected.none') }}</td>
         </tr>
         {% endfor %}
     </tbody>

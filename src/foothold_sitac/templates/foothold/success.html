@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Success Board{% endblock %}
+{% block title %}{{ t('success.title') }}{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
@@ -15,7 +15,7 @@
 <div class="success-container">
     <div class="success-header">
         <i class="fa-solid fa-trophy success-trophy"></i>
-        <h1>Success Board</h1>
+        <h1>{{ t('success.title') }}</h1>
         <div class="success-server">{{ server }}</div>
     </div>
 
@@ -24,8 +24,8 @@
         {% for award in awards %}
         <div class="award-card">
             <div class="award-icon"><i class="fa-solid {{ award.icon }}"></i></div>
-            <div class="award-title">{{ award.title }}</div>
-            <div class="award-description">{{ award.description }}</div>
+            <div class="award-title">{{ t('award.' ~ award.key ~ '.title') }}</div>
+            <div class="award-description">{{ t('award.' ~ award.key ~ '.description') }}</div>
             <div class="award-player">
                 <a href="{{ request.url_for('foothold_player', server=server, player_name=award.player_name) }}">{{ award.player_name }}</a>
             </div>
@@ -34,11 +34,11 @@
         {% endfor %}
     </div>
     {% else %}
-    <p class="no-awards">No player stats available yet.</p>
+    <p class="no-awards">{{ t('success.no_awards') }}</p>
     {% endif %}
 
     <div style="text-align:center;">
-        <a href="{{ request.url_for('foothold_map', server=server) }}" class="success-back-btn">Back to map</a>
+        <a href="{{ request.url_for('foothold_map', server=server) }}" class="success-back-btn">{{ t('common.back_map') }}</a>
     </div>
 </div>
 {% endblock %}

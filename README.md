@@ -11,6 +11,19 @@ See [docs/features.md](docs/features.md) for a complete list of features includi
 - Campaign progress tracking
 - VEAF dynamic campaigns next to Foothold missions: zone kinds, captures, convoys, credits and stock
 - REST API for programmatic access
+- English and French pages, with a language selector
+
+## Languages
+
+The pages exist in English and in French.
+The globe at the top right (in the navbar on the map) switches between FR and EN; the choice is kept in a `lang` cookie for a year.
+Without a choice, the page follows the browser's language: French if the browser prefers French, English otherwise.
+
+To add or change a text, edit `src/foothold_sitac/i18n.py`: each language is a dictionary `key -> text`, English being the reference.
+A template shows a text with `{{ t('key') }}` (placeholders: `{{ t('key', n=3) }}` for a text holding `{n}`).
+The map's JavaScript uses `t('key')` for the keys starting with `js.`, which the page passes to it.
+Add every key to both languages: `tests/units/test_i18n.py` fails when a key exists in one language and not in the other, or when a template or a script uses a key that does not exist.
+Texts from the game (zone, player and unit names) are not translated.
 
 ## Installation
 

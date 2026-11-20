@@ -3,9 +3,9 @@
     <table class="modal-table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Level</th>
-                <th>Active</th>
+                <th>{{ t('zone.name') }}</th>
+                <th>{{ t('zone.level') }}</th>
+                <th>{{ t('zone.active') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -13,7 +13,7 @@
             <tr>
                 <td>{{ name }}</td>
                 <td class="n">{{ zone.level }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
+                <td>{{ t('common.yes') if zone.active else t('common.no') }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -39,11 +39,11 @@
 
 <div class="zones-container">
     <div class="modal-header-fixed">
-        <h2>Objectives</h2>
+        <h2>{{ t('zones.heading') }}</h2>
 
         <div class="progress-container">
             <div class="progress-header">
-                <span class="progress-label">Campaign Progress</span>
+                <span class="progress-label">{{ t('zones.progress') }}</span>
                 <span class="progress-value">{{ "%.0f"|format(progress) }}%</span>
             </div>
             <div class="progress-bar">
@@ -53,28 +53,28 @@
 
         <div class="tabs">
             <button class="tab-btn blue active" onclick="showTab('blue')">
-                Blue <span class="tab-badge">{{ blue_zones | length }}</span>
+                {{ t('side.blue') }} <span class="tab-badge">{{ blue_zones | length }}</span>
             </button>
             <button class="tab-btn neutral" onclick="showTab('neutral')">
-                Neutral <span class="tab-badge">{{ neutral_zones | length }}</span>
+                {{ t('side.neutral') }} <span class="tab-badge">{{ neutral_zones | length }}</span>
             </button>
             <button class="tab-btn red" onclick="showTab('red')">
-                Red <span class="tab-badge">{{ red_zones | length }}</span>
+                {{ t('side.red') }} <span class="tab-badge">{{ red_zones | length }}</span>
             </button>
         </div>
     </div>
 
     <div class="tab-content-wrapper">
         <div id="tab-blue" class="tab-content active">
-            {{ zones_table(blue_zones, "No blue zones") }}
+            {{ zones_table(blue_zones, t('zones.none_blue')) }}
         </div>
 
         <div id="tab-neutral" class="tab-content">
-            {{ zones_table(neutral_zones, "No neutral zones") }}
+            {{ zones_table(neutral_zones, t('zones.none_neutral')) }}
         </div>
 
         <div id="tab-red" class="tab-content">
-            {{ zones_table(red_zones, "No red zones") }}
+            {{ zones_table(red_zones, t('zones.none_red')) }}
         </div>
     </div>
 </div>

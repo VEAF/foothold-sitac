@@ -8,7 +8,7 @@ function openModal(type) {
     var overlay = document.getElementById('modal-overlay');
     var body = document.getElementById('modal-body');
 
-    body.innerHTML = '<div class="modal-loading">Loading...</div>';
+    body.innerHTML = '<div class="modal-loading">' + t('modal.loading') + '</div>';
     overlay.classList.add('visible');
 
     fetch(modalEndpoints[type])
@@ -32,7 +32,7 @@ function openModal(type) {
             }
         })
         .catch(function(error) {
-            body.innerHTML = '<div class="modal-loading">Error loading data</div>';
+            body.innerHTML = '<div class="modal-loading">' + t('modal.error') + '</div>';
         });
 }
 
@@ -56,17 +56,17 @@ function openSettingsModal() {
     var currentSpeed = localStorage.getItem('foothold-ruler-speed') || '250';
 
     body.innerHTML =
-        '<h2 style="margin-top: 0;"><i class="fa-solid fa-gear"></i> Settings</h2>' +
+        '<h2 style="margin-top: 0;"><i class="fa-solid fa-gear"></i> ' + t('settings.heading') + '</h2>' +
         '<div class="settings-section">' +
-            '<label>Coordinate format</label>' +
+            '<label>' + t('settings.coord_format') + '</label>' +
             '<select id="coord-format-select">' +
                 '<option value="dms"' + (currentFormat === 'dms' ? ' selected' : '') + '>DMS (N41°07\'24.42")</option>' +
                 '<option value="ddm"' + (currentFormat === 'ddm' ? ' selected' : '') + '>DDM (N41°07.4070\')</option>' +
-                '<option value="decimal"' + (currentFormat === 'decimal' ? ' selected' : '') + '>Decimal (41.123456°)</option>' +
+                '<option value="decimal"' + (currentFormat === 'decimal' ? ' selected' : '') + '>' + t('coord.decimal') + ' (41.123456°)</option>' +
             '</select>' +
         '</div>' +
         '<div class="settings-section">' +
-            '<label>Cruise speed (ruler)</label>' +
+            '<label>' + t('settings.cruise_speed') + '</label>' +
             '<select id="ruler-speed-select">' +
                 '<option value="100"' + (currentSpeed === '100' ? ' selected' : '') + '>100 kt</option>' +
                 '<option value="150"' + (currentSpeed === '150' ? ' selected' : '') + '>150 kt</option>' +
@@ -77,7 +77,7 @@ function openSettingsModal() {
             '</select>' +
         '</div>' +
         '<div class="settings-actions">' +
-            '<button class="settings-save-btn" onclick="saveSettings()"><i class="fa-solid fa-check"></i> Save</button>' +
+            '<button class="settings-save-btn" onclick="saveSettings()"><i class="fa-solid fa-check"></i> ' + t('settings.save') + '</button>' +
         '</div>';
     overlay.classList.add('visible', 'zone-modal');
 }
@@ -110,46 +110,46 @@ function openPilotModal(pilot) {
             '<h2>' + escapeHtml(pilot.player_name) + '</h2>' +
         '</div>' +
         '<div class="pilot-coords">' +
-            '<h3>Decimal Degrees</h3>' +
+            '<h3>' + t('pilot.decimal_degrees') + '</h3>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Latitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.latitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDecimal(pilot.lat, true) + '</span>' +
             '</div>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Longitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.longitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDecimal(pilot.lon, false) + '</span>' +
             '</div>' +
         '</div>' +
         '<div class="pilot-coords">' +
-            '<h3>Degrees Decimal Minutes (DDM)</h3>' +
+            '<h3>' + t('pilot.ddm') + '</h3>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Latitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.latitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDDM(pilot.lat, true) + '</span>' +
             '</div>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Longitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.longitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDDM(pilot.lon, false) + '</span>' +
             '</div>' +
         '</div>' +
         '<div class="pilot-coords">' +
-            '<h3>Degrees Minutes Seconds (DMS)</h3>' +
+            '<h3>' + t('pilot.dms') + '</h3>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Latitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.latitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDMS(pilot.lat, true) + '</span>' +
             '</div>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Longitude</span>' +
+                '<span class="pilot-coords-label">' + t('coord.longitude') + '</span>' +
                 '<span class="pilot-coords-value">' + formatCoordDMS(pilot.lon, false) + '</span>' +
             '</div>' +
         '</div>' +
         '<div class="pilot-coords">' +
-            '<h3>Other Info</h3>' +
+            '<h3>' + t('pilot.other') + '</h3>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Altitude</span>' +
+                '<span class="pilot-coords-label">' + t('pilot.altitude') + '</span>' +
                 '<span class="pilot-coords-value">' + Math.round(pilot.altitude) + 'm</span>' +
             '</div>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Lost Credits</span>' +
+                '<span class="pilot-coords-label">' + t('pilot.lost_credits') + '</span>' +
                 '<span class="pilot-coords-value">' + Math.round(pilot.lost_credits) + '</span>' +
             '</div>' +
         '</div>';
@@ -188,18 +188,18 @@ function openMarkpointModal() {
     var body = document.getElementById('modal-body');
 
     body.innerHTML =
-        '<h2 style="margin-top: 0;"><i class="fa-solid fa-location-dot"></i> Add Markpoint</h2>' +
+        '<h2 style="margin-top: 0;"><i class="fa-solid fa-location-dot"></i> ' + t('markpoint.add_title') + '</h2>' +
         '<div class="settings-section">' +
-            '<label>Paste coordinates</label>' +
+            '<label>' + t('markpoint.paste') + '</label>' +
             '<textarea id="markpoint-input" rows="3" placeholder="N 31°35\'09&quot; E 64°23\'10&quot;"></textarea>' +
             '<div id="markpoint-preview" class="markpoint-preview"></div>' +
         '</div>' +
         '<div class="settings-section">' +
-            '<label>Label (optional)</label>' +
-            '<input type="text" id="markpoint-label" placeholder="Target">' +
+            '<label>' + t('markpoint.label_optional') + '</label>' +
+            '<input type="text" id="markpoint-label" placeholder="' + escapeHtml(t('markpoint.label_placeholder')) + '">' +
         '</div>' +
         '<div class="settings-actions">' +
-            '<button class="settings-save-btn" onclick="addMarkpointFromModal()"><i class="fa-solid fa-plus"></i> Add</button>' +
+            '<button class="settings-save-btn" onclick="addMarkpointFromModal()"><i class="fa-solid fa-plus"></i> ' + t('markpoint.add') + '</button>' +
         '</div>';
 
     overlay.classList.add('visible', 'zone-modal');
@@ -225,7 +225,7 @@ function updateMarkpointPreview() {
         preview.textContent = formatCoordDMS(coords.lat, true) + ' ' + formatCoordDMS(coords.lon, false);
         preview.className = 'markpoint-preview valid';
     } else {
-        preview.textContent = 'Invalid coordinates';
+        preview.textContent = t('markpoint.invalid');
         preview.className = 'markpoint-preview invalid';
     }
 }
@@ -235,11 +235,11 @@ function addMarkpointFromModal() {
     var input = document.getElementById('markpoint-input');
     var labelInput = document.getElementById('markpoint-label');
     var text = input.value.trim();
-    var label = labelInput.value.trim() || 'Markpoint';
+    var label = labelInput.value.trim() || t('markpoint.default');
 
     var coords = parseCoordinates(text);
     if (!coords) {
-        alert('Invalid coordinates. Please enter valid DMS, DDM, or decimal coordinates.');
+        alert(t('markpoint.invalid_alert'));
         return;
     }
 
@@ -272,12 +272,12 @@ function openMarkpointDetailModal(mp, index) {
                 '<span class="pilot-coords-value">' + formatCoordDDM(mp.lat, true) + ' ' + formatCoordDDM(mp.lon, false) + '</span>' +
             '</div>' +
             '<div class="pilot-coords-row">' +
-                '<span class="pilot-coords-label">Decimal</span>' +
+                '<span class="pilot-coords-label">' + t('coord.decimal') + '</span>' +
                 '<span class="pilot-coords-value">' + mp.lat.toFixed(6) + ', ' + mp.lon.toFixed(6) + '</span>' +
             '</div>' +
         '</div>' +
         '<div class="settings-actions">' +
-            '<button class="settings-delete-btn" onclick="removeMarkpoint(' + index + '); closeModal();"><i class="fa-solid fa-trash"></i> Delete</button>' +
+            '<button class="settings-delete-btn" onclick="removeMarkpoint(' + index + '); closeModal();"><i class="fa-solid fa-trash"></i> ' + t('markpoint.delete') + '</button>' +
         '</div>';
     overlay.classList.add('visible');
 }

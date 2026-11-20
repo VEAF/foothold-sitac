@@ -1,13 +1,13 @@
-<h2>Active Missions</h2>
+<h2>{{ t('missions.heading') }}</h2>
 
 {% if missions %}
 <table class="modal-table">
     <thead>
         <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Status</th>
+            <th>{{ t('missions.title') }}</th>
+            <th>{{ t('missions.description') }}</th>
+            <th>{{ t('missions.type') }}</th>
+            <th>{{ t('missions.status') }}</th>
         </tr>
     </thead>
     <tbody>
@@ -17,16 +17,16 @@
             <td>{{ mission.description }}</td>
             <td>
                 {% if mission.is_escort_mission %}
-                <span class="type-badge escort"><i class="fa-solid fa-truck-fast"></i>&nbsp;Escort</span>
+                <span class="type-badge escort"><i class="fa-solid fa-truck-fast"></i>&nbsp;{{ t('missions.escort') }}</span>
                 {% else %}
-                <span class="type-badge attack"><i class="fa-solid fa-crosshairs"></i>&nbsp;Attack</span>
+                <span class="type-badge attack"><i class="fa-solid fa-crosshairs"></i>&nbsp;{{ t('missions.attack') }}</span>
                 {% endif %}
             </td>
             <td>
                 {% if mission.is_running %}
-                <span class="status-badge running"><i class="fa-solid fa-play"></i>&nbsp;Running</span>
+                <span class="status-badge running"><i class="fa-solid fa-play"></i>&nbsp;{{ t('missions.running') }}</span>
                 {% else %}
-                <span class="status-badge stopped"><i class="fa-solid fa-pause"></i>&nbsp;Stopped</span>
+                <span class="status-badge stopped"><i class="fa-solid fa-pause"></i>&nbsp;{{ t('missions.stopped') }}</span>
                 {% endif %}
             </td>
         </tr>
@@ -34,5 +34,5 @@
     </tbody>
 </table>
 {% else %}
-<div class="empty-state">No active missions</div>
+<div class="empty-state">{{ t('missions.none') }}</div>
 {% endif %}

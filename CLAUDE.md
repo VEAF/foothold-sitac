@@ -51,6 +51,7 @@ Key config sections:
 - **src/foothold_sitac/foothold_api_router.py**: REST API endpoints under `/api/foothold`
 - **src/foothold_sitac/foothold_router.py**: HTML page routes under `/foothold`
 - **src/foothold_sitac/templater.py**: Jinja2 environment setup with config globals
+- **src/foothold_sitac/i18n.py**: English/French texts (`MESSAGES`), the `t()` Jinja global, the language middleware (cookie `lang`, else `Accept-Language`); `js.*` keys go to the map's JavaScript (`static/js/i18n.js`). Every user-visible text goes through it; `tests/units/test_i18n.py` checks both languages have the same keys
 - **src/foothold_sitac/templates/**: Jinja2 HTML templates for map and server list pages
 - **src/foothold_sitac/static/**: CSS, JS, and favicon assets
 - **run.py**: Standalone script to launch the application

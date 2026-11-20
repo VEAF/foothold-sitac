@@ -467,3 +467,76 @@ def test_veaf_campaign_lists_render(client: TestClient, page: str) -> None:
 
 def test_veaf_campaign_ranking_lists_its_pilots(client: TestClient) -> None:
     assert "Zip" in client.get(f"/foothold/sitac/{VEAF_KEY}").text
+
+
+# Language (French / English)
+
+
+def test_pages_are_english_by_default(client: TestClient) -> None:
+    response = client.get("/foothold")
+    assert '<html lang="en">' in response.text
+    assert "Servers and campaigns" in response.text
+
+
+def test_pages_follow_the_browser_language(client: TestClient) -> None:
+    response = client.get("/foothold", headers={"Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8"})
+    assert '<html lang="fr">' in response.text
+    assert "Serveurs et campagnes" in response.text
+
+
+def test_language_cookie_wins_over_the_browser(client: TestClient) -> None:
+    client.cookies.set("lang", "en")
+    response = client.get("/foothold", headers={"Accept-Language": "fr-FR"})
+    assert '<html lang="en">' in response.text
+
+
+def test_language_selector_sets_the_cookie_and_comes_back(client: TestClient) -> None:
+    response = client.get("/lang/fr", params={"next": "/foothold/success/test_player_stats"}, follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/foothold/success/test_player_stats"
+    assert "lang=fr" in response.headers["set-cookie"]
+
+    page = client.get("/foothold/success/test_player_stats")
+    assert '<html lang="fr">' in page.text
+    assert "Palmarès" in page.text
+    assert "Meilleur marqueur" in page.text
+
+
+def test_language_selector_refuses_another_site(client: TestClient) -> None:
+    response = client.get("/lang/fr", params={"next": "//evil.example/"}, follow_redirects=False)
+    assert response.headers["location"] == "/"
+
+
+def test_language_selector_refuses_an_unknown_language(client: TestClient) -> None:
+    assert client.get("/lang/xx", follow_redirects=False).status_code == 404
+
+
+def test_language_selector_links_back_to_the_page(client: TestClient) -> None:
+    response = client.get("/foothold/sitac/test_player_stats")
+    assert 'href="/lang/fr?next=%2Ffoothold%2Fsitac%2Ftest_player_stats"' in response.text
+
+
+@pytest.mark.parametrize(
+    ("url", "french"),
+    [
+        ("/", "Bienvenue"),
+        ("/foothold/map/test_player_stats", "Classement"),
+        ("/foothold/map/test_player_stats/players", "Classement des joueurs"),
+        ("/foothold/map/test_player_stats/zones", "Avancement de la campagne"),
+        ("/foothold/map/test_markup_names/missions", "Missions actives"),
+        ("/foothold/map/test_markup_names/ejected", "Pilotes éjectés"),
+        ("/foothold/player/test_player_stats/Viper", "Combat aérien"),
+        ("/foothold/sitac/test_player_stats", "Statistiques des joueurs"),
+    ],
+)
+def test_pages_in_french(client: TestClient, url: str, french: str) -> None:
+    client.cookies.set("lang", "fr")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert french in response.text
+
+
+def test_map_page_passes_the_js_texts_in_its_language(client: TestClient) -> None:
+    client.cookies.set("lang", "fr")
+    response = client.get("/foothold/map/test_player_stats")
+    assert '"freshness.offline": "Hors ligne"' in response.text

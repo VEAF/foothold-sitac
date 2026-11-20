@@ -3,8 +3,8 @@
 {% block title %}{{ player_name }}{% endblock %}
 
 {% block styles %}
-<meta property="og:title" content="{{ player_name }} - Foothold Stats">
-<meta property="og:description" content="Rank #{{ rank }}/{{ total_players }} | {{ stats.points | int }} pts | {{ stats.air }} air kills | {{ stats.ground_units }} ground kills | {{ stats.deaths }} deaths">
+<meta property="og:title" content="{{ t('player.og_title', name=player_name) }}">
+<meta property="og:description" content="{{ t('player.og_description', rank=rank, total=total_players, points=stats.points | int, air=stats.air, ground=stats.ground_units, deaths=stats.deaths) }}">
 <meta property="og:type" content="profile">
 <meta property="og:url" content="{{ request.url }}">
 <link rel="stylesheet" href="{{ static_url('css/player.css') }}">
@@ -26,132 +26,132 @@
     <div class="player-overview">
         <div class="stat-card">
             <span class="stat-value">{{ stats.points | int }}</span>
-            <span class="stat-label">Points</span>
+            <span class="stat-label">{{ t('stat.points') }}</span>
         </div>
         <div class="stat-card">
             <span class="stat-value">{{ stats.deaths }}</span>
-            <span class="stat-label">Deaths</span>
+            <span class="stat-label">{{ t('stat.deaths') }}</span>
         </div>
         <div class="stat-card">
             <span class="stat-value">{{ (stats.points / stats.lives) | round(1) }}</span>
-            <span class="stat-label">Points / Life</span>
+            <span class="stat-label">{{ t('stat.points_per_life_short') }}</span>
         </div>
         <div class="stat-card">
             <span class="stat-value">{{ stats.flight_time | int }}</span>
-            <span class="stat-label">Flight Time (min)</span>
+            <span class="stat-label">{{ t('stat.flight_time') }}</span>
         </div>
     </div>
 
     <div class="stats-section">
-        <h2><i class="fa-solid fa-jet-fighter"></i> Air Combat</h2>
+        <h2><i class="fa-solid fa-jet-fighter"></i> {{ t('player.air_combat') }}</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <i class="fa-solid fa-jet-fighter"></i>
-                <span class="stat-item-label">Air Kills</span>
+                <span class="stat-item-label">{{ t('player.air_kills') }}</span>
                 <span class="stat-item-value">{{ stats.air }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-helicopter"></i>
-                <span class="stat-item-label">Helo Kills</span>
+                <span class="stat-item-label">{{ t('player.helo_kills') }}</span>
                 <span class="stat-item-value">{{ stats.helo }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-plane-circle-xmark"></i>
-                <span class="stat-item-label">Intercept Cargo</span>
+                <span class="stat-item-label">{{ t('player.intercept_cargo') }}</span>
                 <span class="stat-item-value">{{ stats.intercept_cargo_plane }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span class="stat-item-label">CAP Missions</span>
+                <span class="stat-item-label">{{ t('stat.cap_missions') }}</span>
                 <span class="stat-item-value">{{ stats.CAP_mission }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-percent"></i>
-                <span class="stat-item-label">Air K/L</span>
+                <span class="stat-item-label">{{ t('player.air_kl') }}</span>
                 <span class="stat-item-value">{{ (stats.air / stats.lives) | round(1) }}</span>
             </div>
         </div>
     </div>
 
     <div class="stats-section">
-        <h2><i class="fa-solid fa-crosshairs"></i> Ground Combat</h2>
+        <h2><i class="fa-solid fa-crosshairs"></i> {{ t('player.ground_combat') }}</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <i class="fa-solid fa-crosshairs"></i>
-                <span class="stat-item-label">Ground Units</span>
+                <span class="stat-item-label">{{ t('player.ground_units') }}</span>
                 <span class="stat-item-value">{{ stats.ground_units }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-person-rifle"></i>
-                <span class="stat-item-label">Infantry</span>
+                <span class="stat-item-label">{{ t('player.infantry') }}</span>
                 <span class="stat-item-value">{{ stats.infantry }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-explosion"></i>
-                <span class="stat-item-label">SAM Kills</span>
+                <span class="stat-item-label">{{ t('player.sam_kills') }}</span>
                 <span class="stat-item-value">{{ stats.SAM }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-building"></i>
-                <span class="stat-item-label">Structures</span>
+                <span class="stat-item-label">{{ t('player.structures') }}</span>
                 <span class="stat-item-value">{{ stats.structure }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-bullseye"></i>
-                <span class="stat-item-label">CAS Missions</span>
+                <span class="stat-item-label">{{ t('stat.cas_missions') }}</span>
                 <span class="stat-item-value">{{ stats.CAS_mission }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-road"></i>
-                <span class="stat-item-label">Bomb Runway</span>
+                <span class="stat-item-label">{{ t('stat.bomb_runway') }}</span>
                 <span class="stat-item-value">{{ stats.bomb_runway }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-percent"></i>
-                <span class="stat-item-label">Ground K/L</span>
+                <span class="stat-item-label">{{ t('player.ground_kl') }}</span>
                 <span class="stat-item-value">{{ ((stats.ground_units + stats.infantry) / stats.lives) | round(1) }}</span>
             </div>
         </div>
     </div>
 
     <div class="stats-section">
-        <h2><i class="fa-solid fa-truck"></i> Logistics & Support</h2>
+        <h2><i class="fa-solid fa-truck"></i> {{ t('player.logistics') }}</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <i class="fa-solid fa-flag"></i>
-                <span class="stat-item-label">Zone Captures</span>
+                <span class="stat-item-label">{{ t('stat.zone_captures') }}</span>
                 <span class="stat-item-value">{{ stats.zone_capture }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-arrow-up"></i>
-                <span class="stat-item-label">Zone Upgrades</span>
+                <span class="stat-item-label">{{ t('stat.zone_upgrades') }}</span>
                 <span class="stat-item-value">{{ stats.zone_upgrade }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-warehouse"></i>
-                <span class="stat-item-label">Warehouse Deliveries</span>
+                <span class="stat-item-label">{{ t('stat.warehouse') }}</span>
                 <span class="stat-item-value">{{ stats.warehouse_delivery }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-coins"></i>
-                <span class="stat-item-label">Points Spent</span>
+                <span class="stat-item-label">{{ t('stat.points_spent') }}</span>
                 <span class="stat-item-value">{{ stats.points_spent }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-parachute-box"></i>
-                <span class="stat-item-label">Pilot Rescues</span>
+                <span class="stat-item-label">{{ t('stat.pilot_rescues') }}</span>
                 <span class="stat-item-value">{{ stats.pilot_rescue }}</span>
             </div>
             <div class="stat-item">
                 <i class="fa-solid fa-binoculars"></i>
-                <span class="stat-item-label">Recon Missions</span>
+                <span class="stat-item-label">{{ t('stat.recon_missions') }}</span>
                 <span class="stat-item-value">{{ stats.recon_mission }}</span>
             </div>
         </div>
     </div>
 
     <div style="text-align:center;">
-        <a href="{{ request.url_for('foothold_map', server=server) }}" class="player-back-btn">Back to map</a>
+        <a href="{{ request.url_for('foothold_map', server=server) }}" class="player-back-btn">{{ t('common.back_map') }}</a>
     </div>
 </div>
 {% endblock %}
