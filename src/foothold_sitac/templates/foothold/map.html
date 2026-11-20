@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Map{% endblock %}
+{% block title %}{{ t('map.title') }}{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="{{ static_url('css/modals.css') }}">
 {% endblock %}
 
+{# the language selector sits in the navbar #}
+{% block lang_switcher %}{% endblock %}
+
 {% block content %}
 <!-- Navbar -->
 <nav class="navbar">
@@ -21,31 +24,32 @@
         </span>
         <div class="navbar-dropdown" id="server-dropdown">
             <span class="navbar-dropdown-header"><i class="fa-solid fa-server"></i> {{ server_label }}</span>
-            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> Back to server list</a>
+            <a href="{{ request.url_for('foothold_servers') }}"><i class="fa-solid fa-list"></i> {{ t('common.back_servers') }}</a>
             <div class="navbar-dropdown-separator"></div>
             <a href="https://github.com/VEAF/foothold-sitac" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
         </div>
     </div>
     <div class="navbar-links">
-        <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> Ranking</span><span class="navbar-tooltip">View player statistics and rankings</span></a>
-        <a href="{{ request.url_for('foothold_success_board', server=server) }}" class="navbar-burger-item"><i class="fa-solid fa-trophy"></i><span class="navbar-link-label"> Success</span><span class="navbar-tooltip">Best players in each category</span></a>
-        <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="navbar-burger-item {% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> Missions</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">Active missions on the server</span></a>
-        <span class="navbar-item navbar-burger-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> Ejected</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">Ejected pilots awaiting rescue</span></span>
-        <span class="navbar-item" id="credits-info"><i class="fa-solid fa-coins"></i><span class="navbar-link-label"> Credits</span><span class="navbar-badge navbar-badge-blue" id="credits-blue">{{ "%.0f"|format(sitac.accounts.blue) }}</span><span class="navbar-badge navbar-badge-red" id="credits-red">{{ "%.0f"|format(sitac.accounts.red) }}</span><span class="navbar-tooltip">Coalition credits (Blue / Red)</span></span>
-        {% if sitac.resources %}<span class="navbar-item" id="resources-info"><i class="fa-solid fa-boxes-stacked"></i><span class="navbar-link-label"> Stock</span><span class="navbar-badge navbar-badge-blue" id="resources-blue">{{ "%.0f"|format(sitac.resources.blue) }}</span><span class="navbar-badge navbar-badge-red" id="resources-red">{{ "%.0f"|format(sitac.resources.red) }}</span><span class="navbar-tooltip">Resource stock of each side (Blue / Red)</span></span>{% endif %}
-        <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> Objectives</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">Campaign progress and zone status</span></span>
-        <span class="navbar-item navbar-burger-item ruler-toggle" id="ruler-toggle" onclick="toggleRulerMode()" style="cursor: pointer;"><i class="fa-solid fa-ruler"></i><span class="navbar-link-label"> Ruler</span><span class="navbar-tooltip">Measure distance between two points</span></span>
-        <span class="navbar-item navbar-burger-item" onclick="openMarkpointModal()" style="cursor: pointer;"><i class="fa-solid fa-location-dot"></i><span class="navbar-link-label"> Markpoint</span><span class="navbar-tooltip">Add a marker at coordinates</span></span>
-        <span class="navbar-item" onclick="openSettingsModal()" style="cursor: pointer;"><i class="fa-solid fa-gear"></i><span class="navbar-link-label"> Settings</span><span class="navbar-tooltip">Display settings</span></span>
+        <a href="#" onclick="openModal('players'); return false;"><i class="fa-solid fa-ranking-star"></i><span class="navbar-link-label"> {{ t('nav.ranking') }}</span><span class="navbar-tooltip">{{ t('nav.ranking_tip') }}</span></a>
+        <a href="{{ request.url_for('foothold_success_board', server=server) }}" class="navbar-burger-item"><i class="fa-solid fa-trophy"></i><span class="navbar-link-label"> {{ t('nav.success') }}</span><span class="navbar-tooltip">{{ t('nav.success_tip') }}</span></a>
+        <a href="#" onclick="openModal('missions'); return false;" id="missions-link" class="navbar-burger-item {% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i><span class="navbar-link-label"> {{ t('nav.missions') }}</span><span class="navbar-badge" id="missions-badge">{{ sitac.missions|length }}</span><span class="navbar-tooltip">{{ t('nav.missions_tip') }}</span></a>
+        <span class="navbar-item navbar-burger-item" id="ejected-pilots-info" onclick="openModal('ejected')" style="cursor: pointer;"><i class="fa-solid fa-parachute-box"></i><span class="navbar-link-label"> {{ t('nav.ejected') }}</span><span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" id="ejected-pilots-count">{{ sitac.ejected_pilots|length }}</span><span class="navbar-tooltip">{{ t('nav.ejected_tip') }}</span></span>
+        <span class="navbar-item" id="credits-info"><i class="fa-solid fa-coins"></i><span class="navbar-link-label"> {{ t('nav.credits') }}</span><span class="navbar-badge navbar-badge-blue" id="credits-blue">{{ "%.0f"|format(sitac.accounts.blue) }}</span><span class="navbar-badge navbar-badge-red" id="credits-red">{{ "%.0f"|format(sitac.accounts.red) }}</span><span class="navbar-tooltip">{{ t('nav.credits_tip') }}</span></span>
+        {% if sitac.resources %}<span class="navbar-item" id="resources-info"><i class="fa-solid fa-boxes-stacked"></i><span class="navbar-link-label"> {{ t('nav.stock') }}</span><span class="navbar-badge navbar-badge-blue" id="resources-blue">{{ "%.0f"|format(sitac.resources.blue) }}</span><span class="navbar-badge navbar-badge-red" id="resources-red">{{ "%.0f"|format(sitac.resources.red) }}</span><span class="navbar-tooltip">{{ t('nav.stock_tip') }}</span></span>{% endif %}
+        <span class="navbar-item" onclick="openModal('zones')" style="cursor: pointer;"><i class="fa-solid fa-flag"></i><span class="navbar-link-label"> {{ t('nav.objectives') }}</span><span class="navbar-badge"><span id="progress-value">{{ "%.0f"|format(progress) }}</span>%</span><span class="navbar-tooltip">{{ t('nav.objectives_tip') }}</span></span>
+        <span class="navbar-item navbar-burger-item ruler-toggle" id="ruler-toggle" onclick="toggleRulerMode()" style="cursor: pointer;"><i class="fa-solid fa-ruler"></i><span class="navbar-link-label"> {{ t('nav.ruler') }}</span><span class="navbar-tooltip">{{ t('nav.ruler_tip') }}</span></span>
+        <span class="navbar-item navbar-burger-item" onclick="openMarkpointModal()" style="cursor: pointer;"><i class="fa-solid fa-location-dot"></i><span class="navbar-link-label"> {{ t('nav.markpoint') }}</span><span class="navbar-tooltip">{{ t('nav.markpoint_tip') }}</span></span>
+        <span class="navbar-item" onclick="openSettingsModal()" style="cursor: pointer;"><i class="fa-solid fa-gear"></i><span class="navbar-link-label"> {{ t('nav.settings') }}</span><span class="navbar-tooltip">{{ t('nav.settings_tip') }}</span></span>
+        {% include "partials/lang_switcher.html" %}
     </div>
     <div class="navbar-burger-dropdown">
         <span class="navbar-item navbar-burger-toggle" onclick="toggleBurgerMenu()" style="cursor: pointer;"><i class="fa-solid fa-bars"></i></span>
         <div class="navbar-burger-menu" id="burger-menu">
-            <a href="{{ request.url_for('foothold_success_board', server=server) }}"><i class="fa-solid fa-trophy"></i> Success</a>
-            <a href="#" onclick="openModal('missions'); toggleBurgerMenu(); return false;" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> Missions <span class="navbar-badge" style="margin-left:auto;">{{ sitac.missions|length }}</span></a>
-            <a href="#" onclick="openModal('ejected'); toggleBurgerMenu(); return false;"><i class="fa-solid fa-parachute-box"></i> Ejected <span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" style="margin-left:auto;">{{ sitac.ejected_pilots|length }}</span></a>
-            <a href="#" onclick="toggleRulerMode(); toggleBurgerMenu(); return false;"><i class="fa-solid fa-ruler"></i> Ruler</a>
-            <a href="#" onclick="openMarkpointModal(); toggleBurgerMenu(); return false;"><i class="fa-solid fa-location-dot"></i> Markpoint</a>
+            <a href="{{ request.url_for('foothold_success_board', server=server) }}"><i class="fa-solid fa-trophy"></i> {{ t('nav.success') }}</a>
+            <a href="#" onclick="openModal('missions'); toggleBurgerMenu(); return false;" class="{% if sitac.missions|length == 0 %}disabled{% endif %}"><i class="fa-solid fa-crosshairs"></i> {{ t('nav.missions') }} <span class="navbar-badge" style="margin-left:auto;">{{ sitac.missions|length }}</span></a>
+            <a href="#" onclick="openModal('ejected'); toggleBurgerMenu(); return false;"><i class="fa-solid fa-parachute-box"></i> {{ t('nav.ejected') }} <span class="navbar-badge {% if sitac.ejected_pilots|length > 0 %}navbar-badge-orange{% else %}navbar-badge-gray{% endif %}" style="margin-left:auto;">{{ sitac.ejected_pilots|length }}</span></a>
+            <a href="#" onclick="toggleRulerMode(); toggleBurgerMenu(); return false;"><i class="fa-solid fa-ruler"></i> {{ t('nav.ruler') }}</a>
+            <a href="#" onclick="openMarkpointModal(); toggleBurgerMenu(); return false;"><i class="fa-solid fa-location-dot"></i> {{ t('nav.markpoint') }}</a>
         </div>
     </div>
 </nav>
@@ -62,38 +66,38 @@
         </svg>
     </div>
     <span id="countdown">{{ config.web.refresh_interval }}s</span>
-    <span class="tooltip" id="freshness-tooltip">Refresh in {{ config.web.refresh_interval }}s</span>
+    <span class="tooltip" id="freshness-tooltip">{{ t('js.freshness.refresh_in', n=config.web.refresh_interval) }}</span>
 </div>
 
 <!-- Ruler measurement widget -->
 <div id="ruler-widget" class="ruler-widget hidden">
     <div class="ruler-header">
         <i class="fa-solid fa-ruler"></i>
-        <span>Measure</span>
-        <button class="ruler-clear" onclick="clearRuler()" title="Clear measurement">&times;</button>
+        <span>{{ t('ruler.measure') }}</span>
+        <button class="ruler-clear" onclick="clearRuler()" title="{{ t('ruler.clear') }}">&times;</button>
     </div>
     <div class="ruler-body">
         <div class="ruler-row">
-            <span class="ruler-label">Distance</span>
+            <span class="ruler-label">{{ t('ruler.distance') }}</span>
             <span class="ruler-value" id="ruler-distance">--</span>
         </div>
         <div class="ruler-row">
-            <span class="ruler-label">Bearing</span>
+            <span class="ruler-label">{{ t('ruler.bearing') }}</span>
             <span class="ruler-value" id="ruler-bearing">--</span>
         </div>
         <div class="ruler-row">
-            <span class="ruler-label">Flight time</span>
+            <span class="ruler-label">{{ t('ruler.flight_time') }}</span>
             <span class="ruler-value" id="ruler-time">--</span>
         </div>
     </div>
     <div class="ruler-points">
         <div class="ruler-point">
             <span class="ruler-point-marker">A</span>
-            <span class="ruler-point-coords" id="ruler-point-1">Click to set</span>
+            <span class="ruler-point-coords" id="ruler-point-1">{{ t('js.ruler.click_to_set') }}</span>
         </div>
         <div class="ruler-point">
             <span class="ruler-point-marker">B</span>
-            <span class="ruler-point-coords" id="ruler-point-2">Click to set</span>
+            <span class="ruler-point-coords" id="ruler-point-2">{{ t('js.ruler.click_to_set') }}</span>
         </div>
     </div>
 </div>
@@ -108,7 +112,7 @@
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal()">&times;</button>
         <div id="modal-body">
-            <div class="modal-loading">Loading...</div>
+            <div class="modal-loading">{{ t('js.modal.loading') }}</div>
         </div>
     </div>
 </div>
@@ -116,6 +120,8 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="{{ static_url('js/i18n.js') }}"></script>
+<script>I18N = {{ js_messages() | tojson }};</script>
 <script src="{{ static_url('js/html.js') }}"></script>
 <script src="{{ static_url('js/coords.js') }}"></script>
 <script src="{{ static_url('js/tooltips.js') }}"></script>

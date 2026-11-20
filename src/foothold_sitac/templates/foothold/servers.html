@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Servers{% endblock %}
+{% block title %}{{ t('servers.title') }}{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="{{ static_url('css/cards.css') }}">
@@ -10,7 +10,7 @@
 
 {% block content %}
 <div class="container">
-    <h1>Servers and campaigns</h1>
+    <h1>{{ t('servers.heading') }}</h1>
 
     {% if servers %}
     <div class="cards-grid">
@@ -18,33 +18,33 @@
         <a href="{{ request.url_for('foothold_map', server=server.name) }}" class="card">
             <h2 class="card-title">{{ server.label or server.name }}</h2>
             {% if server.kind == 'veaf' %}
-            <p class="card-meta card-kind">VEAF dynamic campaign &middot; {{ server.host }}</p>
+            <p class="card-meta card-kind">{{ t('servers.veaf_campaign') }} &middot; {{ server.host }}</p>
             {% endif %}
             {% if server.updated_at %}
                 {% set delta = (now - server.updated_at).total_seconds() %}
                 {% if delta < 120 %}
-                    <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    <p class="card-meta fresh">{{ t('servers.updated_min', n=(delta // 60) | int) }}</p>
                 {% elif delta < 3600 %}
-                    <p class="card-meta fresh">Updated {{ (delta // 60) | int }} min ago</p>
+                    <p class="card-meta fresh">{{ t('servers.updated_min', n=(delta // 60) | int) }}</p>
                 {% elif delta < 86400 %}
-                    <p class="card-meta stale">Updated {{ (delta // 3600) | int }}h ago</p>
+                    <p class="card-meta stale">{{ t('servers.updated_hours', n=(delta // 3600) | int) }}</p>
                 {% else %}
-                    <p class="card-meta stale">Updated {{ (delta // 86400) | int }}d ago</p>
+                    <p class="card-meta stale">{{ t('servers.updated_days', n=(delta // 86400) | int) }}</p>
                 {% endif %}
             {% else %}
-                <p class="card-meta unknown">No data available</p>
+                <p class="card-meta unknown">{{ t('servers.no_data') }}</p>
             {% endif %}
         </a>
         {% endfor %}
     </div>
     {% else %}
     <div class="empty-state">
-        <p>No Foothold server nor VEAF campaign found.</p>
+        <p>{{ t('servers.empty') }}</p>
     </div>
     {% endif %}
 
     <div class="back-link">
-        <a class="btn btn-primary" href="{{ request.url_for('home') }}">Back to home</a>
+        <a class="btn btn-primary" href="{{ request.url_for('home') }}">{{ t('common.back_home') }}</a>
     </div>
 </div>
 {% endblock %}

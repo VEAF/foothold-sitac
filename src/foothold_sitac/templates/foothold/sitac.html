@@ -20,12 +20,12 @@
     <table class="sitac-table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Side</th>
-                <th>Level</th>
-                <th>Upgrades Used</th>
-                <th>Active</th>
-                <th>First Capture by Red</th>
+                <th>{{ t('zone.name') }}</th>
+                <th>{{ t('zone.side') }}</th>
+                <th>{{ t('zone.level') }}</th>
+                <th>{{ t('zone.upgrades_used') }}</th>
+                <th>{{ t('zone.active') }}</th>
+                <th>{{ t('zone.first_capture_red') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -34,34 +34,34 @@
                 <td>{{ name }}</td>
                 <td>
                     {% if zone.side == 1 %}
-                    <span class="side-badge red">Red</span>
+                    <span class="side-badge red">{{ t('side.red') }}</span>
                     {% elif zone.side == 2 %}
-                    <span class="side-badge blue">Blue</span>
+                    <span class="side-badge blue">{{ t('side.blue') }}</span>
                     {% else %}
-                    <span class="side-badge grey">Neutral</span>
+                    <span class="side-badge grey">{{ t('side.neutral') }}</span>
                     {% endif %}
                 </td>
                 <td class="n">{{ zone.level }}</td>
                 <td class="n">{{ zone.upgradesUsed }}</td>
-                <td>{{ 'Yes' if zone.active else 'No' }}</td>
-                <td>{{ 'Yes' if zone.firstCaptureByRed else 'No' }}</td>
+                <td>{{ t('common.yes') if zone.active else t('common.no') }}</td>
+                <td>{{ t('common.yes') if zone.firstCaptureByRed else t('common.no') }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <!-- Section PLAYER STATS -->
-    <h2>Player Stats</h2>
+    <h2>{{ t('sitac.player_stats') }}</h2>
 
     <div class="tabs ranking-tabs sitac-tabs">
-        <button class="tab-btn active" data-tab="general"><i class="fa-solid fa-star"></i> General</button>
-        <button class="tab-btn" data-tab="air"><i class="fa-solid fa-jet-fighter"></i> Air to Air</button>
-        <button class="tab-btn" data-tab="sead"><i class="fa-solid fa-explosion"></i> SEAD</button>
-        <button class="tab-btn" data-tab="cas"><i class="fa-solid fa-crosshairs"></i> CAS</button>
-        <button class="tab-btn" data-tab="strike"><i class="fa-solid fa-bomb"></i> Strike</button>
-        <button class="tab-btn" data-tab="logistic"><i class="fa-solid fa-truck"></i> Logistic</button>
-        <button class="tab-btn" data-tab="csar"><i class="fa-solid fa-helicopter"></i> CSAR</button>
-        <button class="tab-btn" data-tab="recon"><i class="fa-solid fa-binoculars"></i> Recon</button>
+        <button class="tab-btn active" data-tab="general"><i class="fa-solid fa-star"></i> {{ t('rank.general') }}</button>
+        <button class="tab-btn" data-tab="air"><i class="fa-solid fa-jet-fighter"></i> {{ t('rank.air') }}</button>
+        <button class="tab-btn" data-tab="sead"><i class="fa-solid fa-explosion"></i> {{ t('rank.sead') }}</button>
+        <button class="tab-btn" data-tab="cas"><i class="fa-solid fa-crosshairs"></i> {{ t('rank.cas') }}</button>
+        <button class="tab-btn" data-tab="strike"><i class="fa-solid fa-bomb"></i> {{ t('rank.strike') }}</button>
+        <button class="tab-btn" data-tab="logistic"><i class="fa-solid fa-truck"></i> {{ t('rank.logistic') }}</button>
+        <button class="tab-btn" data-tab="csar"><i class="fa-solid fa-helicopter"></i> {{ t('rank.csar') }}</button>
+        <button class="tab-btn" data-tab="recon"><i class="fa-solid fa-binoculars"></i> {{ t('rank.recon') }}</button>
     </div>
 
     <!-- General -->
@@ -69,11 +69,11 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Points Spent" data-sort-key="points_spent"><i class="fa-solid fa-coins"></i></th>
-            <th class="col-icon" data-tooltip="Deaths" data-sort-key="deaths"><i class="fa-solid fa-skull"></i></th>
-            <th class="col-icon" data-tooltip="Points per Life" data-sort-key="points_per_life"><i class="fa-solid fa-chart-line"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points_spent') }}" data-sort-key="points_spent"><i class="fa-solid fa-coins"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.deaths') }}" data-sort-key="deaths"><i class="fa-solid fa-skull"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points_per_life') }}" data-sort-key="points_per_life"><i class="fa-solid fa-chart-line"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.points', reverse=True) %}
@@ -95,13 +95,13 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Air Kills (A/A)" data-sort-key="air"><i class="fa-solid fa-jet-fighter"></i></th>
-            <th class="col-icon" data-tooltip="Helicopter Kills" data-sort-key="helo"><i class="fa-solid fa-helicopter"></i></th>
-            <th class="col-icon" data-tooltip="Intercept Cargo Plane" data-sort-key="intercept"><i class="fa-solid fa-plane-circle-xmark"></i></th>
-            <th class="col-icon" data-tooltip="CAP Missions" data-sort-key="cap"><i class="fa-solid fa-shield-halved"></i></th>
-            <th class="col-icon" data-tooltip="Air K/L Ratio" data-sort-key="air_kl"><i class="fa-solid fa-percent"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.air_kills') }}" data-sort-key="air"><i class="fa-solid fa-jet-fighter"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.helo_kills') }}" data-sort-key="helo"><i class="fa-solid fa-helicopter"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.intercept_cargo') }}" data-sort-key="intercept"><i class="fa-solid fa-plane-circle-xmark"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.cap_missions') }}" data-sort-key="cap"><i class="fa-solid fa-shield-halved"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.air_kl') }}" data-sort-key="air_kl"><i class="fa-solid fa-percent"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.air', reverse=True) %}
@@ -125,9 +125,9 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="SAM/Air Defense Kills" data-sort-key="sam"><i class="fa-solid fa-explosion"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.sam_kills') }}" data-sort-key="sam"><i class="fa-solid fa-explosion"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.SAM', reverse=True) %}
@@ -147,12 +147,12 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Ground Unit Kills" data-sort-key="ground_units"><i class="fa-solid fa-crosshairs"></i></th>
-            <th class="col-icon" data-tooltip="Infantry Kills" data-sort-key="infantry"><i class="fa-solid fa-person-rifle"></i></th>
-            <th class="col-icon" data-tooltip="CAS Missions" data-sort-key="cas_mission"><i class="fa-solid fa-bullseye"></i></th>
-            <th class="col-icon" data-tooltip="Ground K/L Ratio" data-sort-key="ground_kl"><i class="fa-solid fa-percent"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.ground_kills') }}" data-sort-key="ground_units"><i class="fa-solid fa-crosshairs"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.infantry_kills') }}" data-sort-key="infantry"><i class="fa-solid fa-person-rifle"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.cas_missions') }}" data-sort-key="cas_mission"><i class="fa-solid fa-bullseye"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.ground_kl') }}" data-sort-key="ground_kl"><i class="fa-solid fa-percent"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.ground_units', reverse=True) %}
@@ -175,10 +175,10 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Structure Kills" data-sort-key="structure"><i class="fa-solid fa-building"></i></th>
-            <th class="col-icon" data-tooltip="Bomb Runway" data-sort-key="bomb_runway"><i class="fa-solid fa-road"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.structure_kills') }}" data-sort-key="structure"><i class="fa-solid fa-building"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.bomb_runway') }}" data-sort-key="bomb_runway"><i class="fa-solid fa-road"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.structure', reverse=True) %}
@@ -199,12 +199,12 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Flight Time (min)" data-sort-key="flight_time"><i class="fa-solid fa-clock"></i></th>
-            <th class="col-icon" data-tooltip="Warehouse Deliveries" data-sort-key="warehouse"><i class="fa-solid fa-warehouse"></i></th>
-            <th class="col-icon" data-tooltip="Zone Captures" data-sort-key="zone_capture"><i class="fa-solid fa-flag"></i></th>
-            <th class="col-icon" data-tooltip="Zone Upgrades" data-sort-key="zone_upgrade"><i class="fa-solid fa-arrow-up"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.flight_time') }}" data-sort-key="flight_time"><i class="fa-solid fa-clock"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.warehouse') }}" data-sort-key="warehouse"><i class="fa-solid fa-warehouse"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.zone_captures') }}" data-sort-key="zone_capture"><i class="fa-solid fa-flag"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.zone_upgrades') }}" data-sort-key="zone_upgrade"><i class="fa-solid fa-arrow-up"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.flight_time', reverse=True) %}
@@ -227,10 +227,10 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Flight Time (min)" data-sort-key="flight_time"><i class="fa-solid fa-clock"></i></th>
-            <th class="col-icon" data-tooltip="Pilot Rescues" data-sort-key="pilot_rescue"><i class="fa-solid fa-parachute-box"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.flight_time') }}" data-sort-key="flight_time"><i class="fa-solid fa-clock"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.pilot_rescues') }}" data-sort-key="pilot_rescue"><i class="fa-solid fa-parachute-box"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.pilot_rescue', reverse=True) %}
@@ -251,9 +251,9 @@
     <table class="sitac-table sortable">
         <thead><tr>
             <th class="col-rank">#</th>
-            <th data-sort-key="player" data-sort-type="string">Player</th>
-            <th class="col-icon" data-tooltip="Points" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
-            <th class="col-icon" data-tooltip="Recon Missions" data-sort-key="recon"><i class="fa-solid fa-binoculars"></i></th>
+            <th data-sort-key="player" data-sort-type="string">{{ t('rank.player') }}</th>
+            <th class="col-icon" data-tooltip="{{ t('stat.points') }}" data-sort-key="points"><i class="fa-solid fa-star"></i></th>
+            <th class="col-icon" data-tooltip="{{ t('stat.recon_missions') }}" data-sort-key="recon"><i class="fa-solid fa-binoculars"></i></th>
         </tr></thead>
         <tbody>
             {% for player, stats in sitac.player_stats.items() | sort(attribute='1.recon_mission', reverse=True) %}
@@ -269,7 +269,7 @@
     </div>
 
     <div style="text-align:center;">
-        <a href="{{ request.url_for('foothold_servers') }}" class="sitac-back-btn">Back to servers list</a>
+        <a href="{{ request.url_for('foothold_servers') }}" class="sitac-back-btn">{{ t('common.back_servers') }}</a>
     </div>
 </div>
 {% endblock %}

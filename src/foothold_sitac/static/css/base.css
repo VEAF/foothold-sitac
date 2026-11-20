@@ -138,3 +138,71 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(66, 99, 235, 0.5);
 }
+
+/* Language selector (globe opening FR / EN) */
+.lang-switcher {
+    position: relative;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.lang-switcher summary {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.lang-switcher summary::-webkit-details-marker {
+    display: none;
+}
+
+.lang-switcher summary:hover,
+.lang-switcher[open] summary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.lang-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 130px;
+    background: var(--bg-dark-6);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 1100;
+}
+
+.lang-menu a {
+    display: block;
+    padding: 8px 14px;
+    color: var(--text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.lang-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lang-menu a.active {
+    color: var(--color-blue);
+    font-weight: 600;
+}
+
+/* Pages without a navbar: the selector sits in the top right corner */
+.lang-switcher-fixed {
+    position: fixed;
+    top: 10px;
+    right: 14px;
+    z-index: 1100;
+    background: rgba(13, 18, 25, 0.7);
+    border-radius: 4px;
+}

@@ -12,35 +12,33 @@ from foothold_sitac.veaf_campaign import split_campaign_key
 
 @dataclass
 class SuccessCategory:
-    title: str
+    """A success board award; its title and description are the i18n keys award.<field>.title/description."""
+
     field: str
     icon: str
-    description: str
     reverse: bool = False  # True = lowest wins (e.g. deaths)
 
 
 SUCCESS_CATEGORIES: list[SuccessCategory] = [
-    SuccessCategory("Top Scorer", "points", "fa-star", "Most points earned"),
-    SuccessCategory("Top Spender", "points_spent", "fa-coins", "Most points invested"),
-    SuccessCategory("Ace Pilot", "air", "fa-jet-fighter", "Most air-to-air kills"),
-    SuccessCategory("Helo Hunter", "helo", "fa-helicopter", "Most helicopter kills"),
-    SuccessCategory("SAM Slayer", "SAM", "fa-explosion", "Most SAM kills"),
-    SuccessCategory("Ground Pounder", "ground_units", "fa-crosshairs", "Most ground unit kills"),
-    SuccessCategory("Infantry Expert", "infantry", "fa-person-rifle", "Most infantry kills"),
-    SuccessCategory("Demolisher", "structure", "fa-building", "Most structures destroyed"),
-    SuccessCategory("CAS Specialist", "CAS_mission", "fa-bullseye", "Most CAS missions completed"),
-    SuccessCategory("CAP Guardian", "CAP_mission", "fa-shield-halved", "Most CAP missions flown"),
-    SuccessCategory("Scout", "recon_mission", "fa-binoculars", "Most recon missions"),
-    SuccessCategory("Rescuer", "pilot_rescue", "fa-parachute-box", "Most pilots rescued"),
-    SuccessCategory(
-        "Cargo Interceptor", "intercept_cargo_plane", "fa-plane-circle-xmark", "Most cargo planes intercepted"
-    ),
-    SuccessCategory("Trucker", "warehouse_delivery", "fa-warehouse", "Most warehouse deliveries"),
-    SuccessCategory("Zone Conqueror", "zone_capture", "fa-flag", "Most zones captured"),
-    SuccessCategory("Zone Builder", "zone_upgrade", "fa-arrow-up", "Most zone upgrades"),
-    SuccessCategory("Runway Striker", "bomb_runway", "fa-road", "Most runways bombed"),
-    SuccessCategory("Logistic Flight", "flight_time", "fa-clock", "Most flight time"),
-    SuccessCategory("Survivor", "deaths", "fa-heart", "Fewest deaths among active players", reverse=True),
+    SuccessCategory("points", "fa-star"),
+    SuccessCategory("points_spent", "fa-coins"),
+    SuccessCategory("air", "fa-jet-fighter"),
+    SuccessCategory("helo", "fa-helicopter"),
+    SuccessCategory("SAM", "fa-explosion"),
+    SuccessCategory("ground_units", "fa-crosshairs"),
+    SuccessCategory("infantry", "fa-person-rifle"),
+    SuccessCategory("structure", "fa-building"),
+    SuccessCategory("CAS_mission", "fa-bullseye"),
+    SuccessCategory("CAP_mission", "fa-shield-halved"),
+    SuccessCategory("recon_mission", "fa-binoculars"),
+    SuccessCategory("pilot_rescue", "fa-parachute-box"),
+    SuccessCategory("intercept_cargo_plane", "fa-plane-circle-xmark"),
+    SuccessCategory("warehouse_delivery", "fa-warehouse"),
+    SuccessCategory("zone_capture", "fa-flag"),
+    SuccessCategory("zone_upgrade", "fa-arrow-up"),
+    SuccessCategory("bomb_runway", "fa-road"),
+    SuccessCategory("flight_time", "fa-clock"),
+    SuccessCategory("deaths", "fa-heart", reverse=True),  # fewest deaths among active players
 ]
 
 
@@ -216,8 +214,7 @@ async def foothold_success_board(
         player_name, value = result
         awards.append(
             {
-                "title": category.title,
-                "description": category.description,
+                "key": category.field,
                 "icon": category.icon,
                 "player_name": player_name,
                 "value": int(value) if isinstance(value, float) and value == int(value) else value,

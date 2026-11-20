@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}{{ t('home.title') }}{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="{{ static_url('css/cards.css') }}">
@@ -10,11 +10,11 @@
 
 {% block content %}
 <div class="home-card">
-    <h1>Welcome</h1>
-    <p>Access to Foothold Sitac.</p>
+    <h1>{{ t('home.welcome') }}</h1>
+    <p>{{ t('home.intro') }}</p>
 
     <a class="btn btn-primary cta-btn" href="{{ request.url_for('foothold_servers') }}">
-        Go to Foothold
+        {{ t('home.go') }}
     </a>
 </div>
 {% endblock %}

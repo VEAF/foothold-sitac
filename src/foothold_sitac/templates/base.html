@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ current_language() }}">
 
 <head>
     <meta charset="UTF-8">
@@ -10,6 +10,7 @@
 </head>
 
 <body class="{% block body_class %}{% endblock %}">
+    {% block lang_switcher %}{% set lang_switcher_class = 'lang-switcher-fixed' %}{% include "partials/lang_switcher.html" %}{% endblock %}
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>

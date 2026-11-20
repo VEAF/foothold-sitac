@@ -4,6 +4,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from foothold_sitac.config import get_config
+from foothold_sitac.i18n import LANGUAGE_NAMES, current_language, js_messages, language_switch_url, t
 
 templates_path = files("foothold_sitac") / "templates"
 static_path = Path(str(files("foothold_sitac") / "static"))
@@ -36,3 +37,8 @@ def static_url(path: str) -> str:
 env = Environment(loader=FileSystemLoader(str(templates_path)), autoescape=select_autoescape(["html", "xml"]))
 env.globals["config"] = get_config()  # add all variables accessibles in templates
 env.globals["static_url"] = static_url  # cache-busting for static assets
+env.globals["t"] = t  # translated text in the request's language
+env.globals["current_language"] = current_language
+env.globals["js_messages"] = js_messages
+env.globals["language_names"] = LANGUAGE_NAMES
+env.globals["language_switch_url"] = language_switch_url
